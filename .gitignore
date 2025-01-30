@@ -8,6 +8,8 @@ node_modules/
 logs/
 *.log
 npm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # OS-specific files
 .DS_Store
@@ -15,13 +17,23 @@ Thumbs.db
 
 # Editor & IDE files
 .vscode/
+!.vscode/extensions.json
 .idea/
 *.swp
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Build & Cache
 dist/
+dist-ssr/
 build/
 .cache/
 
 # Dependencies from package managers
 package-lock.json
+
+# Local files
+*.local
