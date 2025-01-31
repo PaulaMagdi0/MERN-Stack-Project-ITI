@@ -26,7 +26,8 @@ const bookSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Author',
         required: true
-    }
+    },
+    
 })
 
 module.exports = bookSchema
