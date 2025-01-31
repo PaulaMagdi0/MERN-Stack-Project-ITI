@@ -2,19 +2,37 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const url = process.execArgv.MONGO_URI ||"mongodb+srv://mongoDBServer:EXzM1v5ifzCbH3ut@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
+
+const adminRoutes = require("./routes/admin");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const bookRoutes = require("./routes/bookRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const url = process.execArgv.MONGO_URI ||"mongodb+srv://paulamagdy665:Zw8fE0F7ZRf92dhL@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
 
 // Middleware
 app.use(cors());
 app.use(express.json()); // Built-in body parser
 
+// Database Connection
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => console.log("MongoDB Connected"))
+    .catch(err => console.error(err));
+
 // Sample route
 app.get('/', (req, res) => {
     res.send('Backend is running!');
 });
+
+// Use the routes
+app.use("/admin", adminRoutes);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
+app.use("/books", bookRoutes);
 
 // Start the server
 mongoose.connect(url).then(result=>{app.listen(PORT, () => {
