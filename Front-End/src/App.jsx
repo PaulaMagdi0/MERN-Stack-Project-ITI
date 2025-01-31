@@ -1,12 +1,12 @@
-import './App.css'
+import "./App.css";
+import { Card } from "./components/card/Card";
 
 function App() {
-
   return (
     <>
-      <h1>HelloOo</h1>
+      <Card />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
