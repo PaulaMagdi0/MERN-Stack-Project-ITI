@@ -9,6 +9,16 @@ exports.getBooks = async (req, res) => {
     }
 };
 
+exports.getBookDetailsByID = async (req, res) => {
+    const { id } = req.params
+    console.log(id);
+    const book = await Book.findById(id).exec();
+    if (!book) return res.status(404).json({ message: "Book not found" });
+    res.json(book);
+}
+
+
+
 exports.createBook = async (req, res) => {
     try {
         const newBook = new Book(req.body);
@@ -18,3 +28,30 @@ exports.createBook = async (req, res) => {
         res.status(500).json({ message: "Error adding book" });
     }
 };
+
+// exports.getBooksByTitle = async (req, res) => {
+//     try {
+//         const { title } = req.params;
+//         console.log(title);
+        
+
+//         if (!title) {
+//             return res.status(400).json({ message: "Title is required" });
+//         }
+
+//         console.log("Searching for books with title:", title);
+
+//         // Find books with partial or exact title match (case-insensitive)
+//         let books = await Book.find({ title: { $regex: new RegExp(title, "i") } });
+
+//         if (books.length === 0) {
+//             return res.status(404).json({ message: "No books found with that title" });
+//         }
+
+//         res.json(books);
+//     } catch (error) {
+//         console.error("Error fetching books:", error);
+//         res.status(500).json({ message: "Server error" });
+//     }
+// };
+

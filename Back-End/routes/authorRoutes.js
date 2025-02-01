@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const {getBooks,getBookDetailsByID,getBooksByTitle} = require("../controllers/bookController")
+const {getAuthors,getAuthorsByID} = require("../controllers/authorsController")
 
 // Get all books
-router.get("/", getBooks);
+router.get("/", getAuthors);
 
 // Get a single book by ID
-router.get("/:id",getBookDetailsByID );
+router.get("/:id",getAuthorsByID );
 
 // Search books by title
 // router.get("/:title",getBooksByTitle` );

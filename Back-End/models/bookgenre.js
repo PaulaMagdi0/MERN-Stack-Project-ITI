@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const Bookgenre = new Schema({
+const BookgenreSchema = new Schema({
     book_id:{
         type : mongoose.Schema.Types.ObjectId ,
         require:true,
@@ -13,6 +13,6 @@ const Bookgenre = new Schema({
         ref:"genres"
     }
 })
-module.exports = Bookgenre
+module.exports = BookgenreSchema
 
 

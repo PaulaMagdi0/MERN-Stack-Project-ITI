@@ -1,14 +1,10 @@
 const express = require("express");
 const router = express.Router();
-
+ const {getUsers,getUserById} = require("../controllers/userController")
 // Example: Get user profile
-router.get("/profile", (req, res) => {
-    res.json({ message: "User profile data" });
-});
+router.get("/",getUsers);
 
 // Example: Update user profile
-router.put("/profile", (req, res) => {
-    res.json({ message: "User profile updated" });
-});
+router.get("/:id", getUserById);
 
 module.exports = router;

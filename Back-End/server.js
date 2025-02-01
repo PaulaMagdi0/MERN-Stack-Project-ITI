@@ -7,8 +7,9 @@ const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
+const authorsRoutes = require("./routes/authorRoutes");
 const subscriptionRoutes = require("./routes/subscription");
-
+const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const url = process.execArgv.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7ZRf92dhL@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
@@ -18,7 +19,7 @@ app.use(cors());
 app.use(express.json()); // Built-in body parser
 
 // Database Connection
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect(url, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => console.log("MongoDB Connected"))
@@ -34,7 +35,9 @@ app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
-app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/authors", authorsRoutes);
+app.use("/subscriptionsPlan", subscriptionPlanRoutes);
+app.use("/subscriptions", subscriptionRoutes);
 
 // Start the server
 mongoose.connect(url).then(result => {
