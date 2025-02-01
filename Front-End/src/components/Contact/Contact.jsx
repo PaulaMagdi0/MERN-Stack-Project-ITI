@@ -1,16 +1,14 @@
-import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { Link } from "react-router-dom";
 import "./Contact.css";
 
 const Contact = () => {
   return (
-    <div>
+    <div className="contact-page">
       <div className="navbar"></div>
       <section className="top-sec my-5 slideIn">
         <div id="container">
-          <h1 className="scaleUp">Contact Us</h1>
+          <h1 className="scaleUp mt-5">Contact Us</h1>
           <div className="underline"></div>
           
           <Formik
@@ -82,7 +80,7 @@ const Contact = () => {
               <option>Cancellation and Refunds</option>
               <option>Feedback</option>
               <option>Technical Issues</option>
-              <option>I'd like to ask a question</option>
+              <option>I&apos;d like to ask a question</option>
               <option>Other Inquiries</option>
             </Field>
             <ErrorMessage name="subject" component="div" className="error" />
@@ -92,7 +90,7 @@ const Contact = () => {
             <Field as="textarea" name="message" placeholder="I'd like to chat about" />
             <ErrorMessage name="message" component="div" className="error" />
           </div>
-          <div className="submit">
+          <div className="submit text-center">
             <button type="submit" disabled={isSubmitting} id="form_button">
               {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>
@@ -103,8 +101,8 @@ const Contact = () => {
         </div>
        
       </section>
-      <h1 className="scaleUp">Come visit</h1>
-      <section className="map">
+      <h1 className="scaleUp mb-4">Come visit</h1>
+      <section className="map container">
         <iframe
           src="https://www.google.com/maps/embed?..."
           width="100%"

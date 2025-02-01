@@ -1,8 +1,7 @@
-import React from "react";
-import "./Footer.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTwitter, faFacebookF, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { NavLink, Link } from "react-router-dom";
+import "./Footer.css";
 
 const Footer = () => {
   return (
@@ -14,7 +13,7 @@ const Footer = () => {
               <Link to="/" className="logo">Good Reads</Link>
             </h2>
 
-            <p className="menu">
+            <p className="menu my-4">
               <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Home</Link>
               <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Subscription</Link>
               <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>About</Link>
@@ -40,7 +39,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="row mt-5">
+        <div className="row">
           <div className="col-md-12 text-center">
                 <p className="copyright">
               Copyright &copy; {new Date().getFullYear()} All rights reserved 

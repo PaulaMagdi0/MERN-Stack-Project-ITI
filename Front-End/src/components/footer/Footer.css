@@ -1,106 +1,107 @@
 .footer-07 {
-    background: #111; /* Dark background */
-    color: #aaa; 
-    padding: 50px 0;
-    text-align: center;
+  background: #111;
+  /* Dark background */
+  color: #aaa;
+  padding: 50px 0;
+  text-align: center;
+}
+
+/* Logo Styling */
+.footer-heading a {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Menu Styling */
+.menu a {
+  color: #aaa;
+  margin: 0 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.menu a:hover {
+  color: #8bc34a;
+}
+
+/* Social Icons */
+.ftco-footer-social {
+  margin-top: 15px;
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.ftco-footer-social li {
+  display: inline-block;
+}
+
+.ftco-footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid #8bc34a;
+  color: #8bc34a;
+  font-size: 18px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.ftco-footer-social a:hover {
+  background: #8bc34a;
+  color: #111;
+}
+
+/* Copyright Section */
+.copyright {
+  font-size: 14px;
+  margin-top: 20px;
+  color: #666;
+}
+
+.copyright a {
+  color: #8bc34a;
+  text-decoration: none;
+}
+
+.copyright a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .footer-07 {
+    padding: 30px 15px;
   }
-  
-  /* Logo Styling */
+
   .footer-heading a {
-    font-size: 24px;
-    font-weight: bold;
-    color: #fff; 
-    text-decoration: none;
+    font-size: 20px;
   }
-  
-  /* Menu Styling */
-  .menu a {
-    color: #aaa;
-    margin: 0 10px;
-    font-size: 14px;
-    text-transform: uppercase;
-    text-decoration: none;
+
+  .menu {
+    flex-direction: column;
+    gap: 5px;
   }
-  
-  .menu a:hover {
-    color: #8bc34a; 
-  }
-  
-  /* Social Icons */
+
   .ftco-footer-social {
-    margin-top: 15px;
-    list-style: none;
-    display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
   }
-  
-  .ftco-footer-social li {
-    display: inline-block;
-  }
-  
+
   .ftco-footer-social a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: transparent;
-    border: 1px solid #8bc34a; 
-    color: #8bc34a;
-    font-size: 18px;
-    text-decoration: none;
-    transition: all 0.3s ease;
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
   }
-  
-  .ftco-footer-social a:hover {
-    background: #8bc34a;
-    color: #111;
-  }
-  
-  /* Copyright Section */
+
   .copyright {
-    font-size: 14px;
-    margin-top: 20px;
-    color: #666;
+    font-size: 12px;
   }
-  
-  .copyright a {
-    color: #8bc34a;
-    text-decoration: none;
-  }
-  
-  .copyright a:hover {
-    text-decoration: underline;
-  }
-  @media (max-width: 768px) {
-    .footer-07 {
-      padding: 30px 15px;
-    }
-  
-    .footer-heading a {
-      font-size: 20px;
-    }
-  
-    .menu {
-      flex-direction: column;
-      gap: 5px;
-    }
-  
-    .ftco-footer-social {
-      justify-content: center;
-      gap: 8px;
-    }
-  
-    .ftco-footer-social a {
-      width: 35px;
-      height: 35px;
-      font-size: 16px;
-    }
-  
-    .copyright {
-      font-size: 12px;
-    }
-  }
-  
+}
