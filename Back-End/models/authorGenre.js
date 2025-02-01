@@ -13,4 +13,4 @@ const authorGenre = new Schema({
         ref:"authors"
     }
 })
-module.exports= authorGenre
+module.exports = authorGenre
