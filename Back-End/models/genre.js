@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-// const Genre = require('./models/Genre');
-const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const genre = new Schema({
@@ -10,5 +8,3 @@ const genre = new Schema({
     },
 })
 module.exports = genre
-
-
