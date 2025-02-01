@@ -2,19 +2,25 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const url = process.execArgv.MONGO_URI ||"mongodb+srv://mongoDBServer:EXzM1v5ifzCbH3ut@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
+require('./config/db');
 
-const app = express();
+const user = require("./routes/userRoutes");
+
+const app = express(); // لازم يكون قبل أي app.use()
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Built-in body parser
+app.use(express.json()); 
 
-// Sample route
+// Sample route (اختياري)
 app.get('/', (req, res) => {
     res.send('Backend is running!');
 });
+
+// Routers 
+app.use("/api/v1", user);  
 
 // Start the server
 mongoose.connect(url).then(result=>{app.listen(PORT, () => {
