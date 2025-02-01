@@ -1,11 +1,14 @@
 import "./App.css";
-import { Card } from "./components/card/Card";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Footer from "./components/footer/Footer";
 
 function App() {
   return (
-    <>
-      <Card />
-    </>
+    <Router>
+      <Routes>
+        <Route path="/footer" element={<Footer />} />
+      </Routes>
+    </Router>
   );
 }
 
