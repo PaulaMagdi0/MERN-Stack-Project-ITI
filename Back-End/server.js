@@ -10,7 +10,9 @@ const bookRoutes = require("./routes/bookRoutes");
 const authorsRoutes = require("./routes/authorRoutes");
 const subscriptionRoutes = require("./routes/subscription");
 const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
+
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 const url = process.execArgv.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7ZRf92dhL@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
 
@@ -22,6 +24,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
     credentials: true, // Allow cookies/auth headers
   };
+  
 // Middleware
 app.use(cors());
 
