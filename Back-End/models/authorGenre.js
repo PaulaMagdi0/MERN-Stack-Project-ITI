@@ -5,12 +5,13 @@ const authorGenreSchema = new Schema({
     author_id:{
         type : mongoose.Schema.Types.ObjectId ,
         require:true,
-        ref:"authors"
+        ref:"Author"
     },
     genre_id:{
-        type : mongoose.Schema.Types.ObjectId ,
-        require:true,
-        ref:"genres"
+        type: Schema.Types.ObjectId,
+        ref: 'Genre', // Must match Genre model name
+        required: true
     }
 })
-module.exports= authorGenreSchema
+module.exports = mongoose.model("authorgenres", authorGenreSchema);
+
