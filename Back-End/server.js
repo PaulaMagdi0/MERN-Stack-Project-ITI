@@ -23,10 +23,11 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
     allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
     credentials: true, // Allow cookies/auth headers
+    optionsSuccessStatus: 200,
   };
   
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(express.json()); // Built-in body parser
 

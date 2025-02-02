@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -30,9 +31,13 @@ const userSchema = new mongoose.Schema({
         required: true,
         validate: {
             validator: function (value) {
-                return value <= Date.now();
+                const today = new Date();
+                const minAge = 13;
+                const birthDate = new Date(value);
+                const age = today.getFullYear() - birthDate.getFullYear();
+                return age >= minAge;
             },
-            message: 'Date of birth cannot be in the future',
+            message: 'User must be at least 13 years old',
         },
     },
     image: {
