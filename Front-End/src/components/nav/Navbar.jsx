@@ -56,7 +56,7 @@ function Navbar() {
   }, []);
 
   return (
-    <AppBar position="static" style={{background:"black"}} > 
+    <AppBar position="static" style={{ background: "#2c3e50" }} >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           {/* Logo (Desktop) */}
@@ -72,11 +72,11 @@ function Navbar() {
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
-              color: 'inherit',
+              color: '#F8E4A1',
               textDecoration: 'none',
             }}
           >
-            LOGO
+            BookHub
           </Typography>
 
           {/* Mobile Menu */}
@@ -85,7 +85,7 @@ function Navbar() {
               size="large"
               aria-label="menu"
               onClick={handleOpenNavMenu}
-              color="inherit"
+              sx={{ color: '#F8E4A1' }} 
             >
               <MenuIcon />
             </IconButton>
@@ -119,15 +119,15 @@ function Navbar() {
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
-              color: 'inherit',
+              color: '#F8E4A1',
               textDecoration: 'none',
             }}
           >
-            LOGO
+            BookHub
           </Typography>
 
           {/* Centered Navigation Links (Desktop) */}
-          <Box sx={{ 
+          <Box sx={{
             flexGrow: 1,
             display: { xs: 'none', md: 'flex' },
             justifyContent: 'center',
@@ -136,7 +136,14 @@ function Navbar() {
               <Button
                 key={page}
                 onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
+                sx={{
+                  my: 2,
+                  color: 'white',
+                  display: 'block',
+                  '&:hover': {
+                    color: '#FFD700', 
+                  }
+                }}
               >
                 {page}
               </Button>
@@ -146,43 +153,43 @@ function Navbar() {
           {/* Search Bar */}
           <div ref={searchRef} style={{ position: "relative", display: "flex", alignItems: "center", marginRight: "10px" }}>
             {!isSearchOpen && (
-              <IconButton onClick={() => setIsSearchOpen(true)} color="inherit">
+              <IconButton onClick={() => setIsSearchOpen(true)} color='#F8E4A1'>
                 <SearchIcon />
               </IconButton>
             )}
 
             {isSearchOpen && (
-          <TextField
-            autoFocus
-            variant="outlined"
-            placeholder="Search..."
-            size="small"
-            sx={{
-              width: "200px",
-              transition: "0.3s ease-in-out",
-              backgroundColor: "white",
-              borderRadius: "5px",
-              "& .MuiOutlinedInput-root": {
-                padding: 0,
-                border: "none",
-              },
-              "& .MuiOutlinedInput-input": {
-                padding: 0, 
-              },
-            }}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setIsSearchOpen(false)}>
-                      <SearchIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-       
+              <TextField
+                autoFocus
+                variant="outlined"
+                placeholder="Search..."
+                size="small"
+                sx={{
+                  width: "200px",
+                  transition: "0.3s ease-in-out",
+                  backgroundColor: '#F8E4A1',
+                  borderRadius: "5px",
+                  "& .MuiOutlinedInput-root": {
+                    padding: 0,
+                    border: "none",
+                  },
+                  "& .MuiOutlinedInput-input": {
+                    padding: 0,
+                  },
+                }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setIsSearchOpen(false)}>
+                          <SearchIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
             )}
           </div>
           <FavoriteIcon sx={{ mr: 2 }} />
@@ -212,10 +219,10 @@ function Navbar() {
           </Box>
 
           {/* Favorite Icon */}
-         
+
         </Toolbar>
       </Container>
-    </AppBar>
+    </AppBar >
   );
 }
 

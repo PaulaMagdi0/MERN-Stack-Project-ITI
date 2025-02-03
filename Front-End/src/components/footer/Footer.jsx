@@ -1,7 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTwitter, faFacebookF, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { NavLink, Link } from "react-router-dom";
+import footer1 from "../../assets/27d6359c3a9fbfd3432b3eb6e9bbd438-removebg-preview.png"
 import "./Footer.css";
+import footer2 from "../../assets/168d92421719112eaf957994f237a20e-removebg-preview.png"
 
 const Footer = () => {
   return (
@@ -47,6 +49,9 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      <img src={footer1} className="footer1"/>
+      <img src={footer2} className="footer2"/>
+
     </footer>
   );
 };

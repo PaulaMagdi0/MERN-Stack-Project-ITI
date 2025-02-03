@@ -1,0 +1,55 @@
+.Books{
+    background-color: #F5F5DC;
+    padding-bottom: 50px;
+    background-image: url("../../assets/567b013f67ef101b947afb9cd76c96be.jpg");
+    background-repeat: no-repeat;
+     background-size:cover; 
+}
+.book-card {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    position: relative;
+  }
+  .book-list {
+   width: 90%; 
+    margin: auto;
+  }
+
+.book-card .book {
+    width: 180px;
+    height: 230px;
+    object-fit: cover;
+    border-radius: 5px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -70%);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+
+}.book-card .book:hover{
+    transform: scale(1.01) translate(-50%, -60%);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    animation: bounce 0.5s ease-in-out;
+}
+.book-card .fantage-img {
+    width: 200px;
+    height: 250px;
+}
+
+.book-card h3 {
+    color: #2c3e50;
+    margin-top: 60px;
+    font-size: 16px;
+}
+.section-header{
+    padding-top: 70px;
+    padding-left: 50px;
+}
+.section-header h1{
+    color: #F8E4A1;
+    margin-bottom: 80px;
+}
