@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Footer from "./components/footer/Footer";
 import Contact from "./components/Contact/Contact";
-import About from "./components/about/About";
+import MainPage from "./pages/mainPage/MainPage";
 import Navbar from "./components/nav/Navbar";
 import "./App.css";
 
@@ -10,8 +10,8 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
-        <Route path="/about" element={<About/>} />
       </Routes>
       <Footer/>
     </BrowserRouter>

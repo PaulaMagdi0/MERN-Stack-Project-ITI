@@ -1,22 +1,23 @@
 .footer-07 {
-  background: #111;
+  background: #2c3e50;
   /* Dark background */
-  color: #aaa;
+  color: #F8E4A1;
   padding: 50px 0;
   text-align: center;
+  position: relative;
 }
 
 /* Logo Styling */
 .footer-heading a {
   font-size: 24px;
   font-weight: bold;
-  color: #fff;
+  color: #F8E4A1;
   text-decoration: none;
 }
 
 /* Menu Styling */
 .menu a {
-  color: #aaa;
+  color: white;
   margin: 0 10px;
   font-size: 14px;
   text-transform: uppercase;
@@ -24,7 +25,7 @@
 }
 
 .menu a:hover {
-  color: #8bc34a;
+  color: #FFD700; 
 }
 
 /* Social Icons */
@@ -48,16 +49,16 @@
   height: 40px;
   border-radius: 50%;
   background: transparent;
-  border: 1px solid #8bc34a;
-  color: #8bc34a;
+  border: 1px solid #F8E4A1;
+    color: #F8E4A1;
   font-size: 18px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 .ftco-footer-social a:hover {
-  background: #8bc34a;
-  color: #111;
+  background: #F8E4A1;
+  color: #2c3e50;
 }
 
 /* Copyright Section */
@@ -104,4 +105,19 @@
   .copyright {
     font-size: 12px;
   }
+}
+
+.footer1{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+  max-width: 350px; /* تحكمي في الحجم حسب الحاجة */
+}
+.footer2{
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  max-width: 300px;
 }
