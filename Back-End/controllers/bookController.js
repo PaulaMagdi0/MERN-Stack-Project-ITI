@@ -43,7 +43,7 @@ const Book = require("../models/books");
 
 exports.getBooks = async (req, res) => {
     try {
-        const { page = 1, perPage = 10 } = req.query;
+        const { page = 1, perPage = 12 } = req.query;
         const currentPage = Math.max(1, parseInt(page));
         const itemsPerPage = Math.max(1, parseInt(perPage));
 

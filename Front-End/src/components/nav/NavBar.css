@@ -3,3 +3,15 @@
     padding: 1rem;
     border: 0;
 }
+.active{
+    text-decoration: none;
+    color: red;
+
+}
+
+
+.notActive{
+    text-decoration: none;
+    color: white;
+    
+}

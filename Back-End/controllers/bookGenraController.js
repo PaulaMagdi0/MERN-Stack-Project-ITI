@@ -16,10 +16,10 @@ exports.GetBookGenre = async (req, res) => {
                     })
                     .populate({
                         path: 'book_id',
-                        select: 'title releaseDate content description image author_id -_id',
+                        select: 'title releaseDate content description image author_id _id',
                         populate: {
                             path: 'author_id',
-                            select: 'name biography birthYear deathYear image nationality -_id',
+                            select: 'name biography birthYear deathYear image nationality _id',
                             model: 'Author'
                         }
                     })

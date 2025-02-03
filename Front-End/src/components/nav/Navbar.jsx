@@ -16,6 +16,7 @@ import AdbIcon from '@mui/icons-material/Adb';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { NavLink } from 'react-router';
 import "./NavBar.css"
 
 const pages = ['Home', 'Books', 'About', 'Contact'];
@@ -132,7 +133,9 @@ function Navbar() {
             display: { xs: 'none', md: 'flex' },
             justifyContent: 'center',
           }}>
-            {pages.map((page) => (
+            {pages.map((page) => {
+              const pageLink = page.trim() === "Home" ? "/" : `/${page.trim().toLowerCase()}`;
+              return (
               <Button
                 key={page}
                 onClick={handleCloseNavMenu}
@@ -145,9 +148,13 @@ function Navbar() {
                   }
                 }}
               >
-                {page}
+                  <NavLink to={pageLink} key={page} onClick={handleCloseNavMenu}   className={  ({ isActive }) =>
+    isActive ? "active" : "notActive"} end>
+                  <Typography textAlign="center">{page}</Typography>
+                </NavLink>
               </Button>
-            ))}
+         )})}
+         
           </Box>
 
           {/* Search Bar */}

@@ -43,9 +43,9 @@ const Footer = () => {
 
         <div className="row">
           <div className="col-md-12 text-center">
-                <p className="copyright">
+                {/* <p className="copyright">
               Copyright &copy; {new Date().getFullYear()} All rights reserved 
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
