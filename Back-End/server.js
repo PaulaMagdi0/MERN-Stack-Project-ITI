@@ -58,7 +58,7 @@ app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
-// app.use("/subscriptions", subscriptionRoutes);
+app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
 
 // Start the server
