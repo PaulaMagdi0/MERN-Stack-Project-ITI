@@ -100,8 +100,10 @@ exports.getBookDetailsByID = async (req, res) => {
     console.log(id);
     try {
         const book = await Book.findById(id)
-            .populate("author_id", "name", "biography","birthYear","deathYear","image","nationality") // Fetch author name only
-            .exec();
+        .populate({
+            path: 'author_id',
+            select: 'name biography birthYear deathYear image nationality'
+        })  // for Pagination            .exec();
 
         if (!book) return res.status(404).json({ message: "Book not found" });
 
