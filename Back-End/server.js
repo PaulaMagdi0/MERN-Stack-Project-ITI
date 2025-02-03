@@ -8,6 +8,9 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const authorsRoutes = require("./routes/authorRoutes");
+const bookGenreRoutes = require("./routes/bookGenreRoute");
+const authorsGenreRoutes = require('./routes/authorGenraRoute')
+const genreRoute = require('./routes/genresRoute')
 const subscriptionRoutes = require("./routes/subscription");
 const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
 
@@ -52,12 +55,15 @@ app.use(express.json()); // Built-in body parser
 // });
 
 app.use("/admin", adminRoutes);
+app.use("/bookgenre", bookGenreRoutes);
+app.use("/genre", genreRoute);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
 // app.use("/subscriptions", subscriptionRoutes);
+app.use("/authorgenre", authorsGenreRoutes);
 
 // Start the server
 mongoose.connect(url).then(result => {

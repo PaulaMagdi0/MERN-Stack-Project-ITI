@@ -5,14 +5,14 @@ const BookgenreSchema = new Schema({
     book_id:{
         type : mongoose.Schema.Types.ObjectId ,
         require:true,
-        ref:"books"
+        ref:"Book"
     },
     genre_id:{
         type : mongoose.Schema.Types.ObjectId ,
         require:true,
-        ref:"genres"
+        ref:"Genre"
     }
 })
-module.exports = BookgenreSchema
+module.exports = mongoose.model("Booksgenre", BookgenreSchema);
 
 
