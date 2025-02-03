@@ -1,17 +1,21 @@
-import { useEffect } from 'react'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Footer from "./components/footer/Footer";
+import Contact from "./components/Contact/Contact";
+import About from "./components/about/About";
+import Navbar from "./components/nav/Navbar";
+import "./App.css";
 
 function App() {
-
-  useEffect(()=>{
-    fetch("http://localhost:3000/books").then((result)=>result.json()).then(data=>console.log(data))
-
-  },[])
   return (
-    <>
-      <h1>HelloOo</h1>
-    </>
-  )
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/contact" element={<Contact/>} />
+        <Route path="/about" element={<About/>} />
+      </Routes>
+      <Footer/>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

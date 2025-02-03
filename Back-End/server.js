@@ -172,17 +172,17 @@ mongoose.connect(url).then(result => {
 //   }
 // }
 
-// // ✅ **Fixed Seed Function**
+// ✅ **Fixed Seed Function**
 // async function seedData() {
 //   try {
 //     const authorCount = await Author.countDocuments();
 //     const booksCount = await Book.countDocuments();
 //     const subscriptionpalncount = await Subplan.countDocuments();
 
-//     // if (authorCount > 0 && booksCount > 0) {
-//     //   console.log('Data already exists - skipping seeding');
-//     //   return;
-//     // }
+    // if (authorCount > 0 && booksCount > 0) {
+    //   console.log('Data already exists - skipping seeding');
+    //   return;
+    // }
 
 //     // 🔹 Insert authors if missing
 //     if (authorCount === 0) {
