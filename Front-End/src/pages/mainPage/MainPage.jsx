@@ -1,5 +1,4 @@
 import Header from "../../components/header/Header";
-import About from "../../components/about/About";
 import Main from "../../components/main/Main";
 import AboutAs from "../../components/aboutas/About";
 import Books from "../../components/populer_books/Books";

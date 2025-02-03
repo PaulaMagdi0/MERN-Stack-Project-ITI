@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Footer from "./components/footer/Footer";
-import Contact from "./components/Contact/Contact";
+import Contact from "./components/contact/Contact";
 import MainPage from "./pages/mainPage/MainPage";
 import Navbar from "./components/nav/Navbar";
 import "./App.css";
@@ -20,7 +20,7 @@ function App() {
         <Route path="/singlebooks/:id" element= {<SingleBook/>}></Route>
         <Route path="/author/:id" element={<SingleAuthor />} />
       </Routes>
-      <Footer/>
+      <Footer />
     </BrowserRouter>
     </Provider>
     
