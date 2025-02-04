@@ -4,7 +4,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 export const fetchAuthorById = createAsyncThunk(
   "author/fetchAuthorById",
   async (id) => {
-    const response = await fetch(`http://localhost:5000/authors/id/${id}`);
+    const response = await fetch(`http://localhost:4000/authors/id/${id}`);
     if (!response.ok) throw new Error("Failed to fetch author");
     return await response.json(); // This now only returns the author
   }

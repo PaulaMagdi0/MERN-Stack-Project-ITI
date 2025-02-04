@@ -43,7 +43,7 @@ const Book = require("../models/books");
 
 exports.getBooks = async (req, res) => {
     try {
-        const { page = 1, perPage = 12 } = req.query;
+        const { page = 1, perPage = 9 } = req.query;
         const currentPage = Math.max(1, parseInt(page));
         const itemsPerPage = Math.max(1, parseInt(perPage));
 
@@ -85,16 +85,6 @@ exports.getBooks = async (req, res) => {
 };
 
 
-
-// exports.getBookDetailsByID = async (req, res) => {
-//     const { id } = req.params
-//     console.log(id);
-//     const book = await Book.findById(id).exec();
-//     if (!book) return res.status(404).json({ message: "Book not found" });
-//     res.json(book);
-// }
-
-
 exports.getBookDetailsByID = async (req, res) => {
     const { id } = req.params;
     console.log(id);
@@ -127,7 +117,7 @@ exports.getBooksByTitle = async (req, res) => {
 
         console.log("Searching for books with title:", title);
 
-        // Find books with partial or exact title match (case-insensitive)
+       // Find books with partial or exact title match (case-insensitive)
         let books = await Book.find({ title: { $regex: new RegExp(title, "i") } });
 
         if (books.length === 0) {
@@ -141,7 +131,7 @@ exports.getBooksByTitle = async (req, res) => {
     }
 };
 
-
+//Post Book
 exports.createBook = async (req, res) => {
     try {
         const newBook = new Book(req.body);
@@ -149,5 +139,64 @@ exports.createBook = async (req, res) => {
         res.status(201).json(newBook);
     } catch (error) {
         res.status(500).json({ message: "Error adding book" });
+    }
+};
+
+// Sample search endpoint (Express.js)
+exports.searchBook= async (req, res) => {
+    try {
+      const books = await Book.find({
+        $or: [
+          { title: { $regex: req.query.q, $options: 'i' } },
+          { 'author.name': { $regex: req.query.q, $options: 'i' } },
+          { description: { $regex: req.query.q, $options: 'i' } }
+        ]
+      }).populate({
+        path: 'author_id',
+        select: 'name biography birthYear deathYear image nationality'
+    }).limit(10);
+      
+      res.json(books);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+//Delete Book By ID
+  exports.deleteBook = async (req, res) => {
+    try {
+        const { bookID } = req.params;
+        const deletedBook = await Book.findByIdAndDelete(bookID);
+        
+        console.log(deletedBook);
+
+        if (!deletedBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        return res.json({ message: "Book deleted successfully", deletedBook });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+exports.updateBook = async (req, res) => {
+    try {
+        const { bookID } = req.params;
+        const { title, content, description, image, author_id, releaseDate } = req.body;
+
+        // Find and update the book
+        const updatedBook = await Book.findByIdAndUpdate(
+            bookID,
+            { title, content, description, image, author_id, releaseDate },
+            { new: true, runValidators: true } // Returns updated book & validates schema
+        );
+
+        if (!updatedBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        return res.json({ message: "Book updated successfully", updatedBook });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
     }
 };

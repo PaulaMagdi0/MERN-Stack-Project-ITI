@@ -70,3 +70,42 @@ exports.AddAuthor = async (req, res) => {
         res.status(500).json({ message: "Error adding book" });
     }
 };
+
+exports.deleteBook = async (req, res) => {
+    try {
+        const { bookID } = req.params;
+        const deletedBook = await Book.findByIdAndDelete(bookID);
+        
+        console.log(deletedBook);
+
+        if (!deletedBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        return res.json({ message: "Book deleted successfully", deletedBook });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+exports.updateAuhor = async (req, res) => {
+    try {
+        const { authorID } = req.params;
+        const { name, biography, birthYear, deathYear, image, nationality } = req.body;
+
+        // Find and update the book
+        const updatedBook = await Book.findByIdAndUpdate(
+            authorID,
+            { name, biography, birthYear, deathYear, image, nationality },
+            { new: true, runValidators: true } // Returns updated book & validates schema
+        );
+
+        if (!updatedBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        return res.json({ message: "Book updated successfully", updatedBook });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+}

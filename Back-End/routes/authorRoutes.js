@@ -13,4 +13,7 @@ router.get("/name/:name",getAuthorsByName );
 
 router.post("/Add-Author",AddAuthor)
 
+// router.delete("/delete-Author",AddAuthor)
+
+
 module.exports = router;

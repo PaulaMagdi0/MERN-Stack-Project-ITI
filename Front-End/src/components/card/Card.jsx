@@ -11,7 +11,7 @@ function Card({ book }) {
   let navigate = useNavigate();
 
 const handleBookDetails=()=>{
-  navigate(`/singlefront/${bookID}`)
+  navigate(`/books/${bookID}`)
 }
   return (
     <CDBContainer className="card-container">

@@ -1,43 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useEffect,useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import Card from '../../components/card/Card';
 import { Container, CircularProgress, Alert, Button, Typography, Grid2 } from '@mui/material';
+import { fetchBooks ,getAllGenres} from '../../store/bookSlice';
 
 function Books() {
-    const [books, setBooks] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [totalPages, setTotalPages] = useState(1);
+    const [genre,setGenra] = useState()
+    const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
-    
+    const { selectedGenre } = useSelector((state) => state.book);
+    const { books, loading, error, totalPages } = useSelector((state) => state.book);
+    console.log("🚀 ~ Books ~ selectedGenre:", selectedGenre)
+
     const page = parseInt(searchParams.get('page')) || 1;
-
     useEffect(() => {
-        const fetchBooks = async () => {
-            setLoading(true);
-            try {
-                const response = await fetch(`http://localhost:5000/books?page=${page}`);
-                if (!response.ok) throw new Error('Failed to fetch');
-                const data = await response.json();
-                setBooks(data.books);
-                setTotalPages(data.totalPages);
-                setError(null);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchBooks();
-    }, [page]);
+        dispatch(fetchBooks(page));
+        dispatch(getAllGenres())
+    }, [page, dispatch]);
 
     const handlePageChange = (newPage) => {
         setSearchParams({ page: newPage });
     };
+   const  handleGenreChange=(e) =>{
+    setGenra((prevState)=>e.target.value)
+    
+    console.log(genre);
 
+   }
     return (
         <Container sx={{ py: 4 }}>
+           <label htmlFor="cars">Choose a car:</label>
+                        {selectedGenre && (
+                            <select name="cars" id="cars" onChange={handleGenreChange}>
+                                    <option value="">Select a genre</option>
+                                    {selectedGenre.map((genre) => (
+                                    <option key={genre._id} value={genre._id}>
+                                        {genre.name}
+                                    </option>
+                                    ))}
+                            </select>
+                )}
+
             {loading && (
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem' }}>
                     <CircularProgress />
@@ -50,7 +54,6 @@ function Books() {
                 </Alert>
             )}
 
-            {/* Fixed Grid Layout */}
             <Grid2 container spacing={1}>
                 {books.map((book) => (
                     <Grid2 item key={book._id} xs={12} sm={6} md={4} lg={3}>
@@ -59,7 +62,6 @@ function Books() {
                 ))}
             </Grid2>
 
-            {/* Pagination Controls */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
                 <Button
                     variant="contained"
@@ -69,7 +71,7 @@ function Books() {
                     Previous
                 </Button>
                 <Typography variant="h6" component="span" sx={{ mx: 2, lineHeight: '2.5' }}>
-                    Page {page}
+                    Page {page} of {totalPages}
                 </Typography>
                 <Button
                     variant="contained"
