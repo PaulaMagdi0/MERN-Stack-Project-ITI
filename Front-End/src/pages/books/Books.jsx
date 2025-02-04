@@ -1,26 +1,47 @@
-import { useEffect } from 'react';
+import { useEffect,useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Card from '../../components/card/Card';
 import { Container, CircularProgress, Alert, Button, Typography, Grid2 } from '@mui/material';
-import { fetchBooks } from '../../store/bookSlice';
+import { fetchBooks ,getAllGenres} from '../../store/bookSlice';
 
 function Books() {
+    const [genre,setGenra] = useState()
     const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { selectedGenre } = useSelector((state) => state.book);
     const { books, loading, error, totalPages } = useSelector((state) => state.book);
-    const page = parseInt(searchParams.get('page')) || 1;
+    console.log("🚀 ~ Books ~ selectedGenre:", selectedGenre)
 
+    const page = parseInt(searchParams.get('page')) || 1;
     useEffect(() => {
         dispatch(fetchBooks(page));
+        dispatch(getAllGenres())
     }, [page, dispatch]);
 
     const handlePageChange = (newPage) => {
         setSearchParams({ page: newPage });
     };
+   const  handleGenreChange=(e) =>{
+    setGenra((prevState)=>e.target.value)
+    
+    console.log(genre);
 
+   }
     return (
         <Container sx={{ py: 4 }}>
+           <label htmlFor="cars">Choose a car:</label>
+                        {selectedGenre && (
+                            <select name="cars" id="cars" onChange={handleGenreChange}>
+                                    <option value="">Select a genre</option>
+                                    {selectedGenre.map((genre) => (
+                                    <option key={genre._id} value={genre._id}>
+                                        {genre.name}
+                                    </option>
+                                    ))}
+                            </select>
+                )}
+
             {loading && (
                 <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem' }}>
                     <CircularProgress />

@@ -23,6 +23,7 @@ const SearchBar = () => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

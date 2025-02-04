@@ -85,16 +85,6 @@ exports.getBooks = async (req, res) => {
 };
 
 
-
-// exports.getBookDetailsByID = async (req, res) => {
-//     const { id } = req.params
-//     console.log(id);
-//     const book = await Book.findById(id).exec();
-//     if (!book) return res.status(404).json({ message: "Book not found" });
-//     res.json(book);
-// }
-
-
 exports.getBookDetailsByID = async (req, res) => {
     const { id } = req.params;
     console.log(id);
@@ -127,7 +117,7 @@ exports.getBooksByTitle = async (req, res) => {
 
         console.log("Searching for books with title:", title);
 
-        // Find books with partial or exact title match (case-insensitive)
+       // Find books with partial or exact title match (case-insensitive)
         let books = await Book.find({ title: { $regex: new RegExp(title, "i") } });
 
         if (books.length === 0) {
@@ -141,7 +131,7 @@ exports.getBooksByTitle = async (req, res) => {
     }
 };
 
-
+//Post Book
 exports.createBook = async (req, res) => {
     try {
         const newBook = new Book(req.body);
@@ -171,52 +161,42 @@ exports.searchBook= async (req, res) => {
       res.status(500).json({ message: err.message });
     }
   };
-//   exports.searchBooks = async (req, res) => {
-//     try {
-//         const query = req.query.q?.trim();
+//Delete Book By ID
+  exports.deleteBook = async (req, res) => {
+    try {
+        const { bookID } = req.params;
+        const deletedBook = await Book.findByIdAndDelete(bookID);
+        
+        console.log(deletedBook);
 
-//         if (!query || query.length < 2) {
-//             return res.status(400).json({ 
-//                 message: "Search query must be at least 2 characters long"
-//             });
-//         }
+        if (!deletedBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
 
-//         // Check if a text index exists
-//         const hasTextIndex = await Book.collection.indexExists("title_text");
-//         let results = [];
+        return res.json({ message: "Book deleted successfully", deletedBook });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
 
-//         // First try text search if index exists
-//         if (hasTextIndex) {
-//             results = await Book.find(
-//                 { $text: { $search: query } },
-//                 { score: { $meta: "textScore" } }
-//             )
-//             .sort({ score: { $meta: "textScore" } })
-//             .limit(10)
-//             .lean()
-//             .exec();
-//         }
+exports.updateBook = async (req, res) => {
+    try {
+        const { bookID } = req.params;
+        const { title, content, description, image, author_id, releaseDate } = req.body;
 
-//         // Fallback to regex if no results from text search or no index
-//         if (!results.length) {
-//             results = await Book.find(
-//                 { title: { $regex: query, $options: "i" } }
-//             )
-//             .limit(10)
-//             .lean()
-//             .exec();
-//         }
+        // Find and update the book
+        const updatedBook = await Book.findByIdAndUpdate(
+            bookID,
+            { title, content, description, image, author_id, releaseDate },
+            { new: true, runValidators: true } // Returns updated book & validates schema
+        );
 
-//         if (results.length === 0) {
-//             return res.status(404).json({ message: "No books found" });
-//         }
+        if (!updatedBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
 
-//         res.json(results);
-//     } catch (error) {
-//         console.error("Search error:", error);
-//         res.status(500).json({
-//             message: "Search failed",
-//             error: process.env.NODE_ENV === 'development' ? error.message : undefined
-//         });
-//     }
-// };
+        return res.json({ message: "Book updated successfully", updatedBook });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

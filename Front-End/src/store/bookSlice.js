@@ -48,6 +48,25 @@ export const searchBooks = createAsyncThunk(
     }
   }
 );
+export const getAllGenres = createAsyncThunk(
+  "/genre", 
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_URL}/genre`);
+      
+      if (!response.ok) {
+        // If the response is not ok, throw an error
+        throw new Error("Failed to fetch genres");
+      }
+      
+      return await response.json();  // Return the data to the fulfilled action
+    } catch (err) {
+      console.error("Error fetching genres:", err);
+      return rejectWithValue(err.message);  // Pass the error message to the rejected action
+    }
+  }
+);
+
 
 const initialState = {
   books: [],
@@ -57,7 +76,8 @@ const initialState = {
   searchLoading: false,
   error: null,
   totalPages: 1,
-  currentPage: 1
+  currentPage: 1,
+  selectedGenre:null
 };
 
 const bookSlice = createSlice({
@@ -115,7 +135,20 @@ const bookSlice = createSlice({
       .addCase(searchBooks.rejected, (state, action) => {
         state.searchLoading = false;
         state.error = action.payload;
-      });
+      })
+          // Get All Genres
+          .addCase(getAllGenres.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+          })
+          .addCase(getAllGenres.fulfilled, (state, action) => {
+            state.loading = false;
+            state.selectedGenre = action.payload;
+          })
+          .addCase(getAllGenres.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+          });
   },
 });
 

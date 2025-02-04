@@ -2,7 +2,6 @@ const BookGenre = require("../models/bookgenre");
 // GetAllBookGenre 
 
 exports.GetBookGenre = async (req, res) => {
-
             try {
                 const { page = 1, perPage = 10 } = req.query;
                 const currentPage = Math.max(1, parseInt(page));
@@ -68,3 +67,4 @@ exports.GetBookGenreByID = async (req, res) => {
         res.status(500).json({ message: "Error fetching Books" });
     }
 };
+
