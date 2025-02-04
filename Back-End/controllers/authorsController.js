@@ -71,40 +71,40 @@ exports.AddAuthor = async (req, res) => {
     }
 };
 
-exports.deleteBook = async (req, res) => {
+exports.deleteAuthor = async (req, res) => {
     try {
-        const { bookID } = req.params;
-        const deletedBook = await Book.findByIdAndDelete(bookID);
+        const { authorID } = req.params;
+        const deletedAuthor = await Book.findByIdAndDelete(authorID);
         
-        console.log(deletedBook);
+        console.log(deletedAuthor);
 
-        if (!deletedBook) {
+        if (!deletedAuthor) {
             return res.status(404).json({ message: "Book not found" });
         }
 
-        return res.json({ message: "Book deleted successfully", deletedBook });
+        return res.json({ message: "Book deleted successfully", deletedAuthor });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 };
-
-exports.updateAuhor = async (req, res) => {
+// Author Update 
+exports.updateAuthor = async (req, res) => {
     try {
         const { authorID } = req.params;
         const { name, biography, birthYear, deathYear, image, nationality } = req.body;
 
         // Find and update the book
-        const updatedBook = await Book.findByIdAndUpdate(
+        const updatedAuthors = await Book.findByIdAndUpdate(
             authorID,
             { name, biography, birthYear, deathYear, image, nationality },
             { new: true, runValidators: true } // Returns updated book & validates schema
         );
 
-        if (!updatedBook) {
+        if (!updatedAuthors) {
             return res.status(404).json({ message: "Book not found" });
         }
 
-        return res.json({ message: "Book updated successfully", updatedBook });
+        return res.json({ message: "Book updated successfully", updatedAuthors });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
