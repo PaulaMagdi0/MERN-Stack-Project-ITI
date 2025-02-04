@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Footer from "./components/footer/Footer";
-import Contact from "./components/contact/Contact";
+import Contact from "./components/Contact/Contact"
 import MainPage from "./pages/mainPage/MainPage";
+import Footer from "./components/footer/Footer";
 import Navbar from "./components/nav/Navbar";
-import "./App.css";
 import store from "./store/store";
 import { Provider } from "react-redux";
 import SingleAuthor from "./pages/singleAuthor/SingleAuthor";
 import SingleBook from "./pages/singlebook/SingleBooks";
+import Books from "./pages/books/Books";
+import "./App.css";
 
 function App() {
   return (
@@ -17,7 +18,8 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
-        <Route path="/singlebooks/:id" element= {<SingleBook/>}></Route>
+        <Route path="/books/:id" element= {<SingleBook/>}></Route>
+        <Route path="/books" element= {<Books/>}></Route>
         <Route path="/author/:id" element={<SingleAuthor />} />
       </Routes>
       <Footer />

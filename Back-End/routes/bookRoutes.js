@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {getBooks,getBookDetailsByID,getBooksByTitle,createBook} = require("../controllers/bookController")
+const {getBooks,getBookDetailsByID,getBooksByTitle,createBook,searchBook} = require("../controllers/bookController")
 
 // Get all books
 router.get("/", getBooks);
@@ -12,6 +12,7 @@ router.get("/title/:title",getBooksByTitle );
 
 router.post("/post-book" ,createBook)
 // Search books by title
+router.get('/search',searchBook);
 
 
 module.exports = router;

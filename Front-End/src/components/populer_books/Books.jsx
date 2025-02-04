@@ -1,6 +1,6 @@
 import "./Books.css";
-import watch from "../../assets/watch-removebg-preview.png"
-import React from "react";
+// import watch from "../../assets/watch-removebg-preview.png"
+// import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";

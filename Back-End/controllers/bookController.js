@@ -43,7 +43,7 @@ const Book = require("../models/books");
 
 exports.getBooks = async (req, res) => {
     try {
-        const { page = 1, perPage = 10 } = req.query;
+        const { page = 1, perPage = 9 } = req.query;
         const currentPage = Math.max(1, parseInt(page));
         const itemsPerPage = Math.max(1, parseInt(perPage));
 
@@ -151,3 +151,72 @@ exports.createBook = async (req, res) => {
         res.status(500).json({ message: "Error adding book" });
     }
 };
+
+// Sample search endpoint (Express.js)
+exports.searchBook= async (req, res) => {
+    try {
+      const books = await Book.find({
+        $or: [
+          { title: { $regex: req.query.q, $options: 'i' } },
+          { 'author.name': { $regex: req.query.q, $options: 'i' } },
+          { description: { $regex: req.query.q, $options: 'i' } }
+        ]
+      }).populate({
+        path: 'author_id',
+        select: 'name biography birthYear deathYear image nationality'
+    }).limit(10);
+      
+      res.json(books);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+//   exports.searchBooks = async (req, res) => {
+//     try {
+//         const query = req.query.q?.trim();
+
+//         if (!query || query.length < 2) {
+//             return res.status(400).json({ 
+//                 message: "Search query must be at least 2 characters long"
+//             });
+//         }
+
+//         // Check if a text index exists
+//         const hasTextIndex = await Book.collection.indexExists("title_text");
+//         let results = [];
+
+//         // First try text search if index exists
+//         if (hasTextIndex) {
+//             results = await Book.find(
+//                 { $text: { $search: query } },
+//                 { score: { $meta: "textScore" } }
+//             )
+//             .sort({ score: { $meta: "textScore" } })
+//             .limit(10)
+//             .lean()
+//             .exec();
+//         }
+
+//         // Fallback to regex if no results from text search or no index
+//         if (!results.length) {
+//             results = await Book.find(
+//                 { title: { $regex: query, $options: "i" } }
+//             )
+//             .limit(10)
+//             .lean()
+//             .exec();
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: "No books found" });
+//         }
+
+//         res.json(results);
+//     } catch (error) {
+//         console.error("Search error:", error);
+//         res.status(500).json({
+//             message: "Search failed",
+//             error: process.env.NODE_ENV === 'development' ? error.message : undefined
+//         });
+//     }
+// };
