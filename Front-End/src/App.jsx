@@ -12,6 +12,7 @@ import store from "./store/store";
 import { Provider } from "react-redux";
 import SingleAuthor from "./pages/singleAuthor/SingleAuthor";
 import SingleBook from "./pages/singlebook/SingleBooks";
+import AboutAs from "./components/aboutas/About";
 
 function App() {
   return (
@@ -22,9 +23,10 @@ function App() {
         <Route path="/" element={<MainPage />} />
         <Route path="/books" element={<Books />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<AboutAs />} />
         <Route path="/dashboard" element={<DashBoard />} />
         <Route path="*" element={<NotFound />} />
-        <Route path="/singlebooks/:id" element= {<SingleBook/>}></Route>
+        <Route path="/singlefront/:id" element= {<SingleBook/>}></Route>
         <Route path="/author/:id" element={<SingleAuthor />} />
       </Routes>
       <Footer />
