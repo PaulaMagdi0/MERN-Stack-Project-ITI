@@ -9,10 +9,10 @@ exports.getAuthorGenre = async (req, res) => {
 
         const authorGenres = await AuthorGenre.find().populate({
             path:'genre_id',
-            select: 'name',
+            select: '_id name',
         }).populate({
             path: 'author_id',
-            select: 'name biography birthYear deathYear image nationality'
+            select: '_id name biography birthYear deathYear image nationality'
         })  // for Pagination
         .skip((currentPage - 1) * itemsPerPage)
         .limit(itemsPerPage)

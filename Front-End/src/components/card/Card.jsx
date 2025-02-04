@@ -1,30 +1,49 @@
 import { CDBCard, CDBBtn, CDBCardBody, CDBContainer } from "cdbreact";
+import "./Card.css"; // Import CSS file
+import { useNavigate } from "react-router";
 
-export const Card = () => {
+function Card({ book }) {
+  // console.log(book);
+  
+  const { _id:bookID,title: bookTitle, author, releaseDate, description, image: bookImage } = book;
+  const { name: authorName, image: authorImage } = author;
+
+  let navigate = useNavigate();
+
+const handleBookDetails=()=>{
+  navigate(`/singlefront/${bookID}`)
+}
   return (
-    <CDBContainer className="d-flex justify-content-center mt-4 ">
-      <CDBCard className="CDBCard radius_1">
-        {/* Background Image */}
+    <CDBContainer className="card-container">
+      <CDBCard className="book-card">
+        {/* Book Cover Image */}
         <img
-          className="img-fluid w-100"
-          src="https://images.theconversation.com/files/45159/original/rptgtpxd-1396254731.jpg?ixlib=rb-4.1.0&q=45&auto=format&w=600&h=400&fit=crop&dpr=1"
-          alt="Book background"
+          className="book-cover"
+          src={bookImage || "https://via.placeholder.com/600x400"}
+          alt={bookTitle || "Book cover"}
         />
 
-        {/* Author Profile Image */}
-        <div className="d-flex justify-content-center">
+        {/* Author Image */}
+        <div className="author-image-container">
           <img
-            className="rounded-circle border border-white shadow authImg"
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQ7ntUU7AzmOxa5HB8zS83sa-JFHEfZJAoI2A&usqp=CAU"
-            alt="Author profile"
+            className="author-image rounded-circle"
+            src={authorImage || "https://via.placeholder.com/100"}
+            alt={authorName || "Author profile"}
           />
         </div>
-        {/* Card Body */}
-        <CDBCardBody className="d-flex flex-column align-items-center">
-          <h3 className="mb-3">Book Name</h3>
-          <CDBBtn className="mb-3">Details</CDBBtn>
+        <h6>{authorName}</h6>
+        {/* Card Content */}
+        <CDBCardBody className="card-content">
+          <h3 className="book-title">{bookTitle || "Unknown Title"}</h3>
+          <p className="release-date">{releaseDate || "No Release Date"}</p>
+          <p className="book-description">
+            {description || "No Description Available"}
+          </p>
+          <CDBBtn className="details-button" onClick={handleBookDetails} >View Details</CDBBtn>
         </CDBCardBody>
       </CDBCard>
     </CDBContainer>
   );
-};
+}
+
+export default Card;
