@@ -1,6 +1,6 @@
 const BookGenre = require("../models/bookgenre");
-// GetAllBookGenre 
 
+// GetAllBookGenre 
 exports.GetBookGenre = async (req, res) => {
             try {
                 const { page = 1, perPage = 10 } = req.query;
@@ -69,7 +69,7 @@ exports.GetBookGenreByID = async (req, res) => {
 };
 
 
-exports.AddAuthor = async (req, res) => {
+exports.addBookGenre = async (req, res) => {
     try {
         const newAuthor = new Author(req.body);
         await newAuthor.save();
@@ -79,27 +79,28 @@ exports.AddAuthor = async (req, res) => {
     }
 };
 
-exports.deleteAuthor = async (req, res) => {
+exports.deleteGenre = async (req, res) => {
     try {
-        const { authorID } = req.params;
-        const deletedAuthor = await Book.findByIdAndDelete(authorID);
+        const { bookGenraID } = req.params;
+        const deletedBookGenra = await BookGenre.findByIdAndDelete(bookGenraID);
         
-        console.log(deletedAuthor);
+        console.log(deletedBookGenra);
 
-        if (!deletedAuthor) {
+        if (!deletedBookGenra) {
             return res.status(404).json({ message: "Book not found" });
         }
 
-        return res.json({ message: "Book deleted successfully", deletedAuthor });
+        return res.json({ message: "Book deleted successfully", deletedBookGenra });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
 // Author Update 
 exports.updateBookGenre = async (req, res) => {
     try {
-        const { BookGenreID } = req.params;
-        const { name, biography, birthYear, deathYear, image, nationality } = req.body;
+        const { bookGenraID } = req.params;
+        const { authorID } = req.body;
 
         // Find and update the book
         const updatedAuthors = await Book.findByIdAndUpdate(
