@@ -68,3 +68,52 @@ exports.GetBookGenreByID = async (req, res) => {
     }
 };
 
+
+exports.AddAuthor = async (req, res) => {
+    try {
+        const newAuthor = new Author(req.body);
+        await newAuthor.save();
+        res.status(201).json(newAuthor);
+    } catch (error) {
+        res.status(500).json({ message: "Error adding book" });
+    }
+};
+
+exports.deleteAuthor = async (req, res) => {
+    try {
+        const { authorID } = req.params;
+        const deletedAuthor = await Book.findByIdAndDelete(authorID);
+        
+        console.log(deletedAuthor);
+
+        if (!deletedAuthor) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        return res.json({ message: "Book deleted successfully", deletedAuthor });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+// Author Update 
+exports.updateBookGenre = async (req, res) => {
+    try {
+        const { BookGenreID } = req.params;
+        const { name, biography, birthYear, deathYear, image, nationality } = req.body;
+
+        // Find and update the book
+        const updatedAuthors = await Book.findByIdAndUpdate(
+            authorID,
+            { name, biography, birthYear, deathYear, image, nationality },
+            { new: true, runValidators: true } // Returns updated book & validates schema
+        );
+
+        if (!updatedAuthors) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+
+        return res.json({ message: "Book updated successfully", updatedAuthors });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
