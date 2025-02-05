@@ -5,6 +5,8 @@ import MainPage from "./pages/mainPage/MainPage";
 import Navbar from "./components/nav/Navbar";
 import "./App.css";
 import NotFound from "./pages/notFound/NotFound";
+import SignUp from "./pages/signUp/SignUp";
+import SignIn from "./pages/login/Login";
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/signup" element={< SignUp/>} />
+        <Route path="/signin" element={<SignIn/>}/>
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
