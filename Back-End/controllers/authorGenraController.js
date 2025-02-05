@@ -1,5 +1,5 @@
 const AuthorGenre = require("../models/authorGenre");
-
+const Author = require("../models/authors")
 exports.getAuthorGenre = async (req, res) => {
     try {
         // for Pagination
@@ -55,3 +55,5 @@ exports.getAuthorGenreByID = async (req, res) => {
         res.status(500).json({ message: "Error fetching Books" });
     }
 };
+
+// Update Author Data
