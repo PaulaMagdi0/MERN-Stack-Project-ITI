@@ -1,18 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-const BookgenreSchema = new Schema({
-    book_id:{
-        type : mongoose.Schema.Types.ObjectId ,
-        require:true,
-        ref:"Book"
-    },
-    genre_id:{
-        type : mongoose.Schema.Types.ObjectId ,
-        require:true,
-        ref:"Genre"
-    }
+//Schema To Applay
+const bookGenreSchema = new Schema({
+    book_id: { type: Schema.Types.ObjectId, ref: 'Book', required: true },
+    genre_id: { type: Schema.Types.ObjectId, ref: 'Genre', required: true }
 })
-module.exports = mongoose.model("Booksgenre", BookgenreSchema);
+
+//Model To Export
+module.exports = mongoose.model("Booksgenre", bookGenreSchema);
 
 

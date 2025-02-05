@@ -1,4 +1,5 @@
 const Book = require("../models/books");
+const BookGenre = require("../models/bookgenre");
 
 // exports.getBooks = async (req, res) => {
 //     try {
@@ -41,6 +42,8 @@ const Book = require("../models/books");
 //     }
 // };
 
+
+// Get All  books 
 exports.getBooks = async (req, res) => {
     try {
         const { page = 1, perPage = 9 } = req.query;
@@ -84,7 +87,7 @@ exports.getBooks = async (req, res) => {
     }
 };
 
-
+// GetBookDetails
 exports.getBookDetailsByID = async (req, res) => {
     const { id } = req.params;
     console.log(id);
@@ -104,7 +107,7 @@ exports.getBookDetailsByID = async (req, res) => {
     }
 };
 
-
+// Get Book Titles
 exports.getBooksByTitle = async (req, res) => {
     try {
         const { title } = req.params;
@@ -131,14 +134,31 @@ exports.getBooksByTitle = async (req, res) => {
     }
 };
 
-//Post Book
+//Post Book + BookGenres
 exports.createBook = async (req, res) => {
     try {
-        const newBook = new Book(req.body);
+        console.log(req.body);
+
+        // Destructure request body
+        const { title, releaseDate, content, description, image, author_id, genreIds } = req.body;
+
+        // Create and save the book
+        const newBook = new Book({ title, releaseDate, content, description, image, author_id });
         await newBook.save();
-        res.status(201).json(newBook);
+
+        // If genres are provided, associate them with the book
+        if (genreIds && genreIds.length > 0) {
+            const bookGenres = genreIds.map(genreId => ({ book_id: newBook._id, genre_id: genreId }));
+            await BookGenre.insertMany(bookGenres);
+        }
+
+        // Fetch associated genres
+        const bookWithGenres = await Book.findById(newBook._id).populate('author_id');
+
+        res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Error adding book" });
+        console.error("Error adding book:", error);
+        res.status(500).json({ message: "Error adding book", error: error.message });
     }
 };
 
@@ -161,6 +181,7 @@ exports.searchBook= async (req, res) => {
       res.status(500).json({ message: err.message });
     }
   };
+
 //Delete Book By ID
   exports.deleteBook = async (req, res) => {
     try {
@@ -178,7 +199,7 @@ exports.searchBook= async (req, res) => {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 };
-
+// Put Book Update 
 exports.updateBook = async (req, res) => {
     try {
         const { bookID } = req.params;

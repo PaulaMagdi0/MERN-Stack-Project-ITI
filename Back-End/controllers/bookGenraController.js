@@ -71,9 +71,9 @@ exports.GetBookGenreByID = async (req, res) => {
 
 exports.addBookGenre = async (req, res) => {
     try {
-        const newAuthor = new Author(req.body);
-        await newAuthor.save();
-        res.status(201).json(newAuthor);
+        const newBookGenre = new BookGenre(req.body);
+        await newBookGenre.save( );
+        res.status(201).json(newBookGenre);
     } catch (error) {
         res.status(500).json({ message: "Error adding book" });
     }
