@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const bookGenreSchema = new Schema({
     book_id: { type: Schema.Types.ObjectId, ref: 'Book', required: true },
     genre_id: { type: Schema.Types.ObjectId, ref: 'Genre', required: true }
-})
+});
 
 //Model To Export
 module.exports = mongoose.model("Booksgenre", bookGenreSchema);
