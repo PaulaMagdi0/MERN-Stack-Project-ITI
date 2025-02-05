@@ -171,10 +171,12 @@ exports.searchBook= async (req, res) => {
           { 'author.name': { $regex: req.query.q, $options: 'i' } },
           { description: { $regex: req.query.q, $options: 'i' } }
         ]
-      }).populate({
+      })
+      .populate({
         path: 'author_id',
         select: 'name biography birthYear deathYear image nationality'
-    }).limit(10);
+    })
+    .limit(10);
       
       res.json(books);
     } catch (err) {

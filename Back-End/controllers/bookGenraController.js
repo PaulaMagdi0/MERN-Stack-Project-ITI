@@ -1,5 +1,5 @@
 const BookGenre = require("../models/bookgenre");
-
+const Genre = require("../models/genre");
 // GetAllBookGenre 
 exports.GetBookGenre = async (req, res) => {
             try {
@@ -118,3 +118,41 @@ exports.updateBookGenre = async (req, res) => {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 }
+// Search For Genre 
+exports.BooksByGenre = async (req, res) => {
+    try {
+        // Get genre ID from request parameters (more RESTful than query string)
+        const {genreID} = req.params;
+        console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", genreID)
+        Genre
+        // Validate genre ID format
+        if (genreID) {
+            return res.status(400).json({ message: "Invalid genre ID format" });
+        }
+
+        // Find book-genre relationships and populate book details
+        const bookRelations = await BookGenre.find({ genre_id: genreID })
+            .populate({
+                path: 'book_id',
+                select: 'title releaseDate content description image author_id',
+                populate: { // Nested populate for author details
+                    path: 'author_id',
+                    select: 'name biography birthYear deathYear image nationality'
+                }
+            })
+            .limit(10);
+
+        // Extract books from relationships
+        const books = bookRelations.map(relation => relation.book_id);
+
+        if (books.length === 0) {
+            return res.status(404).json({ message: "No books found for this genre" });
+        }
+
+        res.json(books);
+        
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error while searching books" });
+    }
+};
