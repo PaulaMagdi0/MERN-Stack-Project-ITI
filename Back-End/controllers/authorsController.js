@@ -65,15 +65,47 @@ exports.getAuthorsByName = async (req, res) => {
     }
 };
 
-exports.AddAuthor = async (req, res) => {
-    try {
-        const newAuthor = new Author(req.body);
-        await newAuthor.save();
-        res.status(201).json(newAuthor);
-    } catch (error) {
-        res.status(500).json({ message: "Error adding book" });
+// exports.AddAuthor = async (req, res) => {
+//     try {
+//         const newAuthor = new Author(req.body);
+//         await newAuthor.save();
+//         res.status(201).json(newAuthor);
+//     } catch (error) {
+//         res.status(500).json({ message: "Error adding book" });
+//     }
+// };
+        // Adjust path if needed
+
+exports.createAuthor = async (req, res) => {
+  try {
+    console.log(req.body);
+
+    // Destructure the request body, including potential genreIds array
+    const { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
+
+    // Create and save the author
+    const newAuthor = new Author({ name, biography, birthYear, deathYear, image, nationality });
+    await newAuthor.save();
+
+    // If genreIds are provided, create associations between this author and the genres
+    if (genreIds && genreIds.length > 0) {
+      const authorGenres = genreIds.map(genreId => ({ author_id: newAuthor._id, genre_id: genreId }));
+      await AuthorGenre.insertMany(authorGenres);
     }
+
+    // Optionally, fetch the author details (and even populate genres if desired)
+    const authorWithDetails = await Author.findById(newAuthor._id);
+    // If you want to populate genre details, you might perform an additional query on AuthorGenre,
+    // for example:
+    const authorGenresPopulated = await AuthorGenre.find({ author_id: newAuthor._id }).populate('genre_id');
+
+    res.status(201).json({ author: authorWithDetails, message: "Author added successfully" ,authorGenresPopulated});
+  } catch (error) {
+    console.error("Error adding author:", error);
+    res.status(500).json({ message: "Error adding author", error: error.message });
+  }
 };
+
 
 // exports.deleteAuthor = async (req, res) => {
 //     try {
