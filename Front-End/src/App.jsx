@@ -8,6 +8,7 @@ import store from "./store/store";
 import { Provider } from "react-redux";
 import SingleAuthor from "./pages/singleAuthor/SingleAuthor";
 import SingleBook from "./pages/singlebook/SingleBooks";
+import Whishlist from "./pages/whishlist/WhishList";
 
 function App() {
   return (
@@ -17,8 +18,9 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
-        <Route path="/singlebooks/:id" element= {<SingleBook/>}></Route>
+        <Route path="/singlebook/:id" element= {<SingleBook/>}/>
         <Route path="/author/:id" element={<SingleAuthor />} />
+        <Route path="/whishlist" element={<Whishlist/>}> </Route>
       </Routes>
       <Footer/>
     </BrowserRouter>

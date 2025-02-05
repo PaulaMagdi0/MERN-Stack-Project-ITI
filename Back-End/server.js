@@ -13,6 +13,7 @@ const authorsGenreRoutes = require('./routes/authorGenraRoute')
 const genreRoute = require('./routes/genresRoute')
 const subscriptionRoutes = require("./routes/subscription");
 const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
+const wishlistRoutes = require("./routes/whishListRoutes");
 
 const app = express();
 
@@ -21,38 +22,40 @@ const url = process.execArgv.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7Z
 
 
 // config CORS
-const corsOptions = {
-    origin: ['http://localhost:5173'], // The Url That Sends The Request
-    methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
-    allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
-    credentials: true, // Allow cookies/auth headers
-    optionsSuccessStatus: 200,
-  };
+// const corsOptions = {
+//     origin: ['*'], // The Url That Sends The Request
+//         // origin: ['http://localhost:5173'], // The Url That Sends The Request
+
+//     methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
+//     allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
+//     credentials: true, // Allow cookies/auth headers
+//     optionsSuccessStatus: 200,
+//   };
   
 // Middleware
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 app.use(express.json()); // Built-in body parser
 
 
 // Without Middleware to set CORS headers
-// app.use((req, res, next) => {
-//   // Allow requests from any origin (customize in production!)
-//   res.setHeader('Access-Control-Allow-Origin', '*');
+app.use((req, res, next) => {
+  // Allow requests from any origin (customize in production!)
+  res.setHeader('Access-Control-Allow-Origin', '*');
   
-//   // Allowed HTTP methods
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+  // Allowed HTTP methods
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
   
-//   // Allowed headers (e.g., Content-Type, Authorization)
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // Allowed headers (e.g., Content-Type, Authorization)
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
-//   // Handle preflight requests (OPTIONS)
-//   if (req.method === 'OPTIONS') {
-//     return res.sendStatus(200);
-//   }
+  // Handle preflight requests (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   
-//   next();
-// });
+  next();
+});
 
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
@@ -64,6 +67,7 @@ app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
 // app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
+app.use("/wishlist", wishlistRoutes);
 
 // Start the server
 mongoose.connect(url).then(result => {
