@@ -6,8 +6,9 @@ import { Link } from 'react-router-dom';
 
 const Wishlist = () => {
   const dispatch = useDispatch();
-  const { items, loading, error } = useSelector((state) => state.wishlist);
+  const { items, loading, error } = useSelector((state) => state.wishlist || []);
 
+  
   // Use the static user ID for now.
   const staticUserId = '679d4582585166f8c6ccbbfa';
 
