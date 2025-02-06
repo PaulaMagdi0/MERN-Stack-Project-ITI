@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBookById } from "../../store/bookSlice";
@@ -9,7 +9,8 @@ import { Link } from "react-router-dom";
 const SingleBook = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { book, loading, error } = useSelector((state) => state.book);
+  const { currentBook, loading, error } = useSelector((state) => state.book);
+console.log(currentBook);
 
   useEffect(() => {
     dispatch(fetchBookById(id));
@@ -17,7 +18,7 @@ const SingleBook = () => {
 
   if (loading) return <p className="text-center mt-4">Loading book details...</p>;
   if (error) return <p className="text-center mt-4 text-danger">Error: {error}</p>;
-  if (!book) return null;
+  if (!currentBook) return null;
 
   return (
     <Container className="d-flex justify-content-center mt-5 mb-5">
@@ -26,8 +27,8 @@ const SingleBook = () => {
           {/* Book Cover on the Left */}
           <Col md={5} className="d-flex align-items-center">
             <Card.Img
-              src={book.image}
-              alt={book.title}
+              src={currentBook.image}
+              alt={currentBook.title}
               style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px" }}
             />
           </Col>
@@ -36,7 +37,7 @@ const SingleBook = () => {
           <Col md={7}>
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
-                <Card.Title className="display-5">{book.title}</Card.Title>
+                <Card.Title className="display-5">{currentBook.title}</Card.Title>
                 <Button variant="light" className="border-0">
                   <FaHeart size={28} className="text-danger" /> {/* Wishlist Button */}
                 </Button>
@@ -46,8 +47,8 @@ const SingleBook = () => {
               <Row className="align-items-center mt-3">
         <Col xs="3" className="text-center">
           <img
-            src={book.author_id?.image || "https://via.placeholder.com/100"}
-            alt={book.author_id?.name || "Author"}
+            src={currentBook.author_id?.image || "https://via.placeholder.com/100"}
+            alt={currentBook.author_id?.name || "Author"}
             className="rounded-circle border border-dark"
             style={{ width: "80px", height: "80px", objectFit: "cover" }}
           />
@@ -55,17 +56,17 @@ const SingleBook = () => {
         <Col xs="9">
           <h4>
             <strong>Author: </strong>
-            <Link to={`/author/${book.author_id?._id}`} style={{ textDecoration: "none", color: "#007bff" }}>
-              {book.author_id?.name || "Unknown"}
+            <Link to={`/author/${currentBook.author_id?._id}`} style={{ textDecoration: "none", color: "#007bff" }}>
+              {currentBook.author_id?.name || "Unknown"}
             </Link>
           </h4>
         </Col>
       </Row>
               {/* Release Date */}
-              <p className="mt-3"><strong>Release Date:</strong> {new Date(book.releaseDate).toDateString()}</p>
+              <p className="mt-3"><strong>Release Date:</strong> {new Date(currentBook.releaseDate).toDateString()}</p>
 
               {/* Book Description */}
-              <p className="text-muted" style={{ fontSize: "1.2rem" }}>{book.description}</p>
+              <p className="text-muted" style={{ fontSize: "1.2rem" }}>{currentBook.description}</p>
 
               {/* Buttons */}
               <div className="d-flex gap-3">

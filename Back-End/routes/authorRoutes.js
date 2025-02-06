@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {getAuthors,getAuthorsByID,getAuthorsByName,AddAuthor} = require("../controllers/authorsController")
+const {getAuthors,getAuthorsByID,getAuthorsByName,createAuthor,updateAuthorGenre,deleteAuthor,updateAuthor} = require("../controllers/authorsController")
 
 // Get all books
 router.get("/", getAuthors);
@@ -11,6 +11,20 @@ router.get("/id/:id",getAuthorsByID );
 // Search books by title
 router.get("/name/:name",getAuthorsByName );
 
-router.post("/Add-Author",AddAuthor)
+//Create Author
+router.post("/add-author",createAuthor)
+
+
+//Put/Update Authour
+
+// router.put("/edit-Author/:authorID",updateAuthor) // Useless
+
+// Put AuthourGenre 
+router.put("/edit-author/:authorID",updateAuthorGenre)
+
+//  Delete Author 
+
+router.delete("/delete-Author/:authorID",deleteAuthor)
+
 
 module.exports = router;

@@ -20,7 +20,7 @@ const signupSigninLimiter = rateLimit({
 // Signup Route
 router.post("/sign-up", signupSigninLimiter, async (req, res) => {
     try {
-        const { username, email, password, address, phone, dateOfBirth } = req.body;
+        const { username, email, password, address, phone, dateOfBirth } = req.body;    
 
         // Check for missing fields
         if (!username || !email || !password || !phone) {
@@ -110,7 +110,6 @@ router.put("/update-profile", authenticationToken, async (req, res) => {
         const { id } = req.user;
         const updateData = {};
         const allowedFields = ["username", "email", "address", "phone", "dateOfBirth", "image"];
-
         allowedFields.forEach(field => {
             if (req.body[field] !== undefined) {
                 updateData[field] = req.body[field];
