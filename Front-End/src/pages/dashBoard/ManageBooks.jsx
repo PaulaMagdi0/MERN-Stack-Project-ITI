@@ -10,22 +10,51 @@ const ManageBooks = () => {
     const [authors, setAuthors] = useState([]);
     const [action, setAction] = useState("");
     const [selectedBook, setSelectedBook] = useState(null);
+    const [bookGenres, setBookGenres] = useState([]);
 
     useEffect(() => {
         fetchBooks();
+        fetchBookGenres();
         fetchGenres();
         fetchAuthors();
     }, []);
 
     const fetchBooks = async () => {
         try {
-            const response = await fetch("http://localhost:5000/books");
+            const response = await fetch("http://localhost:5000/books?page=1");
             const data = await response.json();
-            setBooks(data.books);
+            const totalItems = data.totalItems;
+            const itemsPerPage = data.itemsPerPage;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            let allBooks = [];
+            let currentPage = 1;
+
+            while (currentPage <= totalPages) {
+                const pageResponse = await fetch(`http://localhost:5000/books?page=${currentPage}`);
+                const pageData = await pageResponse.json();
+                allBooks = [...allBooks, ...pageData.books];
+                currentPage++;
+            }
+
+            setBooks(allBooks);
         } catch (error) {
             console.error("Error fetching books:", error);
         }
     };
+
+    const fetchBookGenres = async () => {
+        try {
+            const response = await fetch("http://localhost:5000/bookgenre");
+            const data = await response.json();
+            
+            // Filter out invalid book-genre mappings
+            const validBookGenres = data.data.filter(bg => bg.book_id !== null);
+    
+            setBookGenres(validBookGenres);
+        } catch (error) {
+            console.error("Error fetching book genres:", error);
+        }
+    };    
 
     const fetchGenres = async () => {
         try {
@@ -49,24 +78,50 @@ const ManageBooks = () => {
 
     const handleAddBook = async (values, { resetForm }) => {
         try {
-            await fetch("http://localhost:5000/books", {
+            console.log("📤 Sending request to backend:", values);
+
+            const response = await fetch("http://localhost:5000/books/post-book", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Server error: ${errorData.message}`);
+            }
+
+            const data = await response.json();
+            console.log("✅ Book added successfully:", data);
+
             fetchBooks();
             resetForm();
+            setAction("");
         } catch (error) {
-            console.error("Error adding book:", error);
+            console.error("❌ Error adding book:", error.message);
         }
     };
 
     const handleDeleteBook = async () => {
-        if (!selectedBook) return;
+        if (!selectedBook?._id) {
+            console.error("No book selected for deletion");
+            return;
+        }
+
         try {
-            await fetch(`http://localhost:5000/books/${selectedBook._id}`, {
+            const response = await fetch(`http://localhost:5000/books/delete-book/${selectedBook._id}`, {
                 method: "DELETE",
             });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Error response:", errorText);
+                return;
+            }
+
+            const data = await response.json();
+            console.log("Book deleted:", data);
+
             fetchBooks();
             setSelectedBook(null);
         } catch (error) {
@@ -76,13 +131,13 @@ const ManageBooks = () => {
 
     const handleEditBook = async (values) => {
         if (!selectedBook) return;
+
         try {
-            // Ensure releaseDate is in the correct format
             const formattedValues = {
                 ...values,
                 releaseDate: values.releaseDate ? new Date(values.releaseDate).toISOString().split('T')[0] : '',
             };
-            await fetch(`http://localhost:5000/books/${selectedBook._id}`, {
+            await fetch(`http://localhost:5000/books/edit-book/${selectedBook._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedValues),
@@ -96,12 +151,12 @@ const ManageBooks = () => {
 
     const bookSchema = Yup.object().shape({
         title: Yup.string().required("Title is required"),
-        author: Yup.string().required("Author is required"),
+        author_id: Yup.string().required("Author is required"),
         releaseDate: Yup.string().required("Release Date is required"),
-        genre: Yup.string().required("Genre is required"),
+        // genre: Yup.string().required("Genre is required"),
         content: Yup.string().required("Content is required"),
+        description: Yup.string().required("Description is required"),
     });
-    
 
     return (
         <Container>
@@ -114,61 +169,76 @@ const ManageBooks = () => {
                 </div>
             </Section>
 
-            {/* Wrap the forms in FormContainer */}
             <FormContainer>
-                {/* Add Book Form */}
                 {action === "add" && (
                     <Formik
-                        initialValues={{ title: "", author: "", releaseDate: "", genre: "", content: "" }}
+                        initialValues={{
+                            title: "", author_id: "", releaseDate: "", genre: "", content: "", description: "",
+                            genres: bookGenres
+                                .filter(bg => bg.book_id._id === selectedBook?._id) // Access nested book_id
+                                .map(bg => bg.genre_id.name) || []
+                        }}
                         validationSchema={bookSchema}
                         onSubmit={handleAddBook}
                     >
-                        {({ touched, errors }) => (
+                        {({ values, touched, errors, handleChange }) => (
                             <Section className="mt-4">
                                 <SectionTitle>Add Book</SectionTitle>
                                 <StyledForm>
                                     <FormGroup>
                                         <FormLabel>Title</FormLabel>
-                                        <FormInput name="title" type="text" placeholder="Enter Book Title" error={touched.name && errors.name} />
+                                        <FormInput name="title" type="text" placeholder="Enter Book Title" value={values.title} onChange={handleChange} />
                                         {touched.title && errors.title && <ErrorMessageStyled>{errors.title}</ErrorMessageStyled>}
                                     </FormGroup>
                                     <FormGroup>
                                         <FormLabel>Author</FormLabel>
-                                        {/* <Field as="select" name="author"> */}
-                                        <StyledSelect>
+                                        <StyledSelect name="author_id" onChange={handleChange}>
                                             <option value="">Select Author</option>
                                             {authors.map((author) => (
-                                                <option key={author._id} value={author.name}>
+                                                <option key={author._id} value={author._id}>
                                                     {author.name}
                                                 </option>
                                             ))}
                                         </StyledSelect>
-                                        {/* </Field> */}
-                                        {touched.author && errors.author && <ErrorMessageStyled>{errors.author}</ErrorMessageStyled>}
+                                        {touched.author_id && errors.author_id && <ErrorMessageStyled>{errors.author_id}</ErrorMessageStyled>}
                                     </FormGroup>
                                     <FormGroup>
                                         <FormLabel>Release Date</FormLabel>
-                                        <FormInput name="releaseDate" type="number" placeholder="Enter Release Date" />
+                                        <FormInput name="releaseDate" type="text" placeholder="Release Date"  value={values.releaseDate} onChange={handleChange} />
                                         {touched.releaseDate && errors.releaseDate && <ErrorMessageStyled>{errors.releaseDate}</ErrorMessageStyled>}
                                     </FormGroup>
                                     <FormGroup>
-                                        <FormLabel>Genre</FormLabel>
-                                        {/* <Field as="select" name="genre"> */}
-                                        <StyledSelect>
-                                            <option value="">Select Genre</option>
-                                            {genres.map((genre) => (
-                                                <option key={genre._id} value={genre.name}>
-                                                    {genre.name}
-                                                </option>
+                                        <FormLabel>Genres</FormLabel>
+                                        <div style={{ marginTop: "5px" }}>
+                                            {genres.map(genre => (
+                                            <span
+                                                key={genre._id}
+                                                className="badge"
+                                                style={{
+                                                margin: "5px",
+                                                padding: "8px 12px",
+                                                backgroundColor: bookGenres.includes(genre._id) ? '#007bff' : '#ddd', // Blue if selected
+                                                color: '#fff',
+                                                borderRadius: "15px",
+                                                cursor: "pointer",
+                                                transition: "background-color 0.3s ease",
+                                                }}
+                                                onClick={() => handleGenreToggle(genre._id)} // Toggle checked state on click
+                                            >
+                                                {genre.name}
+                                            </span>
                                             ))}
-                                        </StyledSelect>
-                                        {/* </Field> */}
-                                        {touched.genre && errors.genre && <ErrorMessageStyled>{errors.genre}</ErrorMessageStyled>}
+                                        </div>  
                                     </FormGroup>
                                     <FormGroup>
                                         <FormLabel>Content</FormLabel>
-                                        <Field as={StyledTextarea} name="content" placeholder="Content" />
+                                        <Field as={StyledTextarea} name="content" placeholder="Content" value={values.content} onChange={handleChange} />
                                         {touched.content && errors.content && <ErrorMessageStyled>{errors.content}</ErrorMessageStyled>}
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <FormLabel>Description</FormLabel>
+                                        <Field as={StyledTextarea} name="description" placeholder="Description" value={values.description} onChange={handleChange} />
+                                        {touched.description && errors.description && <ErrorMessageStyled>{errors.description}</ErrorMessageStyled>}
                                     </FormGroup>
                                     <SubmitButton type="submit">Add Book</SubmitButton>
                                 </StyledForm>
@@ -177,55 +247,56 @@ const ManageBooks = () => {
                     </Formik>
                 )}
 
-                {/* Delete Book Form */}
                 {action === "delete" && (
                     <Section className="mt-4">
                         <SectionTitle>Delete Book</SectionTitle>
-                        <form 
-                        className="mt-4 d-flex flex-column"
-                        onSubmit={(e) => {
+                        <form onSubmit={(e) => {
                             e.preventDefault();
                             handleDeleteBook();
-                    }}>
-                        <StyledSelect
-                            onChange={(e) => {
-                                const book = books.find((b) => b._id === e.target.value);
-                                setSelectedBook(book || null);
-                            }}
-                        >
-                            <option value="">Select a Book To Delete</option>
-                            {books.map((book) => (
-                                <option key={book._id} value={book._id}>
-                                    {book.title}
-                                </option>
-                            ))}
-                        </StyledSelect>
-                        <SubmitButton type="submit" disabled={!selectedBook}>
-                            Delete Book
-                        </SubmitButton>
-                    </form>
+                        }}>
+                            <StyledSelect
+                                onChange={(e) => {
+                                    const book = books.find((b) => b._id === e.target.value);
+                                    setSelectedBook(book || null);
+                                }}
+                            >
+                                <option value="">Select a Book To Delete</option>
+                                {books.map((book) => (
+                                    <option key={book._id} value={book._id}>
+                                        {book.title}
+                                    </option>
+                                ))}
+                            </StyledSelect>
+                            <SubmitButton type="submit" disabled={!selectedBook}>
+                                Delete Book
+                            </SubmitButton>
+                        </form>
                     </Section>
                 )}
 
-                {/* Edit Book Form */}
                 {action === "edit" && (
                     <Formik
                         initialValues={{
                             title: selectedBook?.title || "",
-                            author: selectedBook?.author || "",
+                            author_id: authors.find(author => author.name === selectedBook?.author?.name)?._id || "",
                             releaseDate: selectedBook?.releaseDate || "",
-                            genre: selectedBook?.genre || "",
                             content: selectedBook?.content || "",
+                            description: selectedBook?.description || "",
+                            genres: bookGenres
+                                .filter(bg => bg.book_id._id === selectedBook?._id) // Access nested book_id
+                                .map(bg => bg.genre_id.name) || []
                         }}
                         enableReinitialize
                         validationSchema={bookSchema}
                         onSubmit={handleEditBook}
                     >
-                        {({ values, handleChange }) => (
-                                <Section className="mt-4">
-                                    <SectionTitle>Edit Book</SectionTitle>
-                            <StyledForm>
+                        {({ values, touched, errors, handleChange }) => (
+                            <Section className="mt-4">
+                                <SectionTitle>Edit Book</SectionTitle>
+                                <StyledForm>
+                                    {/* Select book for editing */}
                                     <StyledSelect
+                                        value={selectedBook?._id || ""}
                                         onChange={(e) => {
                                             const book = books.find((b) => b._id === e.target.value);
                                             setSelectedBook(book || null);
@@ -238,66 +309,93 @@ const ManageBooks = () => {
                                             </option>
                                         ))}
                                     </StyledSelect>
-                                
 
-                                {selectedBook && (
-                                    <>
-                                    <FormGroup>
-                                        <FormLabel>Title</FormLabel>
-                                        <StyledInput
-                                            type="text"
-                                            name="title"
-                                            value={values.title}
-                                            onChange={handleChange}
-                                            placeholder="Title"
-                                        />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <FormLabel>Author</FormLabel>
-                                        <StyledInput
-                                            type="text"
-                                            name="author"
-                                            value={values.author.name}
-                                            onChange={handleChange}
-                                            placeholder="Author"
-                                        />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <FormLabel>Release Date</FormLabel>
-                                        <StyledInput
-                                            type="text"
-                                            name="releaseDate"
-                                            value={values.releaseDate}
-                                            onChange={handleChange}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <FormLabel>Genre</FormLabel>
-                                        <StyledInput
-                                            type="text"
-                                            name="genre"
-                                            value={values.genre}
-                                            onChange={handleChange}
-                                            placeholder="Genre"
-                                        />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <FormLabel>Content</FormLabel>
-                                        <StyledTextarea
-                                            name="content"
-                                            value={values.content}
-                                            onChange={handleChange}
-                                            placeholder="Content"
-                                        />
-                                    </FormGroup>
-                                    <SubmitButton type="submit">Update Book</SubmitButton>
-                                    </>
-                                )}
-                            </StyledForm>
+                                    {selectedBook && (
+                                        <>
+                                            <FormGroup>
+                                                <FormLabel>Title</FormLabel>
+                                                <StyledInput
+                                                    type="text"
+                                                    name="title"
+                                                    value={values.title}
+                                                    onChange={handleChange}
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Author</FormLabel>
+                                                <StyledSelect
+                                                    name="author_id"
+                                                    value={values.author_id} 
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value={selectedBook.author_id}>{selectedBook.author.name}</option>
+                                                    {authors.map((author) => (
+                                                        <option key={author._id} value={author._id}>
+                                                            {author.name}
+                                                        </option>
+                                                    ))}
+                                                </StyledSelect>
+                                                {touched.author_id && errors.author_id && (
+                                                    <ErrorMessageStyled>{errors.author_id}</ErrorMessageStyled>
+                                                )}
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Release Date</FormLabel>
+                                                <StyledInput
+                                                    type="text"
+                                                    name="releaseDate"
+                                                    value={values.releaseDate}
+                                                    onChange={handleChange}
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                            <FormLabel>Genres</FormLabel>
+                                            <div style={{ marginTop: "5px" }}>
+                                                {genres.map(genre => (
+                                                <span
+                                                    key={genre._id}
+                                                    className="badge"
+                                                    style={{
+                                                    margin: "5px",
+                                                    padding: "8px 12px",
+                                                    backgroundColor: bookGenres.includes(genre._id) ? '#007bff' : '#ddd', // Blue if selected
+                                                    color: '#fff',
+                                                    borderRadius: "15px",
+                                                    cursor: "pointer",
+                                                    transition: "background-color 0.3s ease",
+                                                    }}
+                                                    onClick={() => handleGenreToggle(genre._id)} // Toggle checked state on click
+                                                >
+                                                    {genre.name}
+                                                </span>
+                                                ))}
+                                            </div>
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Content</FormLabel>
+                                                <StyledTextarea
+                                                    name="content"
+                                                    value={values.content}
+                                                    onChange={handleChange}
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Description</FormLabel>
+                                                <StyledTextarea
+                                                    name="description"
+                                                    value={values.description}
+                                                    onChange={handleChange}
+                                                />
+                                            </FormGroup>
+                                            <SubmitButton type="submit">Update Book</SubmitButton>
+                                        </>
+                                    )}
+                                </StyledForm>
                             </Section>
                         )}
-                    </Formik>
+                    </Formik>                
                 )}
+
             </FormContainer>
         </Container>
     );

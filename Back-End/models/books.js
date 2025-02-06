@@ -20,7 +20,7 @@ const bookSchema = new Schema({
     },
     image: {
         type: String,
-        required: true
+        required: false
     },
     author_id: {
         type: Schema.Types.ObjectId,

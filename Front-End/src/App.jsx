@@ -8,7 +8,9 @@ import { Provider } from "react-redux";
 import SingleAuthor from "./pages/singleAuthor/SingleAuthor";
 import SingleBook from "./pages/singlebook/SingleBooks";
 import Books from "./pages/books/Books";
+import AboutAs from "./components/aboutas/About";
 import "./App.css";
+import Dashboard from "./pages/dashBoard/DashBoard";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
+        <Route path="/about" element={<AboutAs/>} />
+        <Route path="/dashboard" element={<Dashboard/>} />
         <Route path="/books/:id" element= {<SingleBook/>}></Route>
         <Route path="/books" element= {<Books/>}></Route>
         <Route path="/author/:id" element={<SingleAuthor />} />

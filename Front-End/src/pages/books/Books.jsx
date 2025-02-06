@@ -6,7 +6,7 @@ import { Container, CircularProgress, Alert, Button, Typography, Grid2 } from '@
 import { fetchBooks ,getAllGenres} from '../../store/bookSlice';
 
 function Books() {
-    const [genre,setGenra] = useState()
+    const [genre,setGenre] = useState()
     const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const { selectedGenre } = useSelector((state) => state.book);
@@ -23,7 +23,7 @@ function Books() {
         setSearchParams({ page: newPage });
     };
    const  handleGenreChange=(e) =>{
-    setGenra((prevState)=>e.target.value)
+    setGenre((prevState)=>e.target.value)
     
     console.log(genre);
 

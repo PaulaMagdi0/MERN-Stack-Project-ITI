@@ -10,11 +10,11 @@ router.get("/id/:id",getBookDetailsByID );
 
 router.get("/title/:title",getBooksByTitle );
 
-router.post("/post-book" ,createBook)
+router.post("/post-book" ,createBook);
 
-router.delete("/delete-book/:bookID" ,deleteBook)
+router.delete("/delete-book/:bookID", deleteBook);
 
-router.put("/edit-book/:bookID",updateBook)
+router.put("/edit-book/:bookID",updateBook);
 
 // Search books by title
 router.get('/search',searchBook);

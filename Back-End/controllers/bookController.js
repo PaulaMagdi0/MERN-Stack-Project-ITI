@@ -134,11 +134,31 @@ exports.getBooksByTitle = async (req, res) => {
 //Post Book
 exports.createBook = async (req, res) => {
     try {
+        console.log("📩 Request body received:", req.body); // Debugging
+
+        // Optional: Validate the incoming data manually before saving (if needed)
+        const { title, author_id, releaseDate, content, description } = req.body;
+
+        // Check if all required fields are present
+        if (!title || !author_id || !releaseDate || !content || !description) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        // Create a new book document and save it to the database
         const newBook = new Book(req.body);
         await newBook.save();
+
+        console.log("✅ Book saved successfully:", newBook);
         res.status(201).json(newBook);
     } catch (error) {
-        res.status(500).json({ message: "Error adding book" });
+        console.error("❌ Error adding book:", error);
+
+        // Send a structured error message to the client
+        res.status(500).json({
+            message: "Error adding book",
+            error: error.message,
+            receivedData: req.body // Log received data for debugging
+        });
     }
 };
 
@@ -162,22 +182,28 @@ exports.searchBook= async (req, res) => {
     }
   };
 //Delete Book By ID
-  exports.deleteBook = async (req, res) => {
+exports.deleteBook = async (req, res) => {
     try {
         const { bookID } = req.params;
+        console.log("Received bookID:", bookID); // Debugging
+
+        if (!bookID) {
+            return res.status(400).json({ message: "Book ID is required" });
+        }
+
         const deletedBook = await Book.findByIdAndDelete(bookID);
         
-        console.log(deletedBook);
-
         if (!deletedBook) {
             return res.status(404).json({ message: "Book not found" });
         }
 
         return res.json({ message: "Book deleted successfully", deletedBook });
     } catch (error) {
+        console.error("Error deleting book:", error);
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
 
 exports.updateBook = async (req, res) => {
     try {
