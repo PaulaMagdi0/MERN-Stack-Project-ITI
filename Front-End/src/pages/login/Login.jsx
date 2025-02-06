@@ -19,15 +19,18 @@ function SignIn() {
   const { loading, error, token } = useSelector(
     (state) => state.auth || { loading: false, error: null, token: null }
   );
-  console.log(token);
   
   // Redirect if a token exists (user is authenticated)
+
   useEffect(() => {
     if (token) {
       navigate("/dashboard"); // Change to your desired route
     }
   }, [token, navigate]);
 
+
+
+  
   return (
     <div className="signup">
       <section className="container containerrr">
@@ -75,10 +78,11 @@ function SignIn() {
                 />
                 <ErrorMessage name="password" component="small" className="error-text" />
               </div>
-
+              <label htmlFor="RememberMe">Remember Me</label>
+              <Field  value="RememberMe"  type="checkbox" id="RememberMe" name="RememberMe" />
               <div className="col-12">
                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                  {loading ? "Signing In..." : "Sign In"}
+                  {loading ? "Signing In..." : "Sign In"} 
                 </button>
               </div>
 

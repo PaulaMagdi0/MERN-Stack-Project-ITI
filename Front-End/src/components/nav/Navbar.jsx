@@ -1,26 +1,36 @@
-import React from "react";
-import { AppBar, Toolbar, IconButton, Typography, Box, Container, Avatar, Button, Tooltip, Menu, MenuItem } from "@mui/material";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
+import { AppBar, Toolbar, IconButton, Typography, Box, Container, Avatar, Button, Tooltip, Menu, MenuItem } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import AdbIcon from "@mui/icons-material/Adb";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import SearchBar from "../searchBar/SearchBar";
-import { useDispatch, useSelector } from "react-redux";
+import { getUserInfo, logout } from "../../store/authSlice"; // Import logout action
+
 const pages = ["Home", "Books", "About", "Contact"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  // Access auth state from Redux; provide a default object if not defined
-  const { loading, error, token } = useSelector(
-    (state) => state.auth || { loading: false, error: null, token: null }
-  );
-  console.log(token);
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
+  // Fetch user info on mount and when user changes
+  useEffect(() => {
+    dispatch(getUserInfo());
+  }, [dispatch]);
+
   const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
   const handleCloseUserMenu = () => setAnchorElUser(null);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    handleCloseUserMenu();
+  };
 
   return (
     <AppBar position="static" style={{ background: "#2c3e50" }}>
@@ -50,9 +60,19 @@ function Navbar() {
             <IconButton size="large" aria-label="menu" onClick={handleOpenNavMenu} sx={{ color: "#F8E4A1" }}>
               <MenuIcon />
             </IconButton>
-            <Menu id="menu-appbar" anchorEl={anchorElNav} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu}>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorElNav}
+              open={Boolean(anchorElNav)}
+              onClose={handleCloseNavMenu}
+            >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`}>
+                <MenuItem
+                  key={page}
+                  onClick={handleCloseNavMenu}
+                  component={NavLink}
+                  to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
+                >
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
@@ -60,11 +80,6 @@ function Navbar() {
           </Box>
 
           <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-          {/* <Typography variant="h5" noWrap component={NavLink} to="/" sx={{ flexGrow: 1, fontFamily: "monospace", fontWeight: 700, color: "#F8E4A1" }}>
-            BookHub
-          </Typography> */}
-
-          {/* Centered Navigation Links */}
           <Box sx={{ flexGrow: 2, display: { xs: "none", md: "flex" }, justifyContent: "center" }}>
             {pages.map((page) => (
               <Button 
@@ -78,20 +93,40 @@ function Navbar() {
             ))}
           </Box>
 
-
           <SearchBar />
 
           <FavoriteIcon sx={{ mr: 2, color: "#F8E4A1" }} />
 
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="User" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip>
-            <Menu id="menu-appbar" anchorEl={anchorElUser} open={Boolean(anchorElUser)} onClose={handleCloseUserMenu}>
+            {user ? (
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar alt={user.username} src={user.avatar || "/static/images/avatar/2.jpg"} />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Button 
+                component={NavLink} 
+                to="/login" 
+                sx={{ color: "white", "&:hover": { color: "#FFD700" } }}
+              >
+                Login
+              </Button>
+            )}
+
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                <MenuItem 
+                  key={setting} 
+                  onClick={setting === "Logout" ? handleLogout : handleCloseUserMenu}
+                  component={setting === "Profile" ? NavLink : "div"}
+                  to={setting === "Profile" ? "/profile" : undefined}
+                >
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}

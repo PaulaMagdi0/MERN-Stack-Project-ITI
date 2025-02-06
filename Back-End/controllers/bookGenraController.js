@@ -1,5 +1,8 @@
 const BookGenre = require("../models/bookgenre");
 const Genre = require("../models/genre");
+const Author = require("../models/authors");
+const Book = require("../models/books");
+
 const mongoose = require('mongoose');
 const GenreForBook = require('./bookGenraController')
 
@@ -122,13 +125,12 @@ exports.deleteGenre = async (req, res) => {
 //     }
 // }
 
-
-// Search For Genre And Get All book that Matches The Genres
+// Search For Genre And Get All Books that Match The Genres with Pagination
 exports.BooksByGenre = async (req, res) => {
     try {
         // 1. Get and validate genre ID
         const { genreID } = req.params;
-        
+
         if (!genreID) {
             return res.status(400).json({ 
                 code: "MISSING_GENRE_ID",
@@ -152,8 +154,17 @@ exports.BooksByGenre = async (req, res) => {
             });
         }
 
-        // 3. Find book relations with proper population
+        // 3. Parse pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        // 4. Calculate the skip value
+        const skip = (page - 1) * limit;
+
+        // 5. Find book relations with pagination and proper population
         const bookRelations = await BookGenre.find({ genre_id: genreID })
+            .skip(skip)
+            .limit(limit)
             .populate({
                 path: 'book_id',
                 select: 'title releaseDate content description image author_id',
@@ -164,7 +175,7 @@ exports.BooksByGenre = async (req, res) => {
             })
             .lean(); // Convert to plain objects
 
-        // 4. Filter and format response
+        // 6. Filter and format response
         const validBooks = bookRelations
             .filter(relation => relation.book_id) // Remove null book references
             .map(relation => relation.book_id);
@@ -176,8 +187,17 @@ exports.BooksByGenre = async (req, res) => {
             });
         }
 
+        // 7. Get total count of books for the genre
+        const totalBooks = await BookGenre.countDocuments({ genre_id: genreID });
+
+        // 8. Calculate total pages
+        const totalPages = Math.ceil(totalBooks / limit);
+
+        // 9. Send the paginated response
         res.json({
-            count: validBooks.length,
+            currentPage: page,
+            totalPages: totalPages,
+            totalBooks: totalBooks,
             books: validBooks
         });
         
@@ -227,3 +247,77 @@ exports.GenreForBook = async (req, res) => {
     }
 };
 
+// Get Books by Author ID
+exports.BooksByAuthor = async (req, res) => {
+    try {
+        // 1. Get and validate author ID
+        const { authorID } = req.params;
+        
+        if (!authorID) {
+            return res.status(400).json({ 
+                code: "MISSING_AUTHOR_ID",
+                message: "Author ID parameter is required" 
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(authorID)) {
+            return res.status(400).json({
+                code: "INVALID_AUTHOR_ID",
+                message: "Invalid author ID format"
+            });
+        }
+
+        // 2. Verify author exists
+        const authorExists = await Author.exists({ _id: authorID });
+        if (!authorExists) {
+            return res.status(404).json({
+                code: "AUTHOR_NOT_FOUND",
+                message: "Specified author does not exist"
+            });
+        }
+
+        // 3. Find books by author with genre information
+        const books = await Book.find({ author_id: authorID })
+            .select('title releaseDate content description image author_id')
+            .populate({
+                path: 'author_id',
+                select: 'name biography birthYear deathYear image nationality'
+            })
+            .lean();
+
+        // 4. Get genres for each book using BookGenre model
+        const booksWithGenres = await Promise.all(
+            books.map(async (book) => {
+                const genres = await BookGenre.find({ book_id: book._id })
+                    .populate('genre_id', 'name')
+                    .then(results => results.map(r => r.genre_id));
+                
+                return {
+                    ...book,
+                    author: book.author_id,
+                    genres
+                };
+            })
+        );
+
+        if (booksWithGenres.length === 0) {
+            return res.status(404).json({
+                code: "NO_BOOKS_FOUND",
+                message: "Found author but no associated books"
+            });
+        }
+
+        res.json({
+            count: booksWithGenres.length,
+            books: booksWithGenres
+        });
+        
+    } catch (err) {
+        console.error("Author Books Error:", err);
+        res.status(500).json({
+            code: "SERVER_ERROR",
+            message: "Failed to retrieve author books",
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+    }
+};
