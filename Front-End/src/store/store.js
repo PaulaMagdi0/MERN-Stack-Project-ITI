@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import bookReducer from "./bookSlice";
 import authorReducer from "./authorSlice";
-import wishlistReducer from "./whishListslice"; // Correct import for wishlist reducer
+import wishlistReducer from "./wishlistslice"; // Correct import for wishlist reducer
 
 const store = configureStore({
   reducer: {

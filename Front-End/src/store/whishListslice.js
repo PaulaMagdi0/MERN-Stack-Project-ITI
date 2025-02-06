@@ -3,14 +3,14 @@ import axios from 'axios';
 
 /**
  * Async thunk to fetch the wishlist for a given user.
- * This will make an API call to retrieve the wishlist items from the database.
+ * This will make an API call to retrieve the wishlist items (books with details).
  */
 export const fetchWishlist = createAsyncThunk(
   'wishlist/fetchWishlist',
   async (userId, thunkAPI) => {
     try {
       const response = await axios.get(`http://localhost:5000/wishlist/${userId}`);
-      return response.data; // Assumes your API returns an array of wishlist items
+      return response.data; // Expects an array of book objects with details
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -18,15 +18,15 @@ export const fetchWishlist = createAsyncThunk(
 );
 
 /**
- * Async thunk to remove a wishlist item by its ID.
+ * Async thunk to remove a wishlist item by its book ID.
  */
 export const removeWishlistItem = createAsyncThunk(
   'wishlist/removeWishlistItem',
-  async (wishlistItemId, thunkAPI) => {
+  async (bookId, thunkAPI) => {
     try {
-      await axios.delete(`http://localhost:5000/wishlist/${wishlistItemId}`);
-      // Return the id so we can remove it from state
-      return wishlistItemId;
+      await axios.delete(`http://localhost:5000/wishlist/${bookId}`);
+      // Return the bookId so we can remove it from state
+      return bookId;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }

@@ -6,7 +6,7 @@ const { authenticationToken } = require("../middleware/authMiddleware");
 require("dotenv").config();
 const rateLimit = require("express-rate-limit");
 const validator = require("validator");
-
+const userController = require('../controllers/userController');
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
@@ -139,5 +139,6 @@ router.put("/update-profile", authenticationToken, async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 });
+
 
 module.exports = router;

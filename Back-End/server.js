@@ -13,7 +13,7 @@ const authorsGenreRoutes = require('./routes/authorGenraRoute')
 const genreRoute = require('./routes/genresRoute')
 const subscriptionRoutes = require("./routes/subscription");
 const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
-const wishlistRoutes = require("./routes/whishListRoutes");
+const wishlistRoutes = require("./routes/wishListRoutes");
 
 const app = express();
 
