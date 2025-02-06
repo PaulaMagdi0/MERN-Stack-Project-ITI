@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 exports.addToWishlist = async (req, res) => {
   try {
-    const { userId, bookId } = req.body;
+    const { userId, bookId, state } = req.body;
   
     // Validate input
     if (!userId || !bookId) {
@@ -21,12 +21,16 @@ exports.addToWishlist = async (req, res) => {
     }
   
     // Check if the book is already in the wishlist.
-    if (user.wishlist.includes(bookId)) {
+    const exists = user.wishlist.some(item => item.book.toString() === bookId);
+    if (exists) {
       return res.status(400).json({ message: "This book is already in the user's wishlist" });
     }
   
-    // Add the book to the wishlist.
-    user.wishlist.push(bookId);
+    // Add the book to the wishlist with its state.
+    user.wishlist.push({ 
+      book: bookId, 
+      state: state || "Want to read" // use provided state or default to "Want to read"
+    });
     await user.save();
   
     return res.status(201).json({
@@ -40,7 +44,6 @@ exports.addToWishlist = async (req, res) => {
     });
   }
 };
-//get wishlist books
 exports.getUserWishlist = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -50,21 +53,25 @@ exports.getUserWishlist = async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID format" });
     }
 
-    // Find the user and populate the wishlist field with Book details.
-    const user = await User.findById(userId).populate('wishlist');
+    // Find the user and populate the wishlist.book field with Book details.
+    const user = await User.findById(userId).populate('wishlist.book');
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Optionally, map the wishlist array to extract only the fields you need.
-    // For example, if you want only _id, title, and image:
-    const detailedWishlist = user.wishlist.map((book) => ({
-      _id: book._id.toString(),
-      title: book.title,
-      image: book.image,
-      description: book.description
-    }));
+    // Map the wishlist array to return desired fields from the Book document plus state.
+    const detailedWishlist = user.wishlist.map(item => {
+      // Ensure the book is populated.
+      if (!item.book) return null;
+      return {
+        _id: item.book._id.toString(),
+        title: item.book.title,
+        image: item.book.image,
+        description: item.book.description,
+        state: item.state  // include the state field
+      };
+    }).filter(item => item !== null); // remove any nulls if book wasn't populated
 
     return res.status(200).json(detailedWishlist);
   } catch (error) {
@@ -74,7 +81,6 @@ exports.getUserWishlist = async (req, res) => {
     });
   }
 };
-//delete books from wishlist
 exports.removeFromWishlist = async (req, res) => {
   try {
     // Expecting userId and bookId to be provided as URL parameters.
@@ -93,7 +99,7 @@ exports.removeFromWishlist = async (req, res) => {
   
     // Remove the book from the wishlist.
     const initialLength = user.wishlist.length;
-    user.wishlist = user.wishlist.filter((id) => id.toString() !== bookId);
+    user.wishlist = user.wishlist.filter(item => item.book.toString() !== bookId);
   
     if (user.wishlist.length === initialLength) {
       return res.status(404).json({ message: "Book not found in wishlist" });

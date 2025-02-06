@@ -1,8 +1,7 @@
 .hover-scale {
-    transition: transform 0.3s ease-in-out; /* Bootstrap uses similar timing for transitions */
-  }
-  
-  .hover-scale:hover {
-    transform: scale(1.05);
-  }
-  
+  transition: transform 0.3s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}

@@ -5,14 +5,18 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AdbIcon from "@mui/icons-material/Adb";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import SearchBar from "../searchBar/SearchBar";
-
+import { useDispatch, useSelector } from "react-redux";
 const pages = ["Home", "Books", "About", "Contact"];
 const settings = ["Profile", "Dashboard", "Logout"];
 
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-
+  // Access auth state from Redux; provide a default object if not defined
+  const { loading, error, token } = useSelector(
+    (state) => state.auth || { loading: false, error: null, token: null }
+  );
+  console.log(token);
   const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);

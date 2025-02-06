@@ -2,6 +2,7 @@ import { Formik, Form, Field } from "formik";
 import "./SignUp.css";
 import { SignUpValidation } from "./validation"
 import { useState, } from "react";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import axios from "axios"; 
 const initialValues ={
     username: "",  
@@ -24,7 +25,7 @@ function SignUp() {
                         try {
                             console.log(values);
                 
-                            const response = await fetch("http://localhost:5000/users/sign-up", {
+                            const response = await fetch(`${API_URL}/users/sign-up`, {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",

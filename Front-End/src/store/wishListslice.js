@@ -10,7 +10,7 @@ export const fetchWishlist = createAsyncThunk(
   async (userId, thunkAPI) => {
     try {
       const response = await axios.get(`http://localhost:5000/wishlist/${userId}`);
-      return response.data; // Expects an array of book objects with details
+      return response.data; // Expects an array of book objects with details and state
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -27,6 +27,24 @@ export const removeWishlistItem = createAsyncThunk(
       await axios.delete(`http://localhost:5000/wishlist/${bookId}`);
       // Return the bookId so we can remove it from state
       return bookId;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+/**
+ * Async thunk to update the state of a wishlist item.
+ * This endpoint is assumed to be: PUT /wishlist/state
+ * with payload { userId, bookId, state }.
+ */
+export const updateWishlistState = createAsyncThunk(
+  'wishlist/updateWishlistState',
+  async ({ userId, bookId, state }, thunkAPI) => {
+    try {
+      const response = await axios.put(`http://localhost:5000/wishlist/state`, { userId, bookId, state });
+      // Assume the API returns the updated wishlist item (or entire wishlist)
+      return { bookId, state: response.data.state };
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -68,6 +86,23 @@ const wishlistSlice = createSlice({
         state.items = state.items.filter((item) => item._id !== action.payload);
       })
       .addCase(removeWishlistItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      // updateWishlistState
+      .addCase(updateWishlistState.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateWishlistState.fulfilled, (state, action) => {
+        state.loading = false;
+        // Find the item with the matching book id and update its state
+        const index = state.items.findIndex(item => item._id === action.payload.bookId);
+        if (index !== -1) {
+          state.items[index].state = action.payload.state;
+        }
+      })
+      .addCase(updateWishlistState.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
       });

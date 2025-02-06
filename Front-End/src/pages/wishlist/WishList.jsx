@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchWishlist, removeWishlistItem } from '../../store/wishListslice'; // adjust the path if needed
-import { Container, Card, Button, Spinner, Alert, ListGroup } from 'react-bootstrap';
+import { fetchWishlist, removeWishlistItem, updateWishlistState } from '../../store/wishListslice'; // adjust the path if needed
+import { Container, Card, Button, Spinner, Alert, ListGroup, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import "./WishList.css"
 
 const Wishlist = () => {
   const dispatch = useDispatch();
@@ -30,6 +29,13 @@ const Wishlist = () => {
     });
   };
 
+  const handleStateChange = (bookId, newState) => {
+    dispatch(updateWishlistState({ userId: staticUserId, bookId, state: newState }));
+  };
+
+  // Define the state options for the dropdown
+  const stateOptions = ["Read", "Want to read", "Currently Reading"];
+
   return (
     <Container className="py-4">
       <h2 className="mb-4 text-center">Your Wishlist</h2>
@@ -51,11 +57,8 @@ const Wishlist = () => {
       <ListGroup variant="flush">
         {items.map((item) => (
           <ListGroup.Item key={item._id} className="mb-3">
-            <Link 
-              to={`/books/${item._id}`} 
-              className="text-decoration-none text-reset"
-            >
-              <Card className="d-flex flex-row align-items-center hover-scale">
+            <Card className="d-flex flex-row align-items-center hover-scale">
+              <Link to={`/books/${item._id}`} className="text-decoration-none text-reset">
                 <Card.Img
                   variant="left"
                   src={item.image}
@@ -63,24 +66,35 @@ const Wishlist = () => {
                   style={{ width: '120px', height: '180px', objectFit: 'cover' }}
                   className="m-3 rounded"
                 />
-                <Card.Body className="flex-grow-1">
+              </Link>
+              <Card.Body className="flex-grow-1">
+                <Link to={`/books/${item._id}`} className="text-decoration-none text-reset">
                   <Card.Title>{item.title}</Card.Title>
-                  <Card.Text>{item.description}</Card.Text>
-                </Card.Body>
-                <Card.Body className="text-end">
-                  <Button 
-                    variant="danger" 
-                    onClick={(e) => handleRemove(item._id, e)}
+                </Link>
+                <Card.Text>{item.description}</Card.Text>
+                <Form.Group controlId={`stateSelect-${item._id}`} className="mt-2">
+                  <Form.Label className="small">Status:</Form.Label>
+                  <Form.Control 
+                    as="select"
+                    value={item.state}
+                    onChange={(e) => handleStateChange(item._id, e.target.value)}
                   >
-                    Remove
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Link>
+                    {stateOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </Form.Control>
+                </Form.Group>
+              </Card.Body>
+              <Card.Body className="text-end">
+                <Button variant="danger" onClick={(e) => handleRemove(item._id, e)}>
+                  Remove
+                </Button>
+              </Card.Body>
+            </Card>
           </ListGroup.Item>
         ))}
       </ListGroup>
-      
+
       {items.length > 0 && (
         <div className="d-flex justify-content-end mt-4">
           <Button variant="outline-danger" onClick={handleRemoveAll}>

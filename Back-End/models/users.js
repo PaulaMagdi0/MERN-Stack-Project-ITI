@@ -52,8 +52,15 @@ const userSchema = new mongoose.Schema({
   },
   // New wishlist field: an array of Book IDs
   wishlist: [{
+    book: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Book",
+      ref: "Book"
+    },
+    state: {
+      type: String,
+      enum: ["Read", "Want to read", "Currently Reading"],
+      default: "Want to read"
+    }
   }]
 }, { timestamps: true });
 

@@ -1,5 +1,6 @@
 const Author = require("../models/authors");
 const AuthorGenre = require("../models/authorGenre");
+const Book = require("../models/books");
 const Genre = require("../models/genre");
 const mongoose = require("mongoose")
 
@@ -28,14 +29,24 @@ exports.getAuthors = async (req, res) => {
         res.status(500).json({ message: "Error fetching books" });
     }
 };
-
 exports.getAuthorsByID = async (req, res) => {
-    const { id } = req.params
+    const { id } = req.params;
     console.log(id);
-    const authors = await Author.findById(id).exec();
-    if (!authors) return res.status(404).json({ message: "Book not found" });
-    res.json(authors);
-}
+    try {
+      // Find the author
+      const author = await Author.findById(id).exec();
+      if (!author) return res.status(404).json({ message: "Author not found" });
+      
+      // Find books where the author_id equals this id
+      const books = await Book.find({ author_id: id }).exec();
+      
+      // Return both author data and books
+      res.json({ author, books });
+    } catch (error) {
+      console.error("Error fetching author:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  };
 
 
 

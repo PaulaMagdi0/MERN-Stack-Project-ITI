@@ -3,8 +3,6 @@ import Contact from "./components/Contact/Contact"
 import MainPage from "./pages/mainPage/MainPage";
 import Footer from "./components/footer/Footer";
 import Navbar from "./components/nav/Navbar";
-import store from "./store/store";
-import { Provider } from "react-redux";
 import SingleAuthor from "./pages/singleAuthor/SingleAuthor";
 import SingleBook from "./pages/singlebook/SingleBooks";
 import Books from "./pages/books/Books";
@@ -19,7 +17,7 @@ import ProfilePage from "./pages/Profile/Profile";
 
 function App() {
   return (
-    <Provider store={store}>
+    
       <BrowserRouter>
       <Navbar />
       <Routes>
@@ -42,7 +40,6 @@ function App() {
       </Routes>
       <Footer />
     </BrowserRouter>
-    </Provider>
     
   );
 }
