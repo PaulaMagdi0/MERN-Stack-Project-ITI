@@ -10,6 +10,9 @@ import SingleBook from "./pages/singlebook/SingleBooks";
 import Books from "./pages/books/Books";
 import AboutAs from "./components/aboutas/About";
 import "./App.css";
+import NotFound from "./pages/notFound/NotFound";
+import SignUp from "./pages/signUp/SignUp";
+import SignIn from "./pages/login/Login";
 import  Dashboard from "./pages/dashBoard/DashBoard"
 
 function App() {
@@ -18,6 +21,11 @@ function App() {
       <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/signup" element={< SignUp/>} />
+        <Route path="/signin" element={<SignIn/>}/>
+        <Route path="*" element={<NotFound />} />
         <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
         <Route path="/about" element={<AboutAs/>} />
