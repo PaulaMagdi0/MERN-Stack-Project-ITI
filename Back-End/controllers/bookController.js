@@ -1,4 +1,7 @@
 const Book = require("../models/books");
+const BookGenre = require("../models/bookgenre");
+const Genre =require("../models/genre");
+const mongoose = require('mongoose');
 
 // exports.getBooks = async (req, res) => {
 //     try {
@@ -41,6 +44,8 @@ const Book = require("../models/books");
 //     }
 // };
 
+
+// Get All  books 
 exports.getBooks = async (req, res) => {
     try {
         const { page = 1, perPage = 9 } = req.query;
@@ -84,7 +89,7 @@ exports.getBooks = async (req, res) => {
     }
 };
 
-
+// GetBookDetails By ID
 exports.getBookDetailsByID = async (req, res) => {
     const { id } = req.params;
     console.log(id);
@@ -104,7 +109,7 @@ exports.getBookDetailsByID = async (req, res) => {
     }
 };
 
-
+// Get Book Titles
 exports.getBooksByTitle = async (req, res) => {
     try {
         const { title } = req.params;
@@ -131,38 +136,35 @@ exports.getBooksByTitle = async (req, res) => {
     }
 };
 
-//Post Book
+//Post Book + BookGenres
 exports.createBook = async (req, res) => {
     try {
-        console.log("📩 Request body received:", req.body); // Debugging
+        console.log(req.body);
 
-        // Optional: Validate the incoming data manually before saving (if needed)
-        const { title, author_id, releaseDate, content, description } = req.body;
+        // Destructure request body
+        const { title, releaseDate, content, description, image, author_id, genreIds } = req.body;
 
-        // Check if all required fields are present
-        if (!title || !author_id || !releaseDate || !content || !description) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
-
-        // Create a new book document and save it to the database
-        const newBook = new Book(req.body);
+        // Create and save the book
+        const newBook = new Book({ title, releaseDate, content, description, image, author_id });
         await newBook.save();
 
-        console.log("✅ Book saved successfully:", newBook);
-        res.status(201).json(newBook);
-    } catch (error) {
-        console.error("❌ Error adding book:", error);
+        // If genres are provided, associate them with the book
+        if (genreIds && genreIds.length > 0) {
+            const bookGenres = genreIds.map(genreId => ({ book_id: newBook._id, genre_id: genreId }));
+            await BookGenre.insertMany(bookGenres);
+        }
 
-        // Send a structured error message to the client
-        res.status(500).json({
-            message: "Error adding book",
-            error: error.message,
-            receivedData: req.body // Log received data for debugging
-        });
+        // Fetch associated genres
+        const bookWithGenres = await Book.findById(newBook._id).populate('author_id');
+
+        res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
+    } catch (error) {
+        console.error("Error adding book:", error);
+        res.status(500).json({ message: "Error adding book", error: error.message });
     }
 };
 
-// Sample search endpoint (Express.js)
+// Search By Title For The Search Bar
 exports.searchBook= async (req, res) => {
     try {
       const books = await Book.find({
@@ -171,58 +173,221 @@ exports.searchBook= async (req, res) => {
           { 'author.name': { $regex: req.query.q, $options: 'i' } },
           { description: { $regex: req.query.q, $options: 'i' } }
         ]
-      }).populate({
+      })
+      .populate({
         path: 'author_id',
         select: 'name biography birthYear deathYear image nationality'
-    }).limit(10);
+    })
+    .limit(10);
       
       res.json(books);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   };
+
 //Delete Book By ID
-exports.deleteBook = async (req, res) => {
-    try {
-        const { bookID } = req.params;
-        console.log("Received bookID:", bookID); // Debugging
-
-        if (!bookID) {
-            return res.status(400).json({ message: "Book ID is required" });
-        }
-
-        const deletedBook = await Book.findByIdAndDelete(bookID);
+//   exports.deleteBook = async (req, res) => {
+//     try {
+//         const { bookID } = req.params;
+//         const deletedBook = await Book.findByIdAndDelete(bookID);
         
-        if (!deletedBook) {
-            return res.status(404).json({ message: "Book not found" });
-        }
+//         console.log(deletedBook);
 
-        return res.json({ message: "Book deleted successfully", deletedBook });
-    } catch (error) {
-        console.error("Error deleting book:", error);
-        return res.status(500).json({ message: "Server error", error: error.message });
-    }
-};
+//         if (!deletedBook) {
+//             return res.status(404).json({ message: "Book not found" });
+//         }
+
+//         return res.json({ message: "Book deleted successfully", deletedBook });
+//     } catch (error) {
+//         return res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// };
+
+// Put Book Update 
+// exports.updateBook = async (req, res) => {
+//     try {
+//         const { bookID } = req.params;
+//         const { title, content, description, image, author_id, releaseDate , genreIds } = req.body;
+
+//         // Find and update the book
+//         const updatedBook = await Book.findByIdAndUpdate(
+//             bookID,
+//             { title, content, description, image, author_id, releaseDate },
+//             { new: true, runValidators: true } // Returns updated book & validates schema
+//         );
+        
+//         if (!updatedBook) {
+//             return res.status(404).json({ message: "Book not found" });
+//         }
+
+//         return res.json({ message: "Book updated successfully", updatedBook });
+//     } catch (error) {
+//         return res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// };
 
 
+
+
+// Update Book And Its Genre With Session ana leh 3MLT FE NAFSY KEDA YA RABY
+// and its Genre But all data must Be sent
 exports.updateBook = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
     try {
         const { bookID } = req.params;
-        const { title, content, description, image, author_id, releaseDate } = req.body;
+        const { title, content, description, image, author_id, releaseDate, genreIds } = req.body;
 
-        // Find and update the book
+        // 1. Validate Book ID
+        if (!mongoose.Types.ObjectId.isValid(bookID)) {
+            return res.status(400).json({ message: "Invalid book ID format" });
+        }
+
+        // 2. Update Book Document
         const updatedBook = await Book.findByIdAndUpdate(
             bookID,
             { title, content, description, image, author_id, releaseDate },
-            { new: true, runValidators: true } // Returns updated book & validates schema
-        );
-
+            { new: true, runValidators: true, session }
+        ).populate('author_id', 'name nationality');
+        
         if (!updatedBook) {
+            await session.abortTransaction();
             return res.status(404).json({ message: "Book not found" });
         }
 
-        return res.json({ message: "Book updated successfully", updatedBook });
+        // 3. Handle Genre Updates (if provided)
+        if (genreIds && Array.isArray(genreIds)) {
+            // Validate genre IDs
+            const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
+            
+            if (validGenres.length !== genreIds.length) {
+                await session.abortTransaction();
+                return res.status(400).json({ message: "One or more invalid genre IDs" });
+            }
+
+            // Remove existing genre associations
+            await BookGenre.deleteMany({ book_id: bookID }).session(session);
+
+            // Create new associations
+            const newRelations = genreIds.map(genreId => ({
+                book_id: bookID,
+                genre_id: genreId
+            }));
+
+            await BookGenre.insertMany(newRelations, { session });
+        }
+
+        // 4. Commit transaction and prepare response
+        await session.commitTransaction();
+        
+        // Get updated genre information
+        const updatedGenres = await BookGenre.find({ book_id: bookID })
+            .populate('genre_id', 'name')
+            .select('genre_id');
+
+        res.json({
+            message: "Book updated successfully",
+            book: updatedBook,
+            genres: updatedGenres.map(g => g.genre_id)
+        });
+
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        await session.abortTransaction();
+        console.error("Update Error:", error);
+        
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                message: "Validation failed",
+                errors: Object.values(error.errors).map(e => e.message)
+            });
+        }
+
+        res.status(500).json({
+            message: "Server error during update",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        session.endSession();
+    }
+};
+
+//Delete Book And Its Genre
+exports.deleteBook = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
+    try {
+        const { bookID } = req.params;
+
+        // 1. Validate ID format
+        if (!mongoose.Types.ObjectId.isValid(bookID)) {
+            return res.status(400).json({ 
+                code: "INVALID_ID",
+                message: "Invalid book ID format" 
+            });
+        }
+
+        // 2. Delete book
+        const deletedBook = await Book.findByIdAndDelete(bookID)
+            .session(session)
+            .select('-__v');
+
+        if (!deletedBook) {
+            await session.abortTransaction();
+            return res.status(404).json({ 
+                code: "BOOK_NOT_FOUND",
+                message: "Book not found" 
+            });
+        }
+
+        // 3. Delete associated records
+        const deletePromises = [];
+        
+        // Delete genre relationships
+        deletePromises.push(
+            BookGenre.deleteMany({ book_id: bookID }).session(session)
+        );
+
+        // Delete reviews (if you have a Review model)
+        // deletePromises.push(
+        //     Review.deleteMany({ book_id: bookID }).session(session)
+        // );
+
+        // Execute all deletions
+        const [genreResult, reviewResult] = await Promise.all(deletePromises);
+
+        // 4. Commit transaction
+        await session.commitTransaction();
+
+        res.json({
+            code: "BOOK_DELETED",
+            message: "Book and associated data removed successfully",
+            data: {
+                deletedBook,
+                genresRemoved: genreResult.deletedCount,
+                reviewsRemoved: reviewResult?.deletedCount || 0
+            }
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        console.error("Delete Book Error:", error);
+        
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                code: "INVALID_ID",
+                message: "Malformed book ID"
+            });
+        }
+
+        res.status(500).json({
+            code: "SERVER_ERROR",
+            message: "Error deleting book",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    } finally {
+        session.endSession();
     }
 };

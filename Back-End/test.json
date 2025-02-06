@@ -409,3 +409,19 @@ const authors = [
         biography: "Edgar Allan Poe was an American writer, poet, and literary critic. He is best known for his macabre and Gothic tales and his influential contributions to the development of the mystery and horror genres.",
         image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Edgar_Allan_Poe%2C_circa_1849%2C_restored%2C_squared_off.jpg/800px-Edgar_Allan_Poe%2C_circa_1849%2C_restored%2C_squared_off.jpg"
       },
+
+
+    //   let rowData = 
+    // { 
+    //     Name: George Hamilton,
+    //     Age: Number,
+    //     // ID: 6868
+    // };
+
+    //Use the table meta object to insert the row which returns a promise
+    let datastore = app.datastore();
+    let table = datastore.table('EmpDetails');
+    let insertPromise = table.insertRow(rowData);
+    insertPromise.then((row) => {
+            console.log(row);
+        });
