@@ -20,7 +20,7 @@ import { FaBook, FaUser, FaStar, FaChartBar, FaEnvelope, FaLock, FaUserShield } 
 import PropTypes from 'prop-types';
 import ManageBooks from './ManageBooks';
 import ManageAuthors from './ManageAuthors';
-//  import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -69,7 +69,7 @@ const Dashboard = () => {
     const [currentPageBooks, setCurrentPageBooks] = useState(1);
     const [currentPageAuthors, setCurrentPageAuthors] = useState(1);
     const itemsPerPage = 5;
-
+    console.log(API_URL);
     useEffect(() => {
         if (activeTab === 'tables') {
             fetchBooksAndAuthors();
@@ -90,8 +90,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const [booksResponse, authorsResponse] = await Promise.all([
-                fetch('http://localhost:4000/books'),
-                fetch('http://localhost:4000/authors')
+                fetch(`${API_URL}/books`),
+                fetch(`${API_URL}/authors`)
             ]);
 
             const booksData = await booksResponse.json();
@@ -175,8 +175,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const [booksResponse, authorsResponse] = await Promise.all([
-                fetch('http://localhost:4000/books'),
-                fetch('http://localhost:4000/authors')
+                fetch(`${API_URL}/books`),
+                fetch(`${API_URL}/authors`)
             ]);
 
             const booksData = await booksResponse.json();
@@ -450,7 +450,7 @@ const TablesSection = () => {
 
     // Fetch books data
     useEffect(() => {
-        fetch(`http://localhost:4000/books?page=${currentPageBooks}`)
+        fetch(`${API_URL}/books?page=${currentPageBooks}`)
             .then(res => res.json())
             .then(data => {
                 console.log("Books Data:", data);
@@ -462,7 +462,7 @@ const TablesSection = () => {
 
     // Fetch authors data
     useEffect(() => {
-        fetch(`http://localhost:4000/authors?page=${currentPageAuthors}`)
+        fetch(`${API_URL}/authors?page=${currentPageAuthors}`)
             .then(res => res.json())
             .then(data => {
                 console.log("Authors Data:", data);

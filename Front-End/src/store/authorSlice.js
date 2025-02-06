@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 // Async thunk to fetch author by ID
 export const fetchAuthorById = createAsyncThunk(
   "author/fetchAuthorById",
   async (id) => {
-    const response = await fetch(`http://localhost:4000/authors/id/${id}`);
+    const response = await fetch(`${API_URL}/authors/id/${id}`);
     if (!response.ok) throw new Error("Failed to fetch author");
     return await response.json(); // This now only returns the author
   }
