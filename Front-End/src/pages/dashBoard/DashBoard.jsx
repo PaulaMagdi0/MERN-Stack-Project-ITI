@@ -13,14 +13,14 @@ import {
     PointElement,
     LineElement,
     RadialLinearScale
-} from 'chart.js';
+} from 'chart.js'   ;
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import styled from 'styled-components';
 import { FaBook, FaUser, FaStar, FaChartBar, FaEnvelope, FaLock, FaUserShield } from 'react-icons/fa';
 import PropTypes from 'prop-types';
 import ManageBooks from './ManageBooks';
 import ManageAuthors from './ManageAuthors';
-//  import.meta.env.VITE_API_URL || "http://localhost:4000";
+//  import.meta.env.VITE_API_URL || "http://localhost:5000";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -90,8 +90,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const [booksResponse, authorsResponse] = await Promise.all([
-                fetch('http://localhost:4000/books'),
-                fetch('http://localhost:4000/authors')
+                fetch('http://localhost:5000/books'),
+                fetch('http://localhost:5000/authors')
             ]);
 
             const booksData = await booksResponse.json();
@@ -175,8 +175,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const [booksResponse, authorsResponse] = await Promise.all([
-                fetch('http://localhost:4000/books'),
-                fetch('http://localhost:4000/authors')
+                fetch('http://localhost:5000/books'),
+                fetch('http://localhost:5000/authors')
             ]);
 
             const booksData = await booksResponse.json();
@@ -450,7 +450,7 @@ const TablesSection = () => {
 
     // Fetch books data
     useEffect(() => {
-        fetch(`http://localhost:4000/books?page=${currentPageBooks}`)
+        fetch(`http://localhost:5000/books?page=${currentPageBooks}`)
             .then(res => res.json())
             .then(data => {
                 console.log("Books Data:", data);
@@ -462,7 +462,7 @@ const TablesSection = () => {
 
     // Fetch authors data
     useEffect(() => {
-        fetch(`http://localhost:4000/authors?page=${currentPageAuthors}`)
+        fetch(`http://localhost:5000/authors?page=${currentPageAuthors}`)
             .then(res => res.json())
             .then(data => {
                 console.log("Authors Data:", data);

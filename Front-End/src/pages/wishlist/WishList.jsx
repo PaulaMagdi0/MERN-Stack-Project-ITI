@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchWishlist, removeWishlistItem } from '../../store/wishlistslice'; // adjust the path if needed
+import { fetchWishlist, removeWishlistItem } from '../../store/wishListslice'; // adjust the path if needed
 import { Container, Card, Button, Spinner, Alert, ListGroup } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import "./WishList.css"
 
 const Wishlist = () => {
   const dispatch = useDispatch();
@@ -14,7 +16,9 @@ const Wishlist = () => {
     dispatch(fetchWishlist(staticUserId));
   }, [dispatch, staticUserId]);
 
-  const handleRemove = (bookId) => {
+  const handleRemove = (bookId, e) => {
+    // Prevent the card link from triggering when Remove is clicked
+    if (e) e.stopPropagation();
     dispatch(removeWishlistItem(bookId));
   };
 
@@ -47,30 +51,36 @@ const Wishlist = () => {
       <ListGroup variant="flush">
         {items.map((item) => (
           <ListGroup.Item key={item._id} className="mb-3">
-            <Card className="d-flex flex-row align-items-center">
-              <Card.Img
-                variant="left"
-                src={item.image}
-                alt={item.title}
-                style={{ width: '120px', height: '180px', objectFit: 'cover' }}
-                className="m-3 rounded"
-              />
-              <Card.Body className="flex-grow-1">
-  <Card.Title>{item.title}</Card.Title>
-  <Card.Text>{item.description}</Card.Text>
-  {/* You can display more details here if needed */}
-</Card.Body>
-<Card.Body className="text-end">
-  <Button variant="danger" onClick={() => handleRemove(item._id)}>
-    Remove
-  </Button>
-</Card.Body>
-
-            </Card>
+            <Link 
+              to={`/books/${item._id}`} 
+              className="text-decoration-none text-reset"
+            >
+              <Card className="d-flex flex-row align-items-center hover-scale">
+                <Card.Img
+                  variant="left"
+                  src={item.image}
+                  alt={item.title}
+                  style={{ width: '120px', height: '180px', objectFit: 'cover' }}
+                  className="m-3 rounded"
+                />
+                <Card.Body className="flex-grow-1">
+                  <Card.Title>{item.title}</Card.Title>
+                  <Card.Text>{item.description}</Card.Text>
+                </Card.Body>
+                <Card.Body className="text-end">
+                  <Button 
+                    variant="danger" 
+                    onClick={(e) => handleRemove(item._id, e)}
+                  >
+                    Remove
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Link>
           </ListGroup.Item>
         ))}
       </ListGroup>
-
+      
       {items.length > 0 && (
         <div className="d-flex justify-content-end mt-4">
           <Button variant="outline-danger" onClick={handleRemoveAll}>

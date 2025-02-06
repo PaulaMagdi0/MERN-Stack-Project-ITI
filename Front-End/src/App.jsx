@@ -14,7 +14,8 @@ import NotFound from "./pages/notFound/NotFound";
 import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
 import  Dashboard from "./pages/dashBoard/DashBoard"
-import wishlist from "./pages/wishlist/wishlist";
+import Wishlist from "./pages/wishlist/WishList";
+import ProfilePage from "./pages/Profile/Profile";
 
 function App() {
   return (
@@ -36,7 +37,8 @@ function App() {
         <Route path="/singlebook/:id" element= {<SingleBook/>}/>
         <Route path="/author/:id" element={<SingleAuthor />} />
         <Route path="/dashboard" element={<Dashboard/>}/>
-        <Route path="/wishlist" element={<wishlist/>}> </Route>
+        <Route path="/wishlist" element={<Wishlist/>}> </Route>
+        <Route path="/profile" element={<ProfilePage/>}></Route>
       </Routes>
       <Footer />
     </BrowserRouter>

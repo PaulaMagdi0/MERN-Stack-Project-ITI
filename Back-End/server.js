@@ -22,15 +22,15 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7
 
 
 // config CORS
-// const corsOptions = {
-//     origin: ['*'], // The Url That Sends The Request
-//         // origin: ['http://localhost:5173'], // The Url That Sends The Request
+const corsOptions = {
+    origin: ['*'], // The Url That Sends The Request
+        // origin: ['http://localhost:5173'], // The Url That Sends The Request
 
-//     methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
-//     allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
-//     credentials: true, // Allow cookies/auth headers
-//     optionsSuccessStatus: 200,
-//   };
+    methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
+    allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
+    credentials: true, // Allow cookies/auth headers
+    optionsSuccessStatus: 200,
+  };
   
 // Middleware
 // app.use(cors(corsOptions));
