@@ -1,5 +1,6 @@
 const User = require("../models/users");
 const mongoose = require('mongoose');
+const Book = require("../models/books");
 
 exports.addToWishlist = async (req, res) => {
   try {
@@ -54,33 +55,51 @@ exports.getUserWishlist = async (req, res) => {
     }
 
     // Find the user and populate the wishlist.book field with Book details.
-    const user = await User.findById(userId).populate('wishlist.book');
+    const user = await User.findById(userId)
+      .populate('wishlist.book', 'title image description') // Populate the 'book' field
+      .exec();
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    // if (!user) {
+    //   return res.status(404).json({ message: "User not found" });
+    // }
 
-    // Map the wishlist array to return desired fields from the Book document plus state.
-    const detailedWishlist = user.wishlist.map(item => {
-      // Ensure the book is populated.
-      if (!item.book) return null;
-      return {
-        _id: item.book._id.toString(),
-        title: item.book.title,
-        image: item.book.image,
-        description: item.book.description,
-        state: item.state  // include the state field
-      };
-    }).filter(item => item !== null); // remove any nulls if book wasn't populated
+    // // Ensure wishlist exists and is an array
+    // if (!user.wishlist || !Array.isArray(user.wishlist)) {
+    //   return res.status(200).json([]);
+    // }
 
-    return res.status(200).json(detailedWishlist);
+    // console.log("Populated Wishlist:", user.wishlist);
+
+    // // Map the wishlist array to return desired fields from the populated Book document plus state.
+    // const detailedWishlist = user.wishlist.map(item => {
+    //   // Check if the book was successfully populated.
+    //   if (!item.book) {
+    //     console.log("Book not populated for wishlist item:", item);
+    //     return null;
+    //   }
+
+    //   return {
+    //     book_id: item.book._id.toString(),  // Book's _id field is stable
+    //     title: item.book.title,
+    //     image: item.book.image,
+    //     description: item.book.description,
+    //     state: item.state,  // Use the wishlist item's state
+    //   };
+    // }).filter(item => item !== null); // Remove any null entries
+
+    return res.status(200).json(user);
   } catch (error) {
+    console.error("Error fetching user's wishlist:", error);
     return res.status(500).json({
       message: "Server error while fetching user's wishlist",
-      error: error.message,
+      error: error.message || "Unknown error",
     });
   }
 };
+
+
+
+
 exports.removeFromWishlist = async (req, res) => {
   try {
     // Expecting userId and bookId to be provided as URL parameters.
