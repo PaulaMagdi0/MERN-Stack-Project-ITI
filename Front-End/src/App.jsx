@@ -10,7 +10,7 @@ import SingleBook from "./pages/singlebook/SingleBooks";
 import Books from "./pages/books/Books";
 import AboutAs from "./components/aboutas/About";
 import "./App.css";
-import Dashboard from "./pages/dashBoard/DashBoard";
+import  Dashboard from "./pages/dashBoard/DashBoard"
 
 function App() {
   return (
@@ -25,6 +25,7 @@ function App() {
         <Route path="/books/:id" element= {<SingleBook/>}></Route>
         <Route path="/books" element= {<Books/>}></Route>
         <Route path="/author/:id" element={<SingleAuthor />} />
+        <Route path="/dashboard" element={<Dashboard/>}/>
       </Routes>
       <Footer />
     </BrowserRouter>

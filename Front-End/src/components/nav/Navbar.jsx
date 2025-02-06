@@ -62,14 +62,18 @@ function Navbar() {
 
           {/* Centered Navigation Links */}
           <Box sx={{ flexGrow: 2, display: { xs: "none", md: "flex" }, justifyContent: "center" }}>
-            {pages.map((page) => {
-              return (
-                <Button key={page} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`} sx={{ my: 2, color: "white", "&:hover": { color: "#FFD700" } }}>
-                  {page}
-                </Button>
-              );
-            })}
+            {pages.map((page) => (
+              <Button 
+                key={page} 
+                component={NavLink} 
+                to={page === "Home" ? "/" : `/${page.toLowerCase()}`} 
+                sx={{ my: 2, color: "white", "&:hover": { color: "#FFD700" } }}
+              >
+                {page}
+              </Button>
+            ))}
           </Box>
+
 
           <SearchBar />
 
