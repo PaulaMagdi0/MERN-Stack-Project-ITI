@@ -1,7 +1,13 @@
 import { useFormik, Formik, Form, Field } from "formik";
 import "./Login.css";
-import { LoginValidation } from "./ValidationLogin"
-import { useState } from "react";
+import { LoginValidation } from "./ValidationLogin";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { authAction } from "../../store/auth";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
+
 
 const initialValues = {
     username: "",
@@ -10,52 +16,70 @@ const initialValues = {
 
 
 function SignIn() {
-  
+    const dispat = useDispatch();
+    const navigate = useNavigate();
+    const authData = useSelector((state) => state.auth);
+    useEffect(() => {
+        console.log("Updated Redux State:", authData);
+        if (authData.isLoggedIn) {
+            navigate("/profile");
+        }
+    }, [authData, navigate]);
     return (
         <div className="signup">
             <section className="container containerrr">
                 <Formik
                     initialValues={initialValues}
                     validationSchema={LoginValidation}
-                        onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
-                            try {
-                                console.log(values);
-                    
-                                const response = await fetch("http://localhost:5000/users/sign-in", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify(values),
-                                });
-                    
-                                const data = await response.json(); 
-                    
-                                if (!response.ok) {
-                                    if (data.errors) {
-                                        const errorMessages = Object.values(data.errors)
-                                            .map(err => err.message)
-                                            .join("\n");
-                    
-                                        alert(errorMessages);
-                                        setErrors(data.errors); 
-                                    } else {
-                                        throw new Error(data.message || "Signup failed, please try again!");
-                                    }
-                                    return;
+                    onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
+                        console.log("Redux State:", authData);
+
+                        try {
+                            console.log(values);
+
+                            const response = await fetch("http://localhost:5000/users/sign-in", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(values),
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                if (data.errors) {
+                                    const errorMessages = Object.values(data.errors)
+                                        .map(err => err.message)
+                                        .join("\n");
+
+                                    alert(errorMessages);
+                                    setErrors(data.errors);
+                                } else {
+                                    throw new Error(data.message || "Signup failed, please try again!");
                                 }
-                                console.log("Response data:", data);
-                    
-                                alert("Sign in successfully!");
-                                resetForm();
-                                //save token 
-                                localStorage.setItem("token", data.token);
-                            } catch (error) {
-                                console.error("Signin error:", error.message);
-                                alert(error.message);
+                                return;
                             }
-                            setSubmitting(false);
-                        }}
+                            console.log("Response data:", data);
+
+                            alert("Sign in successfully!");
+                            resetForm();
+                            dispat(authAction.login());
+                            dispat(authAction.changeRole(data.role));
+                            console.log("Redux State:", authData);
+
+                            //save token 
+                            localStorage.setItem("token", data.token);
+                            localStorage.setItem("role", data.role);
+                            localStorage.setItem("id", data.id);
+                            //update here :::::::
+                            navigate("/profile");
+                        } catch (error) {
+                            console.error("Signin error:", error.message);
+                            alert(error.message);
+                        }
+                        setSubmitting(false);
+                    }}
 
                 >
                     {({ errors }) =>
@@ -71,7 +95,7 @@ function SignIn() {
                                     id="username"
                                     name="username"
                                     placeholder="pla@yahoo.com"
-                                    
+
 
                                 />
                                 {errors.email && <small>{errors.email}</small>}
@@ -91,7 +115,9 @@ function SignIn() {
                                 <button type="submit" className="btn btn-primary">Sign In</button>
                             </div>
                             <small>If you forget your password please click <a href="#">here</a> </small>
-                        </Form>
+                            <small>
+                                Don't have an account? <Link to="/signup">Sign up</Link>
+                            </small>                        </Form>
 
                     )}
 

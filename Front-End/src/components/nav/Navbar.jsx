@@ -17,6 +17,9 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import "./NavBar.css"
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from "react-redux";
+
 
 const pages = ['Home', 'Books', 'About', 'Contact'];
 const settings = ['Profile', 'Dashboard', 'Logout'];
@@ -26,6 +29,13 @@ function Navbar() {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef(null);
+  const navigate = useNavigate();
+  const isLogged = useSelector((state) => state.auth.isLoggedIn);
+
+  const handleLoginClick = () => {
+    navigate('/signin');
+  };
+
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -85,7 +95,7 @@ function Navbar() {
               size="large"
               aria-label="menu"
               onClick={handleOpenNavMenu}
-              sx={{ color: '#F8E4A1' }} 
+              sx={{ color: '#F8E4A1' }}
             >
               <MenuIcon />
             </IconButton>
@@ -141,7 +151,7 @@ function Navbar() {
                   color: 'white',
                   display: 'block',
                   '&:hover': {
-                    color: '#FFD700', 
+                    color: '#FFD700',
                   }
                 }}
               >
@@ -218,7 +228,18 @@ function Navbar() {
             </Menu>
           </Box>
 
-          {/* Favorite Icon */}
+
+          {/* Favorite Icon */}          
+          {isLogged === false && (
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{ mx: 2, backgroundColor: "#F8E4A1", color: "#2c3e50", '&:hover': { backgroundColor: "#FFD700" } }}
+              onClick={handleLoginClick}
+            >
+              Login
+            </Button>)
+          }
 
         </Toolbar>
       </Container>
