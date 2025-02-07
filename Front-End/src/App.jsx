@@ -10,11 +10,9 @@ import AboutAs from "./components/aboutas/About";
 import NotFound from "./pages/notFound/NotFound";
 import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
-import Dashboard from "./pages/dashBoard/DashBoard";
-import Wishlist from "./pages/wishlist/WishList";
-import RequireAuth from './utils/WithGuard';
-import ProfilePage from "./pages/Profile/Profile"
-import "./App.css";
+import  Dashboard from "./pages/dashBoard/DashBoard"
+import  Wishlist from "./pages/wishlist/WishList"
+
 function App() {
   return (
     <BrowserRouter>
