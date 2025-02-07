@@ -15,11 +15,10 @@ const SingleBook = () => {
     currentBook, 
     loading, 
     error, 
-    GenereByBookID,
     GenereByBookIDLoading,
     GenereByBookIDError 
   } = useSelector((state) => state.book);
-
+let GenereByBookID = currentBook?.book.genres
   
   useEffect(() => {
     dispatch(fetchBookById(id));
@@ -36,7 +35,7 @@ const SingleBook = () => {
     );
   }
 
-  console.log(currentBook?.book);
+  console.log(currentBook?.book.genres);
   
   return (
     <Container className="d-flex justify-content-center mt-5 mb-5">
@@ -93,7 +92,7 @@ const SingleBook = () => {
               </Row>
 
               <p className="mt-3">
-                <strong>Release Date:</strong> {loading ? <Skeleton width={100} /> : new Date(currentBook?.releaseDate).toLocaleDateString()}
+                <strong>Release Date:</strong> {loading ? <Skeleton width={100} /> : new Date(currentBook?.book?.releaseDate).toLocaleDateString()}
               </p>
 
               <Card.Text className="mb-3">
@@ -108,7 +107,7 @@ const SingleBook = () => {
               </Card.Text>
 
               <p className="text-muted" style={{ fontSize: "1.2rem" }}>
-                {loading ? <Skeleton count={3} /> : currentBook?.description}
+                {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
               </p>
 
               <div className="d-flex gap-3">

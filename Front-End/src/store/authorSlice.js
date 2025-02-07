@@ -6,7 +6,9 @@ export const fetchAuthorById = createAsyncThunk(
   "author/fetchAuthorById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_URL}/authors/id/${id}`);
+      // const response = await fetch(`${API_URL}/authors/id/${id}`);
+      const response = await fetch(`${API_URL}/authorgenre/search-author/${id}`);
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch author");
