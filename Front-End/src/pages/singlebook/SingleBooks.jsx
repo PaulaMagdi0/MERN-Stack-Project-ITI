@@ -20,11 +20,12 @@ const SingleBook = () => {
     GenereByBookIDError 
   } = useSelector((state) => state.book);
 
+  
   useEffect(() => {
     dispatch(fetchBookById(id));
-    dispatch(fetchGenreByBookId(id));
+    // dispatch(fetchGenreByBookId(id));
   }, [dispatch, id]);
-
+  
   if (error || GenereByBookIDError) {
     return (
       <Container className="mt-5">
@@ -35,6 +36,8 @@ const SingleBook = () => {
     );
   }
 
+  console.log(currentBook?.book);
+  
   return (
     <Container className="d-flex justify-content-center mt-5 mb-5">
       <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}>
@@ -44,8 +47,8 @@ const SingleBook = () => {
               <Skeleton height={400} width={300} />
             ) : (
               <Card.Img
-                src={currentBook?.image || "https://via.placeholder.com/300"}
-                alt={currentBook?.title || "Book Cover"}
+                src={currentBook?.book?.image || "https://via.placeholder.com/300"}
+                alt={currentBook?.book?.title || "Book Cover"}
                 style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "10px" }}
               />
             )}
@@ -55,7 +58,7 @@ const SingleBook = () => {
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <Card.Title className="display-5">
-                  {loading ? <Skeleton width={200} /> : currentBook?.title}
+                  {loading ? <Skeleton width={200} /> : currentBook?.book?.title}
                 </Card.Title>
                 <Button variant="light" className="border-0">
                   <FaHeart size={28} className="text-danger" />
@@ -68,8 +71,8 @@ const SingleBook = () => {
                     <Skeleton circle height={80} width={80} />
                   ) : (
                     <img
-                      src={currentBook?.author_id?.image || "https://via.placeholder.com/100"}
-                      alt={currentBook?.author_id?.name || "Author"}
+                      src={currentBook?.book?.author_id?.image || "https://via.placeholder.com/100"}
+                      alt={currentBook?.book?.author_id?.name || "Author"}
                       className="rounded-circle border border-dark"
                       style={{ width: "80px", height: "80px", objectFit: "cover" }}
                     />
@@ -81,8 +84,8 @@ const SingleBook = () => {
                     {loading ? (
                       <Skeleton width={150} />
                     ) : (
-                      <Link to={`/author/${currentBook?.author_id?._id}`} style={{ textDecoration: "none", color: "#007bff" }}>
-                        {currentBook?.author_id?.name || "Unknown"}
+                      <Link to={`/author/${currentBook?.book?.author_id?._id}`} style={{ textDecoration: "none", color: "#007bff" }}>
+                        {currentBook?.book?.author_id?.name || "Unknown"}
                       </Link>
                     )}
                   </h4>

@@ -7,6 +7,6 @@ const bookGenreSchema = new Schema({
 });
 
 //Model To Export
-module.exports = mongoose.model("Booksgenre", bookGenreSchema);
+module.exports = mongoose.model("BooksGenre", bookGenreSchema);
 
 

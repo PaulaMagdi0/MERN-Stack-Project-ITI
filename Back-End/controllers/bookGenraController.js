@@ -321,3 +321,60 @@ exports.BooksByAuthor = async (req, res) => {
         });
     }
 };
+exports.BookByID = async (req, res) => {
+    try {
+        // 1. Get and validate book ID
+        const { bookID } = req.params;
+        
+        if (!bookID) {
+            return res.status(400).json({ 
+                code: "MISSING_BOOK_ID",
+                message: "Book ID parameter is required" 
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(bookID)) {
+            return res.status(400).json({
+                code: "INVALID_BOOK_ID",
+                message: "Invalid book ID format"
+            });
+        }
+
+        // 2. Find the book and populate author details
+        const book = await Book.findById(bookID)
+            .select('title releaseDate content description image author_id')
+            .populate({
+                path: 'author_id', 
+                select: 'name biography birthYear deathYear image nationality'
+            })
+            .lean();
+
+        if (!book) {
+            return res.status(404).json({
+                code: "BOOK_NOT_FOUND",
+                message: "No book found with the given ID"
+            });
+        }
+
+        // 3. Retrieve genres for the book
+        const genres = await BookGenre.find({ book_id: book._id })
+            .populate('genre_id', 'name')
+            .then(results => results.map(r => r.genre_id));
+
+        // Return the book and author details as a combined response
+        res.json({
+            book: {
+                ...book,
+                genres
+            }
+        });
+        
+    } catch (err) {
+        console.error("Book Retrieval Error:", err);
+        res.status(500).json({
+            code: "SERVER_ERROR",
+            message: "Failed to retrieve book",
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+    }
+};
