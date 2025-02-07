@@ -15,14 +15,23 @@ import Books from "./pages/books/Books";
 import AboutAs from "./components/aboutas/About";
 import Payment from "./pages/payment/paymentPage"
 import "./App.css";
+import NotFound from "./pages/notFound/NotFound";
+import SignUp from "./pages/signUp/SignUp";
+import SignIn from "./pages/login/Login";
 import  Dashboard from "./pages/dashBoard/DashBoard"
+import  Wishlist from "./pages/wishlist/WishList"
 
 function App() {
   return (
-    <Provider store={store}>
+    
       <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/signup" element={< SignUp/>} />
+        <Route path="/signin" element={<SignIn/>}/>
+        <Route path="*" element={<NotFound />} />
         <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
         <Route path="/subscriptions" element={<SubscriptionPlans />} />
@@ -31,7 +40,6 @@ function App() {
       </Routes>
       <Footer />
     </BrowserRouter>
-    </Provider>
     
   );
 }

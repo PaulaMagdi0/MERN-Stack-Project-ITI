@@ -6,7 +6,7 @@ const bookSchema = new Schema({
     releaseDate: { type: String, required: true },
     content: { type: String, required: true },
     description: { type: String, required: true },
-    image: { type: String, required: true },
+    image: { type: String, required: false },
     author_id: { type: Schema.Types.ObjectId, ref: 'Author', required: true }
 });
 
