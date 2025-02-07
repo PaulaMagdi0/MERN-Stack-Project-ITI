@@ -1,59 +1,40 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
 
+// Import Routes
 const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const authorsRoutes = require("./routes/authorRoutes");
 const bookGenreRoutes = require("./routes/bookGenreRoute");
-const authorsGenreRoutes = require('./routes/authorGenraRoute')
-const genreRoute = require('./routes/genresRoute')
+const authorsGenreRoutes = require("./routes/authorGenraRoute");
+const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
-const subscriptionPlanRoutes = require('./routes/subscriptionPlan');
+const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
+const paymentRoutes = require("./routes/paymentRoutes");
+
 
 const app = express();
-
 const PORT = process.env.PORT || 5000;
-const url = process.execArgv.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7ZRf92dhL@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7ZRf92dhL@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
 
+// ✅ CORS Configuration (Only Use One Method)
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
-// config CORS
-const corsOptions = {
-    origin: ['http://localhost:5173'], // The Url That Sends The Request
-    methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
-    allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
-    credentials: true, // Allow cookies/auth headers
-    optionsSuccessStatus: 200,
-  };
-  
-// Middleware
-app.use(cors(corsOptions));
+// ✅ Middleware
+app.use(express.json()); 
 
-app.use(express.json()); // Built-in body parser
-
-
-// Without Middleware to set CORS headers
-// app.use((req, res, next) => {
-//   // Allow requests from any origin (customize in production!)
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-  
-//   // Allowed HTTP methods
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-  
-//   // Allowed headers (e.g., Content-Type, Authorization)
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-//   // Handle preflight requests (OPTIONS)
-//   if (req.method === 'OPTIONS') {
-//     return res.sendStatus(200);
-//   }
-  
-//   next();
-// });
-
+// ✅ Routes
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
 app.use("/genre", genreRoute);
@@ -62,20 +43,22 @@ app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
-// app.use("/subscriptions", subscriptionRoutes);
+app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
+app.use("/api/payments", paymentRoutes);
 
-// Start the server
-mongoose.connect(url).then(result => {
+
+// ✅ Connect to MongoDB and Start Server
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
     app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+      console.log(`✅ Server running on port ${PORT}`);
     });
-}).catch(err => {
-    console.log(err);
-
-})
-
-
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err);
+  });
 
 
 // Database Connection

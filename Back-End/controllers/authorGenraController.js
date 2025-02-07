@@ -1,5 +1,5 @@
 const AuthorGenre = require("../models/authorGenre");
-
+const Author = require("../models/authors")
 exports.getAuthorGenre = async (req, res) => {
     try {
         // for Pagination
@@ -9,10 +9,10 @@ exports.getAuthorGenre = async (req, res) => {
 
         const authorGenres = await AuthorGenre.find().populate({
             path:'genre_id',
-            select: 'name',
+            select: '_id name',
         }).populate({
             path: 'author_id',
-            select: 'name biography birthYear deathYear image nationality'
+            select: '_id name biography birthYear deathYear image nationality'
         })  // for Pagination
         .skip((currentPage - 1) * itemsPerPage)
         .limit(itemsPerPage)
@@ -55,3 +55,5 @@ exports.getAuthorGenreByID = async (req, res) => {
         res.status(500).json({ message: "Error fetching Books" });
     }
 };
+
+// Update Author Data
