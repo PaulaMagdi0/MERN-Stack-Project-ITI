@@ -21,7 +21,6 @@ import PropTypes from 'prop-types';
 import ManageBooks from './ManageBooks';
 import ManageAuthors from './ManageAuthors';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -94,8 +93,8 @@ const Dashboard = () => {
             const [booksResponse, authorsResponse] = await Promise.all([
                 fetch(`${API_URL}/books`),
                 fetch(`${API_URL}/authors`)
-                fetch(`${API_URL}/books`),
-                fetch(`${API_URL}/authors`)
+                // fetch(`${API_URL}/books`),
+                // fetch(`${API_URL}/authors`)
             ]);
 
             const booksData = await booksResponse.json();

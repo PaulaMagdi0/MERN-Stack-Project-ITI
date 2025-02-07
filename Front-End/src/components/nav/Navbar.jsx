@@ -1,27 +1,22 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import React from "react";
 import { AppBar, Toolbar, IconButton, Typography, Box, Container, Avatar, Button, Tooltip, Menu, MenuItem } from "@mui/material";
+import { NavLink } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import AdbIcon from "@mui/icons-material/Adb";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import SearchBar from "../searchBar/SearchBar";
-import { getUserInfo, logout } from "../../store/authSlice"; // Import logout action
-
+import { useDispatch, useSelector } from "react-redux";
 const pages = ["Home", "Books", "About", "Contact"];
 const settings = ["Profile", "Dashboard", "Logout"];
 const userSettings= ["Profile", "Logout"];
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-
-  // Fetch user info on mount and when user changes
-  useEffect(() => {
-    dispatch(getUserInfo());
-  }, [dispatch]);
-
+  // Access auth state from Redux; provide a default object if not defined
+  const { loading, error, token } = useSelector(
+    (state) => state.auth || { loading: false, error: null, token: null }
+  );
+  console.log(token);
   const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
@@ -61,19 +56,9 @@ const Settings = user?.role === "user" ? userSettings : settings;
             <IconButton size="large" aria-label="menu" onClick={handleOpenNavMenu} sx={{ color: "#F8E4A1" }}>
               <MenuIcon />
             </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-            >
+            <Menu id="menu-appbar" anchorEl={anchorElNav} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu}>
               {pages.map((page) => (
-                <MenuItem
-                  key={page}
-                  onClick={handleCloseNavMenu}
-                  component={NavLink}
-                  to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
-                >
+                <MenuItem key={page} onClick={handleCloseNavMenu} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`}>
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
@@ -81,6 +66,11 @@ const Settings = user?.role === "user" ? userSettings : settings;
           </Box>
 
           <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+          {/* <Typography variant="h5" noWrap component={NavLink} to="/" sx={{ flexGrow: 1, fontFamily: "monospace", fontWeight: 700, color: "#F8E4A1" }}>
+            BookHub
+          </Typography> */}
+
+          {/* Centered Navigation Links */}
           <Box sx={{ flexGrow: 2, display: { xs: "none", md: "flex" }, justifyContent: "center" }}>
             {pages.map((page) => (
               <Button 
@@ -93,6 +83,7 @@ const Settings = user?.role === "user" ? userSettings : settings;
               </Button>
             ))}
           </Box>
+
 
           <SearchBar />
 

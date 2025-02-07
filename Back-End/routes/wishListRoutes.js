@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const wishlistcontroller = require("../controllers/wishlistcontroller")
-// POST: Add a book to the wishlist
+const wishlistcontroller = require("../controllers/wishlistcontroller");
+
 router.post('/add', wishlistcontroller.addToWishlist);
-// GET: Fetch a user's wishlist
 router.get('/:userId', wishlistcontroller.getUserWishlist);
-// DELETE: Remove a wishlist item by its ID
+router.put('/state', wishlistcontroller.updateWishlistState);
 router.delete('/:userId/:bookId', wishlistcontroller.removeFromWishlist);
+
 module.exports = router;

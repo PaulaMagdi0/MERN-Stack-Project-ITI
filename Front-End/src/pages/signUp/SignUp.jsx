@@ -2,7 +2,7 @@ import { Formik, Form, Field } from "formik";
 import "./SignUp.css";
 import { SignUpValidation } from "./validation"
 import { useState, } from "react";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import axios from "axios"; 
 const initialValues ={
     username: "",  
@@ -173,7 +173,7 @@ export default SignUp;
 //                         console.log("Submitting form with values:", values);
 
 //                         try {
-//                             const response = await fetch("http://localhost:4000/users/sign-up", {
+//                             const response = await fetch("http://localhost:5000/users/sign-up", {
 //                                 method: "POST",
 //                                 headers: {
 //                                     "Content-Type": "application/json",

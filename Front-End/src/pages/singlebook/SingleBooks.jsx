@@ -1,12 +1,10 @@
-import { useEffect } from "react";
+import  { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchBookById, fetchGenreByBookId } from "../../store/bookSlice";
-import { Card, Container, Row, Col, Button, Alert } from "react-bootstrap";
+import { fetchBookById } from "../../store/bookSlice";
+import { Card, Container, Row, Col, Button } from "react-bootstrap";
 import { FaHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
 
 const SingleBook = () => {
   const { id } = useParams();
@@ -39,8 +37,9 @@ let GenereByBookID = currentBook?.book.genres
   
   return (
     <Container className="d-flex justify-content-center mt-5 mb-5">
-      <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}>
+      <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}> {/* Increased Width */}
         <Row>
+          {/* Book Cover on the Left */}
           <Col md={5} className="d-flex align-items-center">
             {loading ? (
               <Skeleton height={400} width={300} />
@@ -53,6 +52,7 @@ let GenereByBookID = currentBook?.book.genres
             )}
           </Col>
 
+          {/* Book Details on the Right */}
           <Col md={7}>
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
@@ -60,10 +60,11 @@ let GenereByBookID = currentBook?.book.genres
                   {loading ? <Skeleton width={200} /> : currentBook?.book?.title}
                 </Card.Title>
                 <Button variant="light" className="border-0">
-                  <FaHeart size={28} className="text-danger" />
+                  <FaHeart size={28} className="text-danger" /> {/* Wishlist Button */}
                 </Button>
               </div>
 
+              {/* Author Info */}
               <Row className="align-items-center mt-3">
                 <Col xs="3" className="text-center">
                   {loading ? (
@@ -111,9 +112,7 @@ let GenereByBookID = currentBook?.book.genres
               </p>
 
               <div className="d-flex gap-3">
-                <Button variant="primary" style={{ backgroundColor: "#2c3e50", color: "#ffffff" }}>
-                  Read Now
-                </Button>
+              <Button variant="primary" style={{ backgroundColor: '#2c3e50', color: '#ffffff' }}>Read Now</Button>
                 <Button variant="outline-danger">
                   <FaHeart className="me-2" /> Add to Wishlist
                 </Button>
