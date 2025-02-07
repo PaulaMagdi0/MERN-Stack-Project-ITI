@@ -12,7 +12,8 @@ import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
 import  Dashboard from "./pages/dashBoard/DashBoard"
 import  Wishlist from "./pages/wishlist/WishList"
-
+import RequireAuth from "./utils/WithGuard"
+import ProfilePage from "./pages/Profile/Profile"
 function App() {
   return (
     <BrowserRouter>

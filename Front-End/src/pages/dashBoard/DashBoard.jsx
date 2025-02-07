@@ -21,6 +21,7 @@ import PropTypes from 'prop-types';
 import ManageBooks from './ManageBooks';
 import ManageAuthors from './ManageAuthors';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -70,6 +71,7 @@ const Dashboard = () => {
     const [currentPageAuthors, setCurrentPageAuthors] = useState(1);
     const itemsPerPage = 5;
     console.log(API_URL);
+    console.log(API_URL);
     useEffect(() => {
         if (activeTab === 'tables') {
             fetchBooksAndAuthors();
@@ -90,6 +92,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const [booksResponse, authorsResponse] = await Promise.all([
+                fetch(`${API_URL}/books`),
+                fetch(`${API_URL}/authors`)
                 fetch(`${API_URL}/books`),
                 fetch(`${API_URL}/authors`)
             ]);
@@ -175,6 +179,8 @@ const Dashboard = () => {
         setLoading(true);
         try {
             const [booksResponse, authorsResponse] = await Promise.all([
+                fetch(`${API_URL}/books`),
+                fetch(`${API_URL}/authors`)
                 fetch(`${API_URL}/books`),
                 fetch(`${API_URL}/authors`)
             ]);
@@ -451,6 +457,7 @@ const TablesSection = () => {
     // Fetch books data
     useEffect(() => {
         fetch(`${API_URL}/books?page=${currentPageBooks}`)
+        fetch(`${API_URL}/books?page=${currentPageBooks}`)
             .then(res => res.json())
             .then(data => {
                 console.log("Books Data:", data);
@@ -462,6 +469,7 @@ const TablesSection = () => {
 
     // Fetch authors data
     useEffect(() => {
+        fetch(`${API_URL}/authors?page=${currentPageAuthors}`)
         fetch(`${API_URL}/authors?page=${currentPageAuthors}`)
             .then(res => res.json())
             .then(data => {
