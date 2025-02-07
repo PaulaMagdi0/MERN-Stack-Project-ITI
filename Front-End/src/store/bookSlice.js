@@ -48,6 +48,8 @@ export const searchBooks = createAsyncThunk(
     }
   }
 );
+
+
 export const getAllGenres = createAsyncThunk(
   "/genre", 
   async (_, { rejectWithValue }) => {
@@ -66,7 +68,39 @@ export const getAllGenres = createAsyncThunk(
     }
   }
 );
+export const getBooksByGenre = createAsyncThunk(
+  "/booksByGenre", 
+  async (GenreID, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_URL}/bookgenre/search-genre/${GenreID}`);
+      if (!response.ok) {
+        // If the response is not ok, throw an error
+        throw new Error("Failed to fetch genres");
+      }
+      
+      return await response.json();  // Return the data to the fulfilled action
+    } catch (err) {
+      console.error("Error fetching genres:", err);
+      return rejectWithValue(err.message);  // Pass the error message to the rejected action
+    }
+  }
+);
 
+// /search-books/:bookID
+// /bookgenre/search-books/679cf275d51cdd97c1276d3e
+
+export const fetchGenreByBookId = createAsyncThunk(
+  "books/fetchGenreById",
+  async (bookID, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_URL}/bookgenre/search-books/${bookID}`);
+      if (!response.ok) throw new Error("Book not found");
+      return await response.json();
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
 
 const initialState = {
   books: [],
@@ -77,7 +111,11 @@ const initialState = {
   error: null,
   totalPages: 1,
   currentPage: 1,
-  selectedGenre:null
+  selectedGenre: 0,
+  BooksGenre: [],
+  BooksGenreLoading: false,
+  GenereByBookID:[],
+  GenereByBookIDLoading:false,
 };
 
 const bookSlice = createSlice({
@@ -136,19 +174,48 @@ const bookSlice = createSlice({
         state.searchLoading = false;
         state.error = action.payload;
       })
-          // Get All Genres
-          .addCase(getAllGenres.pending, (state) => {
-            state.loading = true;
-            state.error = null;
-          })
-          .addCase(getAllGenres.fulfilled, (state, action) => {
-            state.loading = false;
-            state.selectedGenre = action.payload;
-          })
-          .addCase(getAllGenres.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-          });
+
+      // Get All Genres
+      .addCase(getAllGenres.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllGenres.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedGenre = action.payload;
+      })
+      .addCase(getAllGenres.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Get Books By Genre
+      .addCase(getBooksByGenre.pending, (state) => {
+        state.BooksGenreLoading = true;
+        state.error = null;
+      })
+      .addCase(getBooksByGenre.fulfilled, (state, action) => {
+        state.BooksGenreLoading = false;
+        state.BooksGenre = action.payload;
+      })
+      .addCase(getBooksByGenre.rejected, (state, action) => {
+        state.BooksGenreLoading = false;
+        state.error = action.payload;
+      })
+        // Get Genere For       
+      .addCase(fetchGenreByBookId.pending, (state) => {
+        state.GenereByBookIDLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchGenreByBookId.fulfilled, (state, action) => {
+        state.GenereByBookIDLoading = false;
+        state.GenereByBookID = action.payload;
+      })
+      .addCase(fetchGenreByBookId.rejected, (state, action) => {
+        state.GenereByBookIDLoading = false
+        state.error = action.payload;
+      })
+
   },
 });
 

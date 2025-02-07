@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {GetBookGenre,GetBookGenreByID,addBookGenre,BooksByGenre,GenreForBook} = require("../controllers/bookGenraController")
+const {GetBookGenre,GetBookGenreByID,addBookGenre,BooksByGenre,GenreForBook,BooksByAuthor} = require("../controllers/bookGenraController")
 
 // Get all books
 router.get("/",GetBookGenre);
@@ -18,10 +18,13 @@ router.post("/add-bookGenra",addBookGenre);
 
 router.get("/search-genre/:genreID",BooksByGenre)
 
-//GetBooks By Book
+//GetBooks By Gener
 
-router.get("/search-book/:bookID",GenreForBook)
+router.get("/search-books/:bookID",GenreForBook)
 
+// Get Books by Author ID
+
+router.get('/book-author/:authorID',BooksByAuthor);
 
 // router.put("/update-bookGenra/:bookGenraID",GetBookGenreByID);
 

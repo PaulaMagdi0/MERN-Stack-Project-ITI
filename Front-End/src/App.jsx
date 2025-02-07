@@ -12,9 +12,8 @@ import NotFound from "./pages/notFound/NotFound";
 import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
 import  Dashboard from "./pages/dashBoard/DashBoard"
-import Wishlist from "./pages/wishlist/WishList";
-import ProfilePage from "./pages/Profile/Profile";
-
+import  Wishlist from "./pages/wishlist/WishList"
+import ProfilePage from "./pages/Profile/Profile"
 function App() {
   return (
     
@@ -29,6 +28,7 @@ function App() {
         <Route path="/" element={<MainPage/>} />
         <Route path="/contact" element={<Contact/>} />
         <Route path="/about" element={<AboutAs/>} />
+        <Route path="/wishlist" element={<Wishlist/>} />
         <Route path="/dashboard" element={<Dashboard/>} />
         <Route path="/books/:id" element= {<SingleBook/>}></Route>
         <Route path="/books" element= {<Books/>}></Route>
