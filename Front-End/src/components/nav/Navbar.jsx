@@ -23,7 +23,7 @@ import { getUserInfo, logout } from "../../store/authSlice";
 
 const pages = ["Home", "Books", "About", "Contact"];
 const settings = ["Profile", "Dashboard", "Logout"];
-
+const userSettings= ["Profile", "Logout"];
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -49,6 +49,7 @@ function Navbar() {
     dispatch(logout());
     handleCloseUserMenu();
   };
+  const Settings = user?.role === "user" ? userSettings : settings;
 
   return (
     <AppBar position="static" style={{ background: "#2c3e50" }}>
@@ -159,16 +160,23 @@ function Navbar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={setting === "Logout" ? handleLogout : handleCloseUserMenu}
-                  component={setting === "Profile" ? NavLink : "div"}
-                  to={setting === "Profile" ? "/profile" : undefined}
-                >
-                  <Typography textAlign="center">{setting}</Typography>
-                </MenuItem>
-              ))}
+{ 
+  Settings.map((setting) => (
+    <MenuItem 
+      key={setting} 
+      onClick={setting.toLowerCase() === "logout" ? handleLogout : handleCloseUserMenu}
+      component={["profile", "dashboard"].includes(setting.toLowerCase()) ? NavLink : "div"}
+      {...(["profile", "dashboard"].includes(setting.toLowerCase()) 
+        ? { to: `/${setting.toLowerCase()}` } 
+        : {}
+      )} // Properly assigns the route
+    >
+      <Typography textAlign="center">
+        {setting.toLowerCase() === "profile" ? `${user?.username} Profile` : setting}
+      </Typography>
+    </MenuItem>
+  ))
+}
             </Menu>
           </Box>
         </Toolbar>
