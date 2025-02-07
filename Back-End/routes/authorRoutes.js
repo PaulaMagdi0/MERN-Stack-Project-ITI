@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {getAuthors,getAuthorsByID,getAuthorsByName,createAuthor,updateAuthorGenre,deleteAuthor,updateAuthor} = require("../controllers/authorsController")
+const {getAuthors,getAuthorsByID,getAuthorsByName,createAuthor,updateAuthorGenre,deleteAuthor,updateAuthor,GenresForAuthor} = require("../controllers/authorsController")
 
 // Get all books
 router.get("/", getAuthors);
@@ -14,6 +14,7 @@ router.get("/name/:name",getAuthorsByName );
 //Create Author
 router.post("/add-author",createAuthor)
 
+router.get("/author-genre/:authorID",GenresForAuthor)
 
 //Put/Update Authour
 

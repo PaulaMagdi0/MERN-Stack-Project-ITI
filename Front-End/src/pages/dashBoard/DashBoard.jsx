@@ -69,7 +69,7 @@ const Dashboard = () => {
     const [currentPageBooks, setCurrentPageBooks] = useState(1);
     const [currentPageAuthors, setCurrentPageAuthors] = useState(1);
     const itemsPerPage = 5;
-
+    // console.log(API_URL);
     useEffect(() => {
         if (activeTab === 'tables') {
             fetchBooksAndAuthors();
