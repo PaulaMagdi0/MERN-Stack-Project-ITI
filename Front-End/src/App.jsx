@@ -7,14 +7,13 @@ import SingleAuthor from "./pages/singleAuthor/SingleAuthor";
 import SingleBook from "./pages/singlebook/SingleBooks";
 import Books from "./pages/books/Books";
 import AboutAs from "./components/aboutas/About";
-import "./App.css";
 import NotFound from "./pages/notFound/NotFound";
 import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
-import Dashboard from "./pages/dashBoard/DashBoard";
-import Wishlist from "./pages/wishlist/WishList";
-import RequireAuth from './utils/WithGuard';
-import ProfilePage from "./components/Profile/Profile"
+import  Dashboard from "./pages/dashBoard/DashBoard"
+import  Wishlist from "./pages/wishlist/WishList"
+import RequireAuth from "./utils/WithGuard"
+import ProfilePage from "./pages/Profile/Profile"
 function App() {
   return (
     <BrowserRouter>

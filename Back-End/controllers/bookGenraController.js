@@ -321,6 +321,9 @@ exports.BooksByAuthor = async (req, res) => {
         });
     }
 };
+
+
+//Get Book a genre By Book ID 
 exports.BookByID = async (req, res) => {
     try {
         // 1. Get and validate book ID

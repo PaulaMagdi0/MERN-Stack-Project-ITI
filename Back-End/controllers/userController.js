@@ -1,18 +1,28 @@
+// controllers/userController.js
+
+// Ensure that environment variables are loaded (this should already be done in your server.js,
+// so you don't need to call it here if your entry point already does it).
+// require("dotenv").config();
+
 const User = require("../models/users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 const validator = require("validator");
 
+// Use a single constant for the JWT secret throughout the controller.
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
+
+// Get all users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select("-password");
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Error fetching users" });
   }
 };
 
+// User Signup
 exports.signUp = async (req, res) => {
   try {
     const { username, email, password, address, phone, dateOfBirth } = req.body;
@@ -27,7 +37,7 @@ exports.signUp = async (req, res) => {
       return res.status(400).json({ message: "Invalid email format." });
     }
 
-    // Validate phone number (at least 10 digits)
+    // Validate phone number (using a generic check; you may adjust as needed)
     if (!validator.isMobilePhone(phone, "any", { strictMode: false })) {
       return res.status(400).json({ message: "Invalid phone number." });
     }
@@ -63,40 +73,38 @@ exports.signUp = async (req, res) => {
   }
 };
 
+// User Signin
 exports.signIn = async (req, res) => {
   try {
     const { username, password, RememberMe } = req.body;
 
-    // Validate input...
+    // Validate input (you can add more detailed validation if needed)
     const user = await User.findOne({ username });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Generate token (set an appropriate expiration time)
+    // Generate a token with the constant JWT_SECRET
     const token = jwt.sign(
       { id: user._id, role: user.role },
       JWT_SECRET,
       { expiresIn: "30d" }
     );
 
-    // If RememberMe is true, set a persistent cookie (7 days), otherwise a session cookie
+    // Set a persistent cookie if RememberMe is true; otherwise, a session cookie
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    };
+
     if (RememberMe) {
-      res.cookie("token", token, {
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: "strict",
-      });
-    } else {
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      });
+      cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
     }
 
-    // Optionally, also send token in the response body (if needed)
+    res.cookie("token", token, cookieOptions);
+
+    // Optionally, also send back token details (without the password)
     res.status(200).json({
       id: user._id,
       role: user.role,
@@ -108,20 +116,22 @@ exports.signIn = async (req, res) => {
   }
 };
 
+// Get User Info (from token)
 exports.getUserInfo = async (req, res) => {
-  // Make sure you check for the token in the cookie
-  const token = req.cookies.token; // or req.headers['authorization'] if you're using headers for the token
+  // Retrieve the token from cookies (or headers if you prefer)
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(401).json({ message: "No token provided" });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  // Use the JWT_SECRET constant for verification
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: "Invalid or expired token" });
     }
 
-    // If the token is valid, fetch user data from the database
+    // If token is valid, fetch user data (exclude the password)
     User.findById(decoded.id)
       .select("-password")
       .then(user => {
@@ -132,11 +142,12 @@ exports.getUserInfo = async (req, res) => {
       })
       .catch(error => res.status(500).json({ message: "Error fetching user info" }));
   });
-}
+};
 
+// Update User Info
 exports.UpdateUserInfo = async (req, res) => {
   try {
-    // req.user should be set by an authentication middleware (if used)
+    // Assuming req.user is populated by an authentication middleware
     const { id } = req.user;
     const updateData = {};
     const allowedFields = ["username", "email", "address", "phone", "dateOfBirth", "image"];
