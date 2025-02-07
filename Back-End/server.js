@@ -13,6 +13,8 @@ const bookGenreRoutes = require("./routes/bookGenreRoute");
 const authorsGenreRoutes = require("./routes/authorGenraRoute");
 const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
+const wishListRoutes = require("./routes/wishListRoutes");
+
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
 const cookieParser = require("cookie-parser");
 
@@ -68,7 +70,7 @@ app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
-
+app.use("/wishlist",wishListRoutes)
 // ✅ Connect to MongoDB and Start Server
 
 mongoose

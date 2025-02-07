@@ -115,4 +115,4 @@ const authorSlice = createSlice({
   },
 });
 
-export default authorSlice.reducer;
+  export default authorSlice.reducer;
