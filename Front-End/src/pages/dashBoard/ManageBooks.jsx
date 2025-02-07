@@ -11,6 +11,7 @@ const ManageBooks = () => {
     const [action, setAction] = useState("");
     const [selectedBook, setSelectedBook] = useState(null);
     const [bookGenres, setBookGenres] = useState([]);
+    const [selectedGenres, setSelectedGenres] = useState([]);
 
     useEffect(() => {
         fetchBooks();
@@ -67,6 +68,69 @@ const ManageBooks = () => {
         }
     };
 
+    const handleGenreToggle = async (genreId) => {
+        if (!selectedBook) return;
+    
+        try {
+            // Ensure the genreId passed is valid (not undefined)
+            if (!genreId) {
+                console.error("Invalid genre ID:", genreId); // Debugging log
+                return;
+            }
+    
+            // Check if the genre is already selected in the state (based on selectedGenres)
+            const isGenreSelected = selectedGenres.includes(genreId);
+    
+            let updatedGenres;
+    
+            if (isGenreSelected) {
+                // Remove genre if already selected
+                updatedGenres = selectedGenres.filter(id => id !== genreId);
+            } else {
+                // Add genre if not selected
+                updatedGenres = [...selectedGenres, genreId];
+            }
+    
+            // Optimistically update the UI: Set selected genres in state
+            setSelectedGenres(updatedGenres);
+    
+            // Update bookGenres state optimistically as well
+            let updatedBookGenres;
+            if (isGenreSelected) {
+                // Remove genre from bookGenres
+                updatedBookGenres = bookGenres.filter(bg => bg.genre_id._id !== genreId);
+            } else {
+                // Add genre to bookGenres
+                updatedBookGenres = [
+                    ...bookGenres,
+                    { book_id: { _id: selectedBook._id }, genre_id: { _id: genreId } },
+                ];
+            }
+    
+            // Update the bookGenres optimistically
+            setBookGenres(updatedBookGenres);
+    
+            // Send update request to backend
+            const response = await fetch(`http://localhost:5000/books/edit-book/${selectedBook._id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ genres: updatedGenres }) // Only send the genre IDs
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to update book genres. Status: ${response.status}`);
+            }
+    
+            console.log("✅ Genres updated successfully");
+        } catch (error) {
+            console.error("❌ Error toggling genre:", error);
+    
+            // Revert the UI if the update fails
+            setSelectedGenres([...selectedGenres]);
+            setBookGenres([...bookGenres]);
+        }
+    };          
+    
     const fetchAuthors = async () => {
         try {
             const response = await fetch(`${API_URL}/authors`);
@@ -77,29 +141,32 @@ const ManageBooks = () => {
         }
     };
 
-    const handleAddBook = async (values, { resetForm }) => {
+    const handleAddBook = async (values, {resetForm}) => {
+        const newBook = {
+            ...values,
+            genres: [...selectedGenres], // Make sure to spread selectedGenres
+        };
+    
+        console.log("📤 Sending request to backend:", newBook); // Debugging log
+    
         try {
-            console.log("📤 Sending request to backend:", values);
-
-            const response = await fetch(`${API_URL}/books/post-book`, {
+            const response = await fetch("http://localhost:5000/books/post-book", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values),
+                body: JSON.stringify(newBook),
             });
-
+    
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Server error: ${errorData.message}`);
+                throw new Error("Failed to add book");
             }
-
-            const data = await response.json();
-            console.log("✅ Book added successfully:", data);
-
-            fetchBooks();
+    
+            console.log("✅ Book added successfully!");
+            setSelectedGenres([]); // Clear selection after adding
+            fetchBooks(); // Refresh book list
             resetForm();
             setAction("");
         } catch (error) {
-            console.error("❌ Error adding book:", error.message);
+            console.error("❌ Error adding book:", error);
         }
     };
 
@@ -132,24 +199,40 @@ const ManageBooks = () => {
 
     const handleEditBook = async (values) => {
         if (!selectedBook) return;
-
+    
         try {
+            // Ensure that selectedGenres contains only unique genre IDs
+            const uniqueGenres = [...new Set(selectedGenres)];
+    
             const formattedValues = {
                 ...values,
+                genres: uniqueGenres,
                 releaseDate: values.releaseDate ? new Date(values.releaseDate).toISOString().split('T')[0] : '',
             };
-            await fetch(`${API_URL}/books/edit-book/${selectedBook._id}`, {
+    
+            console.log("📤 Sending request to backend:", formattedValues); // Debugging log
+            console.log("Selected Genres at request:", uniqueGenres);
+    
+            // Send PUT request to update book data
+            const response = await fetch(`http://localhost:5000/books/edit-book/${selectedBook._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedValues),
             });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to update book genres. Status: ${response.status}`);
+            }
+    
+            // Refresh books list and clear selected book
             fetchBooks();
             setSelectedBook(null);
+    
         } catch (error) {
             console.error("Error updating book:", error);
         }
     };
-
+    
     const bookSchema = Yup.object().shape({
         title: Yup.string().required("Title is required"),
         author_id: Yup.string().required("Author is required"),
@@ -174,7 +257,7 @@ const ManageBooks = () => {
                 {action === "add" && (
                     <Formik
                         initialValues={{
-                            title: "", author_id: "", releaseDate: "", genre: "", content: "", description: "",
+                            title: "", author_id: "", releaseDate: "", content: "", description: "",
                             genres: bookGenres
                                 .filter(bg => bg.book_id._id === selectedBook?._id) // Access nested book_id
                                 .map(bg => bg.genre_id.name) || []
@@ -210,26 +293,25 @@ const ManageBooks = () => {
                                     </FormGroup>
                                     <FormGroup>
                                         <FormLabel>Genres</FormLabel>
-                                        <div style={{ marginTop: "5px" }}>
-                                            {genres.map(genre => (
-                                            <span
-                                                key={genre._id}
-                                                className="badge"
-                                                style={{
-                                                margin: "5px",
-                                                padding: "8px 12px",
-                                                backgroundColor: bookGenres.includes(genre._id) ? '#007bff' : '#ddd', // Blue if selected
-                                                color: '#fff',
-                                                borderRadius: "15px",
-                                                cursor: "pointer",
-                                                transition: "background-color 0.3s ease",
-                                                }}
-                                                onClick={() => handleGenreToggle(genre._id)} // Toggle checked state on click
-                                            >
-                                                {genre.name}
-                                            </span>
+                                        <div>
+                                            {genres.map((genre) => (
+                                                <span
+                                                    key={genre._id}
+                                                    className="badge"
+                                                    style={{
+                                                        margin: "5px",
+                                                        padding: "8px 12px",
+                                                        backgroundColor: selectedGenres.includes(genre._id) ? "#007bff" : "#ddd",
+                                                        color: "#fff",
+                                                        borderRadius: "15px",
+                                                        cursor: "pointer",
+                                                    }}
+                                                    onClick={() => handleGenreToggle(genre._id)}
+                                                >
+                                                    {genre.name}
+                                                </span>
                                             ))}
-                                        </div>  
+                                        </div>
                                     </FormGroup>
                                     <FormGroup>
                                         <FormLabel>Content</FormLabel>
@@ -283,9 +365,7 @@ const ManageBooks = () => {
                             releaseDate: selectedBook?.releaseDate || "",
                             content: selectedBook?.content || "",
                             description: selectedBook?.description || "",
-                            genres: bookGenres
-                                .filter(bg => bg.book_id._id === selectedBook?._id) // Access nested book_id
-                                .map(bg => bg.genre_id.name) || []
+                            genres: bookGenres.filter(bg => bg.book_id._id === selectedBook?._id).map(bg => bg.genre_id.name) || []
                         }}
                         enableReinitialize
                         validationSchema={bookSchema}
@@ -350,27 +430,29 @@ const ManageBooks = () => {
                                                 />
                                             </FormGroup>
                                             <FormGroup>
-                                            <FormLabel>Genres</FormLabel>
-                                            <div style={{ marginTop: "5px" }}>
-                                                {genres.map(genre => (
-                                                <span
-                                                    key={genre._id}
-                                                    className="badge"
-                                                    style={{
-                                                    margin: "5px",
-                                                    padding: "8px 12px",
-                                                    backgroundColor: bookGenres.includes(genre._id) ? '#007bff' : '#ddd', // Blue if selected
-                                                    color: '#fff',
-                                                    borderRadius: "15px",
-                                                    cursor: "pointer",
-                                                    transition: "background-color 0.3s ease",
-                                                    }}
-                                                    onClick={() => handleGenreToggle(genre._id)} // Toggle checked state on click
-                                                >
-                                                    {genre.name}
-                                                </span>
-                                                ))}
-                                            </div>
+                                                <FormLabel>Genres</FormLabel>
+                                                <div>
+                                                    {genres.map((genre) => (
+                                                        <span
+                                                        key={genre._id}
+                                                        className="badge"
+                                                        style={{
+                                                                margin: "5px",
+                                                                padding: "8px 12px",
+                                                                backgroundColor: bookGenres.some(bg => bg.book_id._id === selectedBook._id && bg.genre_id?._id === genre._id) ? '#007bff' : '#ddd', // Check if genre is selected
+                                                                color: '#fff',
+                                                                borderRadius: "15px",
+                                                                cursor: "pointer",
+                                                            }}
+                                                            onClick={() => {
+                                                                console.log("Clicked Genre ID:", genre._id);  // Log the genre _id on click
+                                                                handleGenreToggle(genre._id);  // Pass the genre ID here
+                                                            }}
+                                                        >
+                                                            {genre.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </FormGroup>
                                             <FormGroup>
                                                 <FormLabel>Content</FormLabel>

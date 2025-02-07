@@ -88,6 +88,9 @@ exports.getBooksByTitle = async (req, res) => {
 
 // Post Book + BookGenres (with Genre validation)
 exports.createBook = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { title, releaseDate, content, description, image, author_id, genres } = req.body;
 
@@ -96,21 +99,29 @@ exports.createBook = async (req, res) => {
             return res.status(400).json({ message: "At least one genre must be added" });
         }
 
-        // Create and save the book
-        const newBook = new Book({ title, releaseDate, content, description, image, author_id });
-        await newBook.save();
+        // Create the new book
+        const newBook = new Book({ title, releaseDate, content, description, author_id });
+        await newBook.save({ session });
 
         // If genres are provided, associate them with the book
         const bookGenres = genres.map(genreObj => ({ book_id: newBook._id, genre_id: genreObj._id }));
         await BookGenre.insertMany(bookGenres);
 
         // Fetch associated genres
-        const bookWithGenres = await Book.findById(newBook._id).populate('author_id');
+        const bookWithGenres = await Book.findById(newBook._id)
+            .populate('author_id')
+            .session(session);
+
+        // Commit transaction
+        await session.commitTransaction();
 
         res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
     } catch (error) {
+        await session.abortTransaction();
         console.error("Error adding book:", error);
         res.status(500).json({ message: "Error adding book", error: error.message });
+    } finally {
+        session.endSession();
     }
 };
 
