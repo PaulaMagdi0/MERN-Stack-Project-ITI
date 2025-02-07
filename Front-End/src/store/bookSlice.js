@@ -7,7 +7,10 @@ export const fetchBookById = createAsyncThunk(
   "books/fetchBookById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_URL}/books/id/${id}`);
+      // /bookgenre/search-book/679ceaa7c84f85dd5c7b4083
+            const response = await fetch(`${API_URL}/bookgenre/search-book/${id}`);
+
+      // const response = await fetch(`${API_URL}/books/id/${id}`);
       if (!response.ok) throw new Error("Book not found");
       return await response.json();
     } catch (err) {

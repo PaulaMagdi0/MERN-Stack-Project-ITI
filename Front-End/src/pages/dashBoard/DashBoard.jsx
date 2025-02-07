@@ -13,7 +13,7 @@ import {
     PointElement,
     LineElement,
     RadialLinearScale
-} from 'chart.js';
+} from 'chart.js'   ;
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import styled from 'styled-components';
 import { FaBook, FaUser, FaStar, FaChartBar, FaEnvelope, FaLock, FaUserShield } from 'react-icons/fa';
