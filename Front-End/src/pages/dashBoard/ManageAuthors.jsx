@@ -3,6 +3,7 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { FaUser } from "react-icons/fa"; // Change icon to FaUser
 import styled from "styled-components";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // New ManageAuthors component
 const ManageAuthors = () => {
@@ -16,7 +17,7 @@ const ManageAuthors = () => {
 
     const fetchAuthors = async () => {
         try {
-            const response = await fetch("http://localhost:5000/authors");
+            const response = await fetch(`${API_URL}/authors`);
             const data = await response.json();
             setAuthors(data.authors);
         } catch (error) {
@@ -26,7 +27,7 @@ const ManageAuthors = () => {
 
     const handleAddAuthor = async (values, { resetForm }) => {
         try {
-            await fetch("http://localhost:5000/authors", {
+            await fetch("API_URL/authors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),
@@ -41,7 +42,7 @@ const ManageAuthors = () => {
     const handleDeleteAuthor = async () => {
         if (!selectedAuthor) return;
         try {
-            await fetch(`http://localhost:5000/authors/${selectedAuthor._id}`, {
+            await fetch(`API_URL/authors/${selectedAuthor._id}`, {
                 method: "DELETE",
             });
             fetchAuthors();
@@ -54,7 +55,7 @@ const ManageAuthors = () => {
     const handleEditAuthor = async (values) => {
         if (!selectedAuthor) return;
         try {
-            await fetch(`http://localhost:5000/authors/${selectedAuthor._id}`, {
+            await fetch(`${API_URL}/authors/${selectedAuthor._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(values),
