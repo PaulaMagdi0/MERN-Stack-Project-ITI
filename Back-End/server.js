@@ -13,7 +13,10 @@ const bookGenreRoutes = require("./routes/bookGenreRoute");
 const authorsGenreRoutes = require("./routes/authorGenraRoute");
 const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
+const wishListRoutes = require("./routes/wishListRoutes");
+
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,38 +24,41 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7
 
 
 // config CORS
-// const corsOptions = {
-//     origin: ['http://localhost:5173'], // The Url That Sends The Request
-//     methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH'], // Method Used
-//     allowedHeaders: ['Content-Type', 'Authorization'], // Auth SEnding
-//     credentials: true, // Allow cookies/auth headers
-//     optionsSuccessStatus: 200,
-//   };
-  
-// Middleware
-// app.use(cors(corsOptions));
+
+
+// CORS configuration
+const corsOptions = {
+  origin: ['http://localhost:5173'], // The URL that sends the request (frontend URL)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers for authentication
+  credentials: true, // Allow sending cookies and authentication headers
+  optionsSuccessStatus: 200, // Handle successful preflight requests
+};
+
+// Apply CORS middleware before routes
+app.use(cors(corsOptions));
+
+// Built-in body parser to handle JSON requests
+
+// Your other routes and middleware here
 
 app.use(express.json()); // Built-in body parser
 
 
+
+
+// Use cookie-parser middleware before your custom CORS middleware
+app.use(cookieParser());
+
 // Without Middleware to set CORS headers
-app.use((req, res, next) => {
-  // Allow requests from any origin (customize in production!)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  // Allowed HTTP methods
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-  
-  // Allowed headers (e.g., Content-Type, Authorization)
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  // Handle preflight requests (OPTIONS)
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
+//   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow cookies
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//   next();
+// });
+
 
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
@@ -64,8 +70,9 @@ app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
-
+app.use("/wishlist",wishListRoutes)
 // ✅ Connect to MongoDB and Start Server
+
 mongoose
   .connect(MONGO_URI)
   .then(() => {

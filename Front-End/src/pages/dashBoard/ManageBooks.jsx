@@ -3,7 +3,7 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { FaBook } from "react-icons/fa";
 import styled from "styled-components";
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const ManageBooks = () => {
     const [books, setBooks] = useState([]);
     const [genres, setGenres] = useState([]);
@@ -20,9 +20,10 @@ const ManageBooks = () => {
         fetchAuthors();
     }, []);
 
+
     const fetchBooks = async () => {
         try {
-            const response = await fetch("http://localhost:5000/books?page=1");
+            const response = await fetch(`${API_URL}/books?page=1`);
             const data = await response.json();
             const totalItems = data.totalItems;
             const itemsPerPage = data.itemsPerPage;
@@ -31,7 +32,7 @@ const ManageBooks = () => {
             let currentPage = 1;
 
             while (currentPage <= totalPages) {
-                const pageResponse = await fetch(`http://localhost:5000/books?page=${currentPage}`);
+                const pageResponse = await fetch(`${API_URL}/books?page=${currentPage}`);
                 const pageData = await pageResponse.json();
                 allBooks = [...allBooks, ...pageData.books];
                 currentPage++;
@@ -45,7 +46,7 @@ const ManageBooks = () => {
 
     const fetchBookGenres = async () => {
         try {
-            const response = await fetch("http://localhost:5000/bookgenre");
+            const response = await fetch(`${API_URL}/bookgenre`);
             const data = await response.json();
             
             // Filter out invalid book-genre mappings
@@ -59,7 +60,7 @@ const ManageBooks = () => {
 
     const fetchGenres = async () => {
         try {
-            const response = await fetch("http://localhost:5000/genre");
+            const response = await fetch(`${API_URL}/genre`);
             const data = await response.json();
             setGenres(data || []);
         } catch (error) {
@@ -132,7 +133,7 @@ const ManageBooks = () => {
     
     const fetchAuthors = async () => {
         try {
-            const response = await fetch("http://localhost:5000/authors");
+            const response = await fetch(`${API_URL}/authors`);
             const data = await response.json();
             setAuthors(data.authors || []);
         } catch (error) {
@@ -176,7 +177,7 @@ const ManageBooks = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/books/delete-book/${selectedBook._id}`, {
+            const response = await fetch(`${API_URL}/books/delete-book/${selectedBook._id}`, {
                 method: "DELETE",
             });
 
