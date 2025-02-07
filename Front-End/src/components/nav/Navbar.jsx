@@ -1,22 +1,45 @@
-import React from "react";
-import { AppBar, Toolbar, IconButton, Typography, Box, Container, Avatar, Button, Tooltip, Menu, MenuItem } from "@mui/material";
-import { NavLink } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { NavLink, Link } from "react-router-dom";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Box,
+  Container,
+  Avatar,
+  Button,
+  Tooltip,
+  Menu,
+  MenuItem,
+  Badge
+} from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import AdbIcon from "@mui/icons-material/Adb";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import SearchBar from "../searchBar/SearchBar";
-import { useDispatch, useSelector } from "react-redux";
+import { getUserInfo, logout } from "../../store/authSlice";
+
 const pages = ["Home", "Books", "About", "Contact"];
 const settings = ["Profile", "Dashboard", "Logout"];
-const userSettings= ["Profile", "Logout"];
+
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  // Access auth state from Redux; provide a default object if not defined
-  const { loading, error, token } = useSelector(
-    (state) => state.auth || { loading: false, error: null, token: null }
-  );
-  console.log(token);
+  const dispatch = useDispatch();
+
+  // Get user info from auth slice
+  const { user } = useSelector((state) => state.auth);
+  // Get wishlist items from wishlist slice
+  const { items: wishlistItems } = useSelector((state) => state.wishlist);
+  const wishlistCount = wishlistItems ? wishlistItems.length : 0;
+
+  // Fetch user info on mount and when user changes
+  useEffect(() => {
+    dispatch(getUserInfo());
+  }, [dispatch]);
+
   const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
@@ -26,8 +49,7 @@ function Navbar() {
     dispatch(logout());
     handleCloseUserMenu();
   };
-console.log(user?.username);
-const Settings = user?.role === "user" ? userSettings : settings;
+
   return (
     <AppBar position="static" style={{ background: "#2c3e50" }}>
       <Container maxWidth="xl">
@@ -53,12 +75,27 @@ const Settings = user?.role === "user" ? userSettings : settings;
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-            <IconButton size="large" aria-label="menu" onClick={handleOpenNavMenu} sx={{ color: "#F8E4A1" }}>
+            <IconButton
+              size="large"
+              aria-label="menu"
+              onClick={handleOpenNavMenu}
+              sx={{ color: "#F8E4A1" }}
+            >
               <MenuIcon />
             </IconButton>
-            <Menu id="menu-appbar" anchorEl={anchorElNav} open={Boolean(anchorElNav)} onClose={handleCloseNavMenu}>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorElNav}
+              open={Boolean(anchorElNav)}
+              onClose={handleCloseNavMenu}
+            >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`}>
+                <MenuItem
+                  key={page}
+                  onClick={handleCloseNavMenu}
+                  component={NavLink}
+                  to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
+                >
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
@@ -66,17 +103,18 @@ const Settings = user?.role === "user" ? userSettings : settings;
           </Box>
 
           <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-          {/* <Typography variant="h5" noWrap component={NavLink} to="/" sx={{ flexGrow: 1, fontFamily: "monospace", fontWeight: 700, color: "#F8E4A1" }}>
-            BookHub
-          </Typography> */}
-
-          {/* Centered Navigation Links */}
-          <Box sx={{ flexGrow: 2, display: { xs: "none", md: "flex" }, justifyContent: "center" }}>
+          <Box
+            sx={{
+              flexGrow: 2,
+              display: { xs: "none", md: "flex" },
+              justifyContent: "center",
+            }}
+          >
             {pages.map((page) => (
-              <Button 
-                key={page} 
-                component={NavLink} 
-                to={page === "Home" ? "/" : `/${page.toLowerCase()}`} 
+              <Button
+                key={page}
+                component={NavLink}
+                to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
                 sx={{ my: 2, color: "white", "&:hover": { color: "#FFD700" } }}
               >
                 {page}
@@ -84,22 +122,31 @@ const Settings = user?.role === "user" ? userSettings : settings;
             ))}
           </Box>
 
-
           <SearchBar />
 
-          <FavoriteIcon sx={{ mr: 2, color: "#F8E4A1" }} />
+          {/* Wishlist heart with badge */}
+          <Box sx={{ mr: 2 }}>
+            <Link to="/wishlist" style={{ textDecoration: "none", color: "inherit" }}>
+              <Badge badgeContent={wishlistCount} color="error">
+                <FavoriteIcon sx={{ color: "#F8E4A1" }} />
+              </Badge>
+            </Link>
+          </Box>
 
           <Box sx={{ flexGrow: 0 }}>
             {user ? (
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt={user.username} src={user.avatar || "/static/images/avatar/2.jpg"} />
+                  <Avatar
+                    alt={user.username}
+                    src={user.avatar || "/static/images/avatar/2.jpg"}
+                  />
                 </IconButton>
               </Tooltip>
             ) : (
-              <Button 
-                component={NavLink} 
-                to="/signin" 
+              <Button
+                component={NavLink}
+                to="/signin"
                 sx={{ color: "white", "&:hover": { color: "#FFD700" } }}
               >
                 Login
@@ -112,25 +159,16 @@ const Settings = user?.role === "user" ? userSettings : settings;
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-        { 
-  Settings.map((setting) => (
-    <MenuItem 
-      key={setting} 
-      onClick={setting.toLowerCase() === "logout" ? handleLogout : handleCloseUserMenu}
-      component={["profile", "dashboard"].includes(setting.toLowerCase()) ? NavLink : "div"}
-      {...(["profile", "dashboard"].includes(setting.toLowerCase()) 
-        ? { to: `/${setting.toLowerCase()}` } 
-        : {}
-      )} // Properly assigns the route
-    >
-      <Typography textAlign="center">
-        {setting.toLowerCase() === "profile" ? `${user?.username} Profile` : setting}
-      </Typography>
-    </MenuItem>
-  ))
-}
-
-
+              {settings.map((setting) => (
+                <MenuItem
+                  key={setting}
+                  onClick={setting === "Logout" ? handleLogout : handleCloseUserMenu}
+                  component={setting === "Profile" ? NavLink : "div"}
+                  to={setting === "Profile" ? "/profile" : undefined}
+                >
+                  <Typography textAlign="center">{setting}</Typography>
+                </MenuItem>
+              ))}
             </Menu>
           </Box>
         </Toolbar>
