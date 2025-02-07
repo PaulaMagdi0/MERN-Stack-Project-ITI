@@ -1,6 +1,6 @@
 const Book = require("../models/books");
 const BookGenre = require("../models/bookgenre");
-const Genre =require("../models/genre");
+const Genre = require("../models/genre");
 const mongoose = require('mongoose');
 
 // exports.getBooks = async (req, res) => {
@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 //         // const booksCount = await Book.find().countDocuments()
 //         // console.log(booksCount);
 //         // const books = await Book.find()
-   
+
 //         // console.log(booksCount);
 //         // const books = await 
 
@@ -25,14 +25,14 @@ const mongoose = require('mongoose');
 //         //         totalPages: Math.ceil(totatlItems / perPage),
 //         //         books: books
 //         //     })})
-        
+
 //         const [books, count] = await Promise.all([
 //             Book.find()
 //                 .skip((currentPage - 1) * perPage)
 //                 .limit(perPage),
 //             Book.countDocuments()
 //         ]);
-    
+
 //         res.status(200).json({
 //             totalItems: count,
 //             currentPage: currentPage,
@@ -82,7 +82,7 @@ exports.getBooks = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching books:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: "Error fetching books",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -95,10 +95,10 @@ exports.getBookDetailsByID = async (req, res) => {
     console.log(id);
     try {
         const book = await Book.findById(id)
-        .populate({
-            path: 'author_id',
-            select: 'name biography birthYear deathYear image nationality'
-        })  // for Pagination            .exec();
+            .populate({
+                path: 'author_id',
+                select: 'name biography birthYear deathYear image nationality'
+            })  // for Pagination            .exec();
 
         if (!book) return res.status(404).json({ message: "Book not found" });
 
@@ -114,7 +114,7 @@ exports.getBooksByTitle = async (req, res) => {
     try {
         const { title } = req.params;
         console.log(title);
-        
+
 
         if (!title) {
             return res.status(400).json({ message: "Title is required" });
@@ -122,7 +122,7 @@ exports.getBooksByTitle = async (req, res) => {
 
         console.log("Searching for books with title:", title);
 
-       // Find books with partial or exact title match (case-insensitive)
+        // Find books with partial or exact title match (case-insensitive)
         let books = await Book.find({ title: { $regex: new RegExp(title, "i") } });
 
         if (books.length === 0) {
@@ -138,70 +138,73 @@ exports.getBooksByTitle = async (req, res) => {
 
 //Post Book + BookGenres
 exports.createBook = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-        console.log(req.body);
+        console.log("Request Body:", req.body);
 
-        const { title, releaseDate, content, description, author_id, genreIds } = req.body;
+        // Destructure request body
+        const { title, releaseDate, content, description, image, author_id, genres } = req.body;
 
-        // Create the new book
-        const newBook = new Book({ title, releaseDate, content, description, author_id });
-        await newBook.save({ session });
+        // Create and save the book
+        const newBook = new Book({ title, releaseDate, content, description, image, author_id });
+        await newBook.save();
 
-        // Associate genres if provided
-        if (genreIds && genreIds.length > 0) {
-            const bookGenres = genreIds.map(genreId => ({ book_id: newBook._id, genre_id: genreId }));
-            await BookGenre.insertMany(bookGenres, { session });
+        console.log("New Book Created:", newBook);
+
+        // If genres are provided, associate them with the book
+        if (genres && genres.length > 0) {
+            const bookGenres = genres.map(genreId => ({
+                book_id: newBook._id,
+                genre_id: new mongoose.Types.ObjectId(genreId) // Ensure ObjectId
+            }));
+
+            console.log("BookGenres Before Insert:", bookGenres);
+
+            try {
+                await BookGenre.insertMany(bookGenres); // Removed session
+                console.log("Book genres inserted successfully.");
+            } catch (insertErr) {
+                console.error("Error inserting book genres:", insertErr);
+            }
         }
 
         // Fetch associated genres
-        const bookWithGenres = await Book.findById(newBook._id)
-            .populate('author_id')
-            .session(session);
-
-        // Commit transaction
-        await session.commitTransaction();
+        const bookWithGenres = await Book.findById(newBook._id).populate('author_id');
 
         res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
     } catch (error) {
-        await session.abortTransaction();
         console.error("Error adding book:", error);
         res.status(500).json({ message: "Error adding book", error: error.message });
-    } finally {
-        session.endSession();
     }
 };
 
 // Search By Title For The Search Bar
-exports.searchBook= async (req, res) => {
+exports.searchBook = async (req, res) => {
     try {
-      const books = await Book.find({
-        $or: [
-          { title: { $regex: req.query.q, $options: 'i' } },
-          { 'author.name': { $regex: req.query.q, $options: 'i' } },
-          { description: { $regex: req.query.q, $options: 'i' } }
-        ]
-      })
-      .populate({
-        path: 'author_id',
-        select: 'name biography birthYear deathYear image nationality'
-    })
-    .limit(10);
-      
-      res.json(books);
+        const books = await Book.find({
+            $or: [
+                { title: { $regex: req.query.q, $options: 'i' } },
+                { 'author.name': { $regex: req.query.q, $options: 'i' } },
+                { description: { $regex: req.query.q, $options: 'i' } }
+            ]
+        })
+            .populate({
+                path: 'author_id',
+                select: 'name biography birthYear deathYear image nationality'
+            })
+            .limit(10);
+
+        res.json(books);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+        res.status(500).json({ message: err.message });
     }
-  };
+};
 
 //Delete Book By ID
 //   exports.deleteBook = async (req, res) => {
 //     try {
 //         const { bookID } = req.params;
 //         const deletedBook = await Book.findByIdAndDelete(bookID);
-        
+
 //         console.log(deletedBook);
 
 //         if (!deletedBook) {
@@ -226,7 +229,7 @@ exports.searchBook= async (req, res) => {
 //             { title, content, description, image, author_id, releaseDate },
 //             { new: true, runValidators: true } // Returns updated book & validates schema
 //         );
-        
+
 //         if (!updatedBook) {
 //             return res.status(404).json({ message: "Book not found" });
 //         }
@@ -242,13 +245,14 @@ exports.searchBook= async (req, res) => {
 
 // Update Book And Its Genre With Session ana leh 3MLT FE NAFSY KEDA YA RABY
 // and its Genre But all data must Be sent
+
 exports.updateBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const { bookID } = req.params;
-        const { title, content, description, image, author_id, releaseDate, genreIds } = req.body;
+        const { title, content, description, image, author_id, releaseDate, genres } = req.body;
 
         // 1. Validate Book ID
         if (!mongoose.Types.ObjectId.isValid(bookID)) {
@@ -261,18 +265,18 @@ exports.updateBook = async (req, res) => {
             { title, content, description, image, author_id, releaseDate },
             { new: true, runValidators: true, session }
         ).populate('author_id', 'name nationality');
-        
+
         if (!updatedBook) {
             await session.abortTransaction();
             return res.status(404).json({ message: "Book not found" });
         }
 
         // 3. Handle Genre Updates (if provided)
-        if (genreIds && Array.isArray(genreIds)) {
+        if (genres && Array.isArray(genres)) {
             // Validate genre IDs
-            const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
-            
-            if (validGenres.length !== genreIds.length) {
+            const validGenres = await Genre.find({ _id: { $in: genres } }).session(session);
+
+            if (validGenres.length !== genres.length) {
                 await session.abortTransaction();
                 return res.status(400).json({ message: "One or more invalid genre IDs" });
             }
@@ -281,7 +285,7 @@ exports.updateBook = async (req, res) => {
             await BookGenre.deleteMany({ book_id: bookID }).session(session);
 
             // Create new associations
-            const newRelations = genreIds.map(genreId => ({
+            const newRelations = genres.map(genreId => ({
                 book_id: bookID,
                 genre_id: genreId
             }));
@@ -291,7 +295,7 @@ exports.updateBook = async (req, res) => {
 
         // 4. Commit transaction and prepare response
         await session.commitTransaction();
-        
+
         // Get updated genre information
         const updatedGenres = await BookGenre.find({ book_id: bookID })
             .populate('genre_id', 'name')
@@ -306,7 +310,7 @@ exports.updateBook = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error("Update Error:", error);
-        
+
         if (error.name === 'ValidationError') {
             return res.status(400).json({
                 message: "Validation failed",
@@ -327,15 +331,15 @@ exports.updateBook = async (req, res) => {
 exports.deleteBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const { bookID } = req.params;
 
         // 1. Validate ID format
         if (!mongoose.Types.ObjectId.isValid(bookID)) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "INVALID_ID",
-                message: "Invalid book ID format" 
+                message: "Invalid book ID format"
             });
         }
 
@@ -346,15 +350,15 @@ exports.deleteBook = async (req, res) => {
 
         if (!deletedBook) {
             await session.abortTransaction();
-            return res.status(404).json({ 
+            return res.status(404).json({
                 code: "BOOK_NOT_FOUND",
-                message: "Book not found" 
+                message: "Book not found"
             });
         }
 
         // 3. Delete associated records
         const deletePromises = [];
-        
+
         // Delete genre relationships
         deletePromises.push(
             BookGenre.deleteMany({ book_id: bookID }).session(session)
@@ -384,7 +388,7 @@ exports.deleteBook = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error("Delete Book Error:", error);
-        
+
         if (error.name === 'CastError') {
             return res.status(400).json({
                 code: "INVALID_ID",

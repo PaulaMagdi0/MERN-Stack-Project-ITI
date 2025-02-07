@@ -18,7 +18,7 @@ const ManageBooks = () => {
         fetchBookGenres();
         fetchGenres();
         fetchAuthors();
-    }, []);
+    },[]);
 
     const fetchBooks = async () => {
         try {
@@ -41,7 +41,7 @@ const ManageBooks = () => {
         } catch (error) {
             console.error("Error fetching books:", error);
         }
-    };
+    };  
 
     const fetchBookGenres = async () => {
         try {
@@ -50,12 +50,14 @@ const ManageBooks = () => {
             
             // Filter out invalid book-genre mappings
             const validBookGenres = data.data.filter(bg => bg.book_id !== null);
-    
+
+            console.log('book = ', bookGenres);
             setBookGenres(validBookGenres);
+            console.log('set = ', validBookGenres);
         } catch (error) {
             console.error("Error fetching book genres:", error);
         }
-    };    
+    };  
 
     const fetchGenres = async () => {
         try {
@@ -69,66 +71,48 @@ const ManageBooks = () => {
 
     const handleGenreToggle = async (genreId) => {
         if (!selectedBook) return;
-    
+
         try {
-            // Ensure the genreId passed is valid (not undefined)
             if (!genreId) {
-                console.error("Invalid genre ID:", genreId); // Debugging log
+                console.error("Invalid genre ID:", genreId);
                 return;
             }
-    
-            // Check if the genre is already selected in the state (based on selectedGenres)
-            const isGenreSelected = selectedGenres.includes(genreId);
-    
-            let updatedGenres;
-    
-            if (isGenreSelected) {
-                // Remove genre if already selected
-                updatedGenres = selectedGenres.filter(id => id !== genreId);
-            } else {
-                // Add genre if not selected
-                updatedGenres = [...selectedGenres, genreId];
-            }
-    
-            // Optimistically update the UI: Set selected genres in state
+
+            // ✅ Toggle genre selection correctly
+            const updatedGenres = selectedGenres.includes(genreId)
+                ? selectedGenres.filter(id => id !== genreId)
+                : [...selectedGenres, genreId];
+
             setSelectedGenres(updatedGenres);
-    
-            // Update bookGenres state optimistically as well
-            let updatedBookGenres;
-            if (isGenreSelected) {
-                // Remove genre from bookGenres
-                updatedBookGenres = bookGenres.filter(bg => bg.genre_id._id !== genreId);
-            } else {
-                // Add genre to bookGenres
-                updatedBookGenres = [
-                    ...bookGenres,
-                    { book_id: { _id: selectedBook._id }, genre_id: { _id: genreId } },
-                ];
-            }
-    
-            // Update the bookGenres optimistically
+
+            // ✅ Update bookGenres state optimistically
+            const updatedBookGenres = updatedGenres.map(id => ({
+                book_id: { _id: selectedBook._id },
+                genre_id: { _id: id }
+            }));
+
             setBookGenres(updatedBookGenres);
-    
-            // Send update request to backend
+
+            // ✅ Send update request to backend
             const response = await fetch(`http://localhost:5000/books/edit-book/${selectedBook._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ genres: updatedGenres }) // Only send the genre IDs
+                body: JSON.stringify({ genres: updatedGenres })
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Failed to update book genres. Status: ${response.status}`);
             }
-    
+
             console.log("✅ Genres updated successfully");
+            // fetchBookGenres(); // ✅ Ensure frontend and backend are in sync
+
         } catch (error) {
             console.error("❌ Error toggling genre:", error);
-    
-            // Revert the UI if the update fails
-            setSelectedGenres([...selectedGenres]);
+            setSelectedGenres([...selectedGenres]);  // Revert on failure
             setBookGenres([...bookGenres]);
         }
-    };          
+    };        
     
     const fetchAuthors = async () => {
         try {
@@ -198,37 +182,44 @@ const ManageBooks = () => {
 
     const handleEditBook = async (values) => {
         if (!selectedBook) return;
-    
+
         try {
-            // Ensure that selectedGenres contains only unique genre IDs
-            const uniqueGenres = [...new Set(selectedGenres)];
-    
+            // ✅ Ensure selectedGenres contains unique genre IDs
+            const uniqueGenres = selectedGenres && Array.isArray(selectedGenres)
+                ? [...new Set(selectedGenres.map(g => g._id || g))]
+                : [];
+
             const formattedValues = {
                 ...values,
                 genres: uniqueGenres,
-                releaseDate: values.releaseDate ? new Date(values.releaseDate).toISOString().split('T')[0] : '',
+                releaseDate: values.releaseDate 
+                    ? new Date(values.releaseDate).toISOString().split('T')[0] 
+                    : '',
             };
-    
-            console.log("📤 Sending request to backend:", formattedValues); // Debugging log
-            console.log("Selected Genres at request:", uniqueGenres);
-    
-            // Send PUT request to update book data
+
+            console.log("📤 Sending request to backend:", formattedValues);
+            console.log("✅ Selected Genres at request:", uniqueGenres);
+
+            // ✅ Send PUT request to update book data
             const response = await fetch(`http://localhost:5000/books/edit-book/${selectedBook._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formattedValues),
             });
-    
+
             if (!response.ok) {
-                throw new Error(`Failed to update book genres. Status: ${response.status}`);
+                throw new Error(`Failed to update book. Status: ${response.status}`);
             }
-    
-            // Refresh books list and clear selected book
+
+            console.log("✅ Book updated successfully");
+
+            // ✅ Refresh book list and genre mappings
             fetchBooks();
+            fetchBookGenres();
             setSelectedBook(null);
-    
+
         } catch (error) {
-            console.error("Error updating book:", error);
+            console.error("❌ Error updating book:", error);
         }
     };
     
@@ -237,6 +228,10 @@ const ManageBooks = () => {
         author_id: Yup.string().required("Author is required"),
         releaseDate: Yup.string().required("Release Date is required"),
         // genre: Yup.string().required("Genre is required"),
+        image: Yup.string()
+            .url("Invalid URL format")
+            .matches(/\.(jpeg|jpg|gif|png)$/, "Image URL must be a valid image format (jpeg, jpg, gif, png)")
+            .required("Image URL is required"),
         content: Yup.string().required("Content is required"),
         description: Yup.string().required("Description is required"),
     });
@@ -257,9 +252,7 @@ const ManageBooks = () => {
                     <Formik
                         initialValues={{
                             title: "", author_id: "", releaseDate: "", content: "", description: "",
-                            genres: bookGenres
-                                .filter(bg => bg.book_id._id === selectedBook?._id) // Access nested book_id
-                                .map(bg => bg.genre_id.name) || []
+                            genres: []
                         }}
                         validationSchema={bookSchema}
                         onSubmit={handleAddBook}
@@ -317,10 +310,21 @@ const ManageBooks = () => {
                                         <Field as={StyledTextarea} name="content" placeholder="Content" value={values.content} onChange={handleChange} />
                                         {touched.content && errors.content && <ErrorMessageStyled>{errors.content}</ErrorMessageStyled>}
                                     </FormGroup>
-                                    <FormGroup>
+                                    <FormGroup> 
                                         <FormLabel>Description</FormLabel>
                                         <Field as={StyledTextarea} name="description" placeholder="Description" value={values.description} onChange={handleChange} />
                                         {touched.description && errors.description && <ErrorMessageStyled>{errors.description}</ErrorMessageStyled>}
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <FormLabel>Image URL</FormLabel>
+                                        <FormInput 
+                                            name="image" 
+                                            type="text" 
+                                            placeholder="Enter Image URL"  
+                                            value={values.image} 
+                                            onChange={handleChange} 
+                                        />
+                                        {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
                                     </FormGroup>
                                     <SubmitButton type="submit">Add Book</SubmitButton>
                                 </StyledForm>
@@ -364,7 +368,10 @@ const ManageBooks = () => {
                             releaseDate: selectedBook?.releaseDate || "",
                             content: selectedBook?.content || "",
                             description: selectedBook?.description || "",
-                            genres: bookGenres.filter(bg => bg.book_id._id === selectedBook?._id).map(bg => bg.genre_id.name) || []
+                            image: selectedBook?.image || "",
+                            genres: bookGenres
+                                    .filter(bg => bg.book_id?._id === selectedBook?._id)
+                                    .map(bg => bg.genre_id?.name) 
                         }}
                         enableReinitialize
                         validationSchema={bookSchema}
@@ -444,7 +451,7 @@ const ManageBooks = () => {
                                                                 cursor: "pointer",
                                                             }}
                                                             onClick={() => {
-                                                                console.log("Clicked Genre ID:", genre._id);  // Log the genre _id on click
+                                                                console.log("Clicked Genre ID:", values.genres.name )
                                                                 handleGenreToggle(genre._id);  // Pass the genre ID here
                                                             }}
                                                         >
@@ -466,6 +473,14 @@ const ManageBooks = () => {
                                                 <StyledTextarea
                                                     name="description"
                                                     value={values.description}
+                                                    onChange={handleChange}
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Image URL</FormLabel>
+                                                <StyledInput
+                                                    name="image"
+                                                    value={values.image}
                                                     onChange={handleChange}
                                                 />
                                             </FormGroup>
