@@ -14,18 +14,18 @@ exports.createAuthor = async (req, res) => {
     let imageUrl = null;
 
     try {
-        const { name, biography, birthYear, deathYear, nationality, genreIds } = req.body;
+        const { name, biography, birthYear, deathYear, nationality, genres } = req.body;
 
-        console.log('Received data:', { name, biography, birthYear, deathYear, nationality, genreIds });
+        console.log('Received data:', { name, biography, birthYear, deathYear, nationality, genres });
 
         // Ensure at least one genre is provided
-        if (!genreIds || !Array.isArray(genreIds) || genreIds.length === 0) {
+        if (!genres || !Array.isArray(genres) || genres.length === 0) {
             return res.status(400).json({ message: "At least one genre must be added" });
         }
 
         // Validate that all genre IDs are valid ObjectId strings
-        const isValidGenreIds = genreIds.every(genreId => mongoose.Types.ObjectId.isValid(genreId));
-        if (!isValidGenreIds) {
+        const isValidgenres = genres.every(genreId => mongoose.Types.ObjectId.isValid(genreId));
+        if (!isValidgenres) {
             return res.status(400).json({ message: "One or more genre IDs are invalid" });
         }
 
@@ -71,18 +71,18 @@ exports.createAuthor = async (req, res) => {
 
         // Validate and associate genres
         // Ensure the genres exist in the database
-        const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
+        const validGenres = await Genre.find({ _id: { $in: genres } }).session(session);
 
         console.log('Found genres:', validGenres);
 
         // Check if all provided genres are valid
-        if (validGenres.length !== genreIds.length) {
+        if (validGenres.length !== genres.length) {
             await session.abortTransaction();
             return res.status(400).json({ message: "One or more genres are invalid" });
         }
 
         // Add the author-genre relationships in the AuthorGenre collection
-        const newRelations = genreIds.map(genreId => ({
+        const newRelations = genres.map(genreId => ({
             author_id: newAuthor._id, // Ensure this is an ObjectId
             genre_id: new mongoose.Types.ObjectId(genreId), // Convert string to ObjectId
         }));
@@ -181,13 +181,13 @@ exports.getAuthorsByName = async (req, res) => {
 // // Create Author
 // exports.createAuthor = async (req, res) => {
 //     try {
-//         const { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
+//         const { name, biography, birthYear, deathYear, image, nationality, genres } = req.body;
 
 //         const newAuthor = new Author({ name, biography, birthYear, deathYear, image, nationality });
 //         await newAuthor.save();
 
-//         if (genreIds && genreIds.length > 0) {
-//             const authorGenres = genreIds.map((genreId) => ({
+//         if (genres && genres.length > 0) {
+//             const authorGenres = genres.map((genreId) => ({
 //                 author_id: newAuthor._id,
 //                 genre_id: genreId,
 //             }));
@@ -269,7 +269,7 @@ exports.updateAuthorGenre = async (req, res) => {
 
     try {
         const { authorID } = req.params;
-        const { name, biography, birthYear, deathYear, nationality, genreIds } = req.body;
+        const { name, biography, birthYear, deathYear, nationality, genres } = req.body;
         let imageUrl = null;
 
         if (!mongoose.Types.ObjectId.isValid(authorID)) {
@@ -279,10 +279,10 @@ exports.updateAuthorGenre = async (req, res) => {
             });
         }
 
-        if (genreIds && !Array.isArray(genreIds)) {
+        if (genres && !Array.isArray(genres)) {
             return res.status(400).json({
                 code: "INVALID_GENRE_IDS",
-                message: "genreIds must be an array",
+                message: "genres must be an array",
             });
         }
 
@@ -335,13 +335,13 @@ exports.updateAuthorGenre = async (req, res) => {
             });
         }
 
-        if (typeof genreIds !== "undefined") {
-            if (genreIds.length > 0) {
+        if (typeof genres !== "undefined") {
+            if (genres.length > 0) {
                 const validGenresCount = await Genre.countDocuments({
-                    _id: { $in: genreIds },
+                    _id: { $in: genres },
                 }).session(session);
 
-                if (validGenresCount !== genreIds.length) {
+                if (validGenresCount !== genres.length) {
                     await session.abortTransaction();
                     return res.status(400).json({
                         code: "INVALID_GENRES",
@@ -352,8 +352,8 @@ exports.updateAuthorGenre = async (req, res) => {
 
             await AuthorGenre.deleteMany({ author_id: authorID }).session(session);
 
-            if (genreIds.length > 0) {
-                const newRelations = genreIds.map((genreId) => ({
+            if (genres.length > 0) {
+                const newRelations = genres.map((genreId) => ({
                     author_id: authorID,
                     genre_id: genreId,
                 }));
