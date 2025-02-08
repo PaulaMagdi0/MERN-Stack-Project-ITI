@@ -147,7 +147,6 @@ exports.searchBook = async (req, res) => {
     }
 };
 
-// Update Book and Its Genres (with Genre validation)
 exports.updateBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -161,12 +160,12 @@ exports.updateBook = async (req, res) => {
             return res.status(400).json({ message: "At least one genre must be added" });
         }
 
-        // 1. Validate Book ID
+        // Validate Book ID
         if (!mongoose.Types.ObjectId.isValid(bookID)) {
             return res.status(400).json({ message: "Invalid book ID format" });
         }
 
-        // 2. Update Book Document
+        // Update Book Document
         const updatedBook = await Book.findByIdAndUpdate(
             bookID,
             { title, content, description, image, author_id, releaseDate },
@@ -178,25 +177,33 @@ exports.updateBook = async (req, res) => {
             return res.status(404).json({ message: "Book not found" });
         }
 
-        // 3. Handle Genre Updates (if provided)
-        if (genres && Array.isArray(genres)) {
-            const validGenres = await Genre.find({ _id: { $in: genre.map(g => g._id) } }).session(session);
+        // Handle Genre Updates (if provided)
+        if (Array.isArray(genres)) {
+            // Map each element to its _id if it is an object, otherwise use the element itself
+            const genreIds = genres.map(g => (typeof g === "object" && g._id ? g._id : g));
+
+            // Find valid genres based on the provided IDs
+            const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
             
-            if (validGenres.length !== genres.length) {
+            if (validGenres.length !== genreIds.length) {
                 await session.abortTransaction();
                 return res.status(400).json({ message: "One or more invalid genre IDs" });
             }
 
+            // Remove existing genre associations for the book
             await BookGenre.deleteMany({ book_id: bookID }).session(session);
-            const newRelations = genres.map(genreObj => ({
+
+            // Create new associations using the extracted genre IDs
+            const newRelations = genreIds.map(genreId => ({
                 book_id: bookID,
-                genre_id: genreObj._id
+                genre_id: genreId
             }));
             await BookGenre.insertMany(newRelations, { session });
         }
 
         await session.commitTransaction();
         
+        // Fetch the updated genre associations
         const updatedGenres = await BookGenre.find({ book_id: bookID })
             .populate('genre_id', 'name')
             .select('genre_id');
