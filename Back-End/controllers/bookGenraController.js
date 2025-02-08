@@ -7,49 +7,115 @@ const mongoose = require('mongoose');
 const GenreForBook = require('./bookGenraController')
 
 // GetAllBookGenre 
-exports.GetBookGenre = async (req, res) => {
-            try {
-                const { page = 1, perPage = 10 } = req.query;
-                const currentPage = Math.max(1, parseInt(page));
-                const itemsPerPage = Math.max(1, parseInt(perPage));
-        
-                // Get paginated results
-                const results = await BookGenre.find()
-                    .populate({
-                        path: 'genre_id',
-                        select: 'name',
-                    })
-                    .populate({
-                        path: 'book_id',
-                        select: 'title releaseDate content description image author_id _id',
-                        populate: {
-                            path: 'author_id',
-                            select: 'name biography birthYear deathYear image nationality _id',
-                            model: 'Author'
-                        }
-                    })
-                    .skip((currentPage - 1) * itemsPerPage)
-                    .limit(itemsPerPage)
-                    .lean();
-        
-                // Get total count
-                const totalCount = await BookGenre.countDocuments();
-        
-                res.json({
-                    pagination: {
-                        totalItems: totalCount,
-                        currentPage: currentPage,
-                        itemsPerPage: itemsPerPage,
-                        totalPages: Math.ceil(totalCount / itemsPerPage)
-                    },
-                    data: results,
-                  
-                });
-        
+exports.GetBooksWithGenres = async (req, res) => {
+    try {
+      const { page = 1, perPage = 10 } = req.query;
+      const currentPage = Math.max(1, parseInt(page, 10));
+      const itemsPerPage = Math.max(1, parseInt(perPage, 10));
+      const skip = (currentPage - 1) * itemsPerPage;
+  
+      // Aggregation pipeline to group books with their genres
+      const results = await BookGenre.aggregate([
+        // Lookup the book information
+        {
+          $lookup: {
+            from: "books", // Name of the books collection
+            localField: "book_id",
+            foreignField: "_id",
+            as: "book"
+          }
+        },
+        { $unwind: "$book" },
+        // Lookup the genre information
+        {
+          $lookup: {
+            from: "genres", // Name of the genres collection
+            localField: "genre_id",
+            foreignField: "_id",
+            as: "genre"
+          }
+        },
+        { $unwind: "$genre" },
+        // Group by the book _id so that each book appears only once with an array of genres
+        {
+          $group: {
+            _id: "$book._id",
+            book: { $first: "$book" },
+            genres: { $push: "$genre" }
+          }
+        },
+        // Optionally sort by book title (modify as needed)
+        { $sort: { "book.title": 1 } },
+        // Apply pagination: skip and limit
+        { $skip: skip },
+        { $limit: itemsPerPage }
+      ]);
+  
+      // Get total distinct book count from the BookGenre collection
+      const countAgg = await BookGenre.aggregate([
+        { $group: { _id: "$book_id" } },
+        { $count: "total" }
+      ]);
+      const totalCount = countAgg[0] ? countAgg[0].total : 0;
+  
+      res.status(200).json({
+        pagination: {
+          totalItems: totalCount,
+          currentPage,
+          itemsPerPage,
+          totalPages: Math.ceil(totalCount / itemsPerPage)
+        },
+        data: results
+      });
     } catch (error) {
-        res.status(500).json({ message: "Error fetching Books" });
+      console.error("Error fetching books with genres:", error);
+      res.status(500).json({ message: "Error fetching books with genres" });
     }
-};
+  };
+  
+// exports.GetBookGenre = async (req, res) => {
+//             try {
+//                 const { page = 1, perPage = 10 } = req.query;
+//                 const currentPage = Math.max(1, parseInt(page));
+//                 const itemsPerPage = Math.max(1, parseInt(perPage));
+        
+//                 // Get paginated results
+//                 const results = await BookGenre.find()
+//                     .populate({
+//                         path: 'genre_id',
+//                         select: 'name',
+//                     })
+//                     .populate({
+//                         path: 'book_id',
+//                         select: 'title releaseDate content description image author_id _id',
+//                         populate: {
+//                             path: 'author_id',
+//                             select: 'name biography birthYear deathYear image nationality _id',
+//                             model: 'Author'
+//                         }
+//                     })
+//                     .skip((currentPage - 1) * itemsPerPage)
+//                     .limit(itemsPerPage)
+//                     .lean();
+        
+//                 // Get total count
+//                 const totalCount = await BookGenre.countDocuments();
+        
+//                 res.json({
+//                     pagination: {
+//                         totalItems: totalCount,
+//                         currentPage: currentPage,
+//                         itemsPerPage: itemsPerPage,
+//                         totalPages: Math.ceil(totalCount / itemsPerPage)
+//                     },
+//                     data: results,
+                  
+//                 });
+        
+//     } catch (error) {
+//         res.status(500).json({ message: "Error fetching Books" });
+//     }
+// };
 
 // GetBookGenreByID
 exports.GetBookGenreByID = async (req, res) => {
