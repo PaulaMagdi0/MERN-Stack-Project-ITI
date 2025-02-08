@@ -15,7 +15,7 @@ router.get("/id/:id",getAuthorsByID );
 router.get("/name/:name",getAuthorsByName );
 // Get Genre By Author ID 
 
-router.get("/author-genre/:authorID",GenresForAuthor)
+// router.get("/author-genre/:authorID",GenresForAuthor)
 
 // Create Author
 router.post("/add-author",createAuthor)

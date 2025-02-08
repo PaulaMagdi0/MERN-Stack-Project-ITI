@@ -269,7 +269,8 @@ exports.updateAuthorGenre = async (req, res) => {
 
     try {
         const { authorID } = req.params;
-        const { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
+        const { name, biography, birthYear, deathYear, nationality, genreIds } = req.body;
+        let imageUrl = null;
 
         if (!mongoose.Types.ObjectId.isValid(authorID)) {
             return res.status(400).json({
@@ -285,12 +286,33 @@ exports.updateAuthorGenre = async (req, res) => {
             });
         }
 
+        // Handle image upload if there's a file
+        if (req.file) {
+            // Upload the image to Cloudinary
+            const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
+                folder: "goodreads-images",
+                public_id: `author-${authorID}-${Date.now()}-${req.file.originalname}`,
+            });
+
+            // Get the URL of the uploaded image
+            imageUrl = cloudinaryResponse.secure_url;
+
+            // Delete the local image file after uploading to Cloudinary
+            fs.unlink(req.file.path, (err) => {
+                if (err) {
+                    console.error("Error deleting local file:", err);
+                } else {
+                    console.log("Local image file deleted successfully");
+                }
+            });
+        }
+
         const updatePayload = {
             name,
             biography,
             birthYear,
             deathYear,
-            image,
+            image: imageUrl,
             nationality,
         };
 
@@ -393,47 +415,46 @@ exports.updateAuthorGenre = async (req, res) => {
         session.endSession();
     }
 };
+// // Get Genres for Author by ID
+// exports.GenresForAuthor = async (req, res) => {
+//     try {
+//         const { authorID } = req.params;
 
-// Get Genres for Author by ID
-exports.GenresForAuthor = async (req, res) => {
-    try {
-        const { authorID } = req.params;
+//         if (!mongoose.Types.ObjectId.isValid(authorID)) {
+//             return res.status(400).json({
+//                 code: "INVALID_AUTHOR_ID",
+//                 message: "Invalid author ID format",
+//             });
+//         }
 
-        if (!mongoose.Types.ObjectId.isValid(authorID)) {
-            return res.status(400).json({
-                code: "INVALID_AUTHOR_ID",
-                message: "Invalid author ID format",
-            });
-        }
+//         const authorRelations = await AuthorGenre.find({ author_id: authorID })
+//             .populate({
+//                 path: "genre_id",
+//                 select: "name _id",
+//             })
+//             .lean();
 
-        const authorRelations = await AuthorGenre.find({ author_id: authorID })
-            .populate({
-                path: "genre_id",
-                select: "name _id",
-            })
-            .lean();
+//         const genres = authorRelations
+//             .filter((relation) => relation.genre_id)
+//             .map((relation) => relation.genre_id);
 
-        const genres = authorRelations
-            .filter((relation) => relation.genre_id)
-            .map((relation) => relation.genre_id);
+//         if (genres.length === 0) {
+//             return res.status(404).json({
+//                 code: "NO_GENRES_FOUND",
+//                 message: "No genres found for this author",
+//             });
+//         }
 
-        if (genres.length === 0) {
-            return res.status(404).json({
-                code: "NO_GENRES_FOUND",
-                message: "No genres found for this author",
-            });
-        }
-
-        res.json({
-            count: genres.length,
-            genres,
-        });
-    } catch (err) {
-        console.error("Author Genres Error:", err);
-        res.status(500).json({
-            code: "SERVER_ERROR",
-            message: "Error fetching author genres",
-            error: process.env.NODE_ENV === "development" ? err.message : undefined,
-        });
-    }
-};
+//         res.json({
+//             count: genres.length,
+//             genres,
+//         });
+//     } catch (err) {
+//         console.error("Author Genres Error:", err);
+//         res.status(500).json({
+//             code: "SERVER_ERROR",
+//             message: "Error fetching author genres",
+//             error: process.env.NODE_ENV === "development" ? err.message : undefined,
+//         });
+//     }
+// };
