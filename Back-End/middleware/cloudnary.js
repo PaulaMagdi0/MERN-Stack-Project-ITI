@@ -1,34 +1,19 @@
-const express = require('express');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const multerStorageCloudinary = require('multer-storage-cloudinary');
-
-const app = express();
-
 // Configure Cloudinary
-cloudinary.config({
-    cloud_name: 'your-cloud-name',
-    api_key: 'your-api-key',
-    api_secret: 'your-api-secret'
-});
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinaryConfig'); // Import Cloudinary config
 
-// Set up multer-storage-cloudinary for image upload
-const storage = multerStorageCloudinary({
+// Set up Cloudinary Storage for Multer
+const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    folder: 'user-images',  // Folder in Cloudinary where images will be stored
-    allowedFormats: ['jpg', 'jpeg', 'png', 'gif'],  // Allowed image formats
+    params: {
+        folder: 'goodreads-images',  // Cloudinary folder for all images
+        format: async (req, file) => 'png', // Convert all images to PNG format
+        public_id: (req, file) => Date.now() + '-' + file.originalname  // Unique filename
+    }
 });
 
-exports.uploadImage = multer({ storage: storage });
+const upload = multer({ storage: storage });
 
-// Route for uploading user profile image
-exports.uploadImage =  (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: 'No image uploaded.' });
-    }
+module.exports = upload;
 
-    res.json({
-        message: 'Image uploaded successfully',
-        url: req.file.secure_url,  // URL of the uploaded image in Cloudinary
-    });
-}
