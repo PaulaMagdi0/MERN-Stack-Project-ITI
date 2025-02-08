@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { FaBook } from "react-icons/fa";
-import styled from "styled-components";
+import { FaSpinner } from "react-icons/fa"; // Spinner icon
+import styled, { keyframes } from "styled-components";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ManageBooks = () => {
@@ -14,6 +15,7 @@ const ManageBooks = () => {
     // eslint-disable-next-line no-unused-vars
     const [bookGenres, setBookGenres] = useState([]);
     const [selectedGenres, setSelectedGenres] = useState([]);
+    const [imageUploading, setImageUploading] = useState(false);
 
     useEffect(() => {
         fetchBooks();
@@ -102,34 +104,84 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
         }
     };
 
-    const handleAddBook = async (values, {resetForm}) => {
-        const newBook = {
-            ...values,
-            genres: [...selectedGenres], // Make sure to spread selectedGenres
-        };
-    
-        console.log("📤 Sending request to backend:", newBook); // Debugging log
-    
-        try {
-            const response = await fetch(`${API_URL}/books/post-book`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newBook),
-            });
-    
-            if (!response.ok) {
-                throw new Error("Failed to add book");
-            }
-    
-            console.log("✅ Book added successfully!");
-            setSelectedGenres([]); // Clear selection after adding
-            fetchBooks(); // Refresh book list
-            resetForm();
-            setAction("");
-        } catch (error) {
-            console.error("❌ Error adding book:", error);
+    const handleImageUpload = async (file, setFieldValue, formikHelpers = null) => {
+    if (!file) return null;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      setImageUploading(true);
+
+      const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Image upload failed");
+      }
+
+      const data = await response.json();
+      setFieldValue("image", data.imageUrl);
+      return data.imageUrl;
+
+    } catch (error) {
+      console.error("❌ Error uploading image:", error);
+      if (formikHelpers?.setFieldError) {
+        formikHelpers.setFieldError("image", "Failed to upload image");
+      }
+      return null;
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+    const handleAddBook = async (values, formikHelpers) => {
+    const { resetForm, setSubmitting } = formikHelpers;
+    setSubmitting(true);
+
+    try {
+      let imageUrl = values.image;
+
+      // Handle image upload if it's a File object
+      if (values.image instanceof File) {
+        imageUrl = await handleImageUpload(values.image, formikHelpers.setFieldValue, formikHelpers);
+        if (!imageUrl) {
+          setSubmitting(false);
+          return;
         }
-    };
+      }
+
+      const bookData = {
+        ...values,
+        image: imageUrl,
+        genres: selectedGenres,
+      };
+
+      const response = await fetch(`${API_URL}/books/post-book`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add book");
+      }
+
+      console.log("✅ Book added successfully!");
+      setSelectedGenres([]);
+      fetchBooks();
+      resetForm();
+      setAction("");
+
+    } catch (error) {
+      console.error("❌ Error adding book:", error);
+      formikHelpers.setFieldError("submit", "Failed to add book");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
     const handleDeleteBook = async () => {
         if (!selectedBook?._id) {
@@ -158,48 +210,62 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
         }
     };
 
-    const handleEditBook = async (values) => {
-        if (!selectedBook) return;
+    const handleEditBook = async (values, formikHelpers) => {
+    if (!selectedBook) return;
 
-        try {
-            const formattedValues = {
-                ...values,
-                genres: values.genres, // Use the values.genres from Formik
-                releaseDate: values.releaseDate 
-                    ? new Date(values.releaseDate).toISOString().split('T')[0] 
-                    : '',
-            };
+    try {
+      let imageUrl = values.image;
 
-            const response = await fetch(`${API_URL}/books/edit-book/${selectedBook._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formattedValues),
-            });
+      if (values.image instanceof File) {
+        imageUrl = await handleImageUpload(values.image, formikHelpers.setFieldValue, formikHelpers);
+        if (!imageUrl) return;
+      }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Failed to update book: ${errorData.message || response.statusText}`);
-            }
+      const formattedValues = {
+        ...values,
+        image: imageUrl,
+        genres: values.genres,
+        releaseDate: values.releaseDate 
+          ? new Date(values.releaseDate).toISOString().split('T')[0] 
+          : '',
+      };
 
-            console.log("✅ Book updated successfully");
-            await fetchBooks();
-            setSelectedBook(null);
-            setSelectedGenres([]); // Clear selected genres
-        } catch (error) {
-            console.error("❌ Error updating book:", error);
-        }
-    };
+      const response = await fetch(`${API_URL}/books/edit-book/${selectedBook._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formattedValues),
+      });
 
+      if (!response.ok) {
+        throw new Error("Failed to update book");
+      }
+
+      console.log("✅ Book updated successfully");
+      await fetchBooks();
+      setSelectedBook(null);
+      setSelectedGenres([]);
+
+    } catch (error) {
+      console.error("❌ Error updating book:", error);
+      if (formikHelpers?.setFieldError) {
+        formikHelpers.setFieldError("submit", "Failed to update book");
+      }
+    }
+  };
     
     const bookSchema = Yup.object().shape({
         title: Yup.string().required("Title is required"),
         author_id: Yup.string().required("Author is required"),
         releaseDate: Yup.string().required("Release Date is required"),
         // genre: Yup.string().required("Genre is required"),
-        image: Yup.string()
-            .url("Invalid URL format")
-            .matches(/\.(jpeg|jpg|gif|png)$/, "Image URL must be a valid image format (jpeg, jpg, gif, png)")
-            .required("Image URL is required"),
+        image: Yup.mixed()
+            .required("Image is required")
+            .test("fileFormat", "Unsupported file format", value => {
+            if (value instanceof File) {
+                return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(value.type);
+            }
+            return true;
+        }),
         content: Yup.string().required("Content is required"),
         description: Yup.string().required("Description is required"),
     });
@@ -225,7 +291,7 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
                         validationSchema={bookSchema}
                         onSubmit={handleAddBook}
                     >
-                        {({ values, touched, errors, handleChange }) => (
+                        {({ values, touched, errors, handleChange, setFieldValue, isSubmitting }) => (
                             <Section className="mt-4">
                                 <SectionTitle>Add Book</SectionTitle>
                                 <StyledForm>
@@ -261,7 +327,7 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
                                                     style={{
                                                         margin: "5px",
                                                         padding: "8px 12px",
-                                                        backgroundColor: selectedGenres.includes(genre._id) ? "#007bff" : "#ddd",
+                                                        backgroundColor: selectedGenres.includes(genre._id) ? "#007bff" : "#ddf",
                                                         color: "#fff",
                                                         borderRadius: "15px",
                                                         cursor: "pointer",
@@ -285,7 +351,7 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
                                         <Field as={StyledTextarea} name="description" placeholder="Description" value={values.description} onChange={handleChange} />
                                         {touched.description && errors.description && <ErrorMessageStyled>{errors.description}</ErrorMessageStyled>}
                                     </FormGroup>
-                                    <FormGroup>
+                                    {/* <FormGroup>
                                         <FormLabel>Image URL</FormLabel>
                                         <FormInput 
                                             name="image" 
@@ -296,7 +362,47 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
                                         />
                                         {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
                                     </FormGroup>
-                                    <SubmitButton type="submit">Add Book</SubmitButton>
+                                    <SubmitButton type="submit">Add Book</SubmitButton> */}
+                                    <FormGroup>
+                                        <FormLabel>Book Cover</FormLabel>
+                                        <StyledInput
+                                            type="file"
+                                            accept="image/jpeg, image/jpg, image/png, image/gif"
+                                            onChange={(event) => {
+                                            const file = event.currentTarget.files[0];
+                                            setFieldValue("image", file);
+                                            }}
+                                            disabled={imageUploading}
+                                        />
+                                        {imageUploading && (
+                                            <UploadProgress>
+                                            <LoadingSpinner />
+                                            Uploading image...
+                                            </UploadProgress>
+                                        )}
+                                        {values.image && !imageUploading && (
+                                            <ImagePreview 
+                                            src={values.image instanceof File ? URL.createObjectURL(values.image) : values.image} 
+                                            alt="Book cover preview" 
+                                            />
+                                        )}
+                                        {touched.image && errors.image && (
+                                            <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>
+                                        )}
+                                        </FormGroup>
+
+                                        {/* Submit Button */}
+                                        <SubmitButton 
+                                        type="submit" 
+                                        disabled={imageUploading || isSubmitting}
+                                        >
+                                        {(imageUploading || isSubmitting) ? (
+                                            <>
+                                            <LoadingSpinner />
+                                            {imageUploading ? 'Uploading...' : 'Adding Book...'}
+                                            </>
+                                        ) : 'Add Book'}
+                                        </SubmitButton>
                                 </StyledForm>
                             </Section>
                         )}
@@ -403,34 +509,33 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
                                                     onChange={handleChange}
                                                 />
                                             </FormGroup>
-    <FormGroup>
-                    <FormLabel>Genres</FormLabel>
-                    <div>
-                        {genres.map((genre) => (
-                                        <span
-                                            key={genre._id}
-                                            className="badge"
-                                            style={{
-                                                margin: "5px",
-                                                padding: "8px 12px",
-                                                backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddd",
-                                                color: values.genres.includes(genre._id) ? "#fff" : "#333",
-                                                borderRadius: "15px",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => {
-                                                const updatedGenres = values.genres.includes(genre._id)
-                                                    ? values.genres.filter(id => id !== genre._id)
-                                                    : [...values.genres, genre._id];
-                                                setFieldValue("genres", updatedGenres);
-                                            }}
-                                        >
-                                            {genre.name}
-                                        </span>
-                                    ))}
-                    </div>
-                </FormGroup>
-
+                                            <FormGroup>
+                                                <FormLabel>Genres</FormLabel>
+                                                <div>
+                                                    {genres.map((genre) => (
+                                                        <span
+                                                            key={genre._id}
+                                                            className="badge"
+                                                            style={{
+                                                                margin: "5px",
+                                                                padding: "8px 12px",
+                                                                backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
+                                                                color: values.genres.includes(genre._id) ? "#fff" : "#333",
+                                                                borderRadius: "15px",
+                                                                cursor: "pointer",
+                                                            }}
+                                                            onClick={() => {
+                                                                const updatedGenres = values.genres.includes(genre._id)
+                                                                    ? values.genres.filter(id => id !== genre._id)
+                                                                    : [...values.genres, genre._id];
+                                                                setFieldValue("genres", updatedGenres);
+                                                            }}
+                                                        >
+                                                            {genre.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </FormGroup> 
                                             <FormGroup>
                                                 <FormLabel>Content</FormLabel>
                                                 <StyledTextarea
@@ -447,14 +552,41 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
                                                     onChange={handleChange}
                                                 />
                                             </FormGroup>
-                                            <FormGroup>
+                                            {/* <FormGroup>
                                                 <FormLabel>Image URL</FormLabel>
                                                 <StyledInput
                                                     name="image"
                                                     value={values.image}
                                                     onChange={handleChange}
                                                 />
-                                            </FormGroup>
+                                            </FormGroup> */}
+                                            <FormGroup>
+                                                <FormLabel>Book Cover</FormLabel>
+                                                <StyledInput
+                                                    type="file"
+                                                    accept="image/jpeg, image/jpg, image/png, image/gif"
+                                                    onChange={(event) => {
+                                                    const file = event.currentTarget.files[0];
+                                                    setFieldValue("image", file);
+                                                    }}
+                                                    disabled={imageUploading}
+                                                />
+                                                {imageUploading && (
+                                                    <UploadProgress>
+                                                    <LoadingSpinner />
+                                                    Uploading image...
+                                                    </UploadProgress>
+                                                )}
+                                                {values.image && (
+                                                    <ImagePreview 
+                                                    src={values.image instanceof File ? URL.createObjectURL(values.image) : values.image} 
+                                                    alt="Book cover preview" 
+                                                    />
+                                                )}
+                                                {touched.image && errors.image && (
+                                                    <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>
+                                                )}
+                                                </FormGroup>
                                             <SubmitButton type="submit">Update Book</SubmitButton>
                                         </>
                                     )}
@@ -580,6 +712,38 @@ const StyledTextarea = styled.textarea`
         outline: none;
         border-color: #3498db;
     }
+`;
+
+const spin = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const LoadingSpinner = styled(FaSpinner)`
+  animation: ${spin} 1s linear infinite;
+  margin-right: 8px;
+`;
+
+const ImagePreview = styled.img`
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  align-self: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const UploadProgress = styled.div`
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  color: #3498db;
+  font-size: 0.875rem;
 `;
 
 export default ManageBooks;

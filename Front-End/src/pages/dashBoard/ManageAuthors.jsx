@@ -3,6 +3,7 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { FaUser } from "react-icons/fa"; // Change icon to FaUser
 import styled from "styled-components";
+import { FaSpinner } from "react-icons/fa"; // Spinner icon
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // New ManageAuthors component
@@ -10,6 +11,8 @@ const ManageAuthors = () => {
     const [authors, setAuthors] = useState([]);
     const [action, setAction] = useState("");
     const [selectedAuthor, setSelectedAuthor] = useState(null);
+    const [imageUploading, setImageUploading] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchAuthors();
@@ -25,17 +28,89 @@ const ManageAuthors = () => {
         }
     };
 
-    const handleAddAuthor = async (values, { resetForm }) => {
+    const handleImageUpload = async (event, setFieldValue) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
         try {
-            await fetch("API_URL/authors", {
+            setUploading(true); // Show loading spinner
+
+            const uploadResponse = await fetch("http://localhost:5000/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!uploadResponse.ok) throw new Error("Image upload failed");
+
+            const uploadData = await uploadResponse.json();
+            const imageUrl = uploadData.imageUrl;
+
+            setFieldValue("image", imageUrl); // Set the image URL in Formik
+        } catch (error) {
+            console.error("❌ Error uploading image:", error);
+        } finally {
+            setUploading(false); // Hide loading spinner
+        }
+    };
+
+    const handleAddAuthor = async (values, formikHelpers = {}) => {
+        console.log("📤 Form submitted, values:", values); // ✅ Debugging log
+
+        const { resetForm, setSubmitting } = formikHelpers || {};   
+        if (setSubmitting) setSubmitting(true);
+
+        try {
+            let imageUrl = null;
+
+            if (values.image instanceof File) {
+                console.log("📤 Uploading image...");
+                setImageUploading(true); 
+
+                const formData = new FormData();
+                formData.append("image", values.image);
+
+                const uploadResponse = await fetch("http://localhost:5000/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!uploadResponse.ok) throw new Error("Image upload failed");
+
+                const uploadData = await uploadResponse.json();
+                imageUrl = uploadData.imageUrl;
+                console.log("✅ Image uploaded successfully:", imageUrl);
+            }
+
+            setImageUploading(false);
+
+            const newAuthor = {
+                ...values,
+                image: imageUrl || values.image, 
+            };
+
+            console.log("📤 Sending author data to backend:", newAuthor);
+
+            const response = await fetch("http://localhost:5000/authors", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values),
+                body: JSON.stringify(newAuthor),
             });
+
+            if (!response.ok) throw new Error("Failed to add author");
+
+            console.log("✅ Author added successfully!");
+
             fetchAuthors();
-            resetForm();
+            if (resetForm) resetForm();
+            setAction("");
         } catch (error) {
-            console.error("Error adding author:", error);
+            console.error("❌ Error adding author:", error.message);
+        } finally {
+            setImageUploading(false);
+            if (setSubmitting) setSubmitting(false);
         }
     };
 
@@ -52,24 +127,72 @@ const ManageAuthors = () => {
         }
     };
 
-    const handleEditAuthor = async (values) => {
+    const handleEditAuthor = async (values, formikHelpers = {}) => {
         if (!selectedAuthor) return;
+
+        const { setSubmitting } = formikHelpers || {};
+        if (setSubmitting) setSubmitting(true);
+
         try {
-            await fetch(`${API_URL}/authors/${selectedAuthor._id}`, {
+            let imageUrl = values.image; // Keep existing image if not changed
+
+            if (values.imagePreview) {
+                console.log("📤 Uploading new image...");
+                setImageUploading(true);
+
+                const formData = new FormData();
+                formData.append("image", values.image);
+
+                const uploadResponse = await fetch(`${API_URL}/upload`, {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!uploadResponse.ok) throw new Error("Image upload failed");
+
+                const uploadData = await uploadResponse.json();
+                imageUrl = uploadData.imageUrl;
+                console.log("✅ Image uploaded successfully:", imageUrl);
+            }
+
+            setImageUploading(false);
+
+            const updatedAuthor = {
+                ...values,
+                image: imageUrl, // Ensure updated image is used
+            };
+
+            console.log("📤 Updating author:", updatedAuthor);
+
+            const response = await fetch(`${API_URL}/authors/${selectedAuthor._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values),
+                body: JSON.stringify(updatedAuthor),
             });
+
+            if (!response.ok) throw new Error("Failed to update author");
+
+            console.log("✅ Author updated successfully!");
             fetchAuthors();
             setSelectedAuthor(null);
         } catch (error) {
-            console.error("Error updating author:", error);
+            console.error("❌ Error updating author:", error.message);
+        } finally {
+            setImageUploading(false);
+            if (setSubmitting) setSubmitting(false);
         }
     };
 
     const authorSchema = Yup.object().shape({
         name: Yup.string().required("Name is required"),
-        bio: Yup.string().required("Bio is required"),
+        biography: Yup.string().required("Biography is required"),
+        birthYear: Yup.string().required("Birth Year is required"),
+        image: Yup.mixed()
+        .required("Image is required")
+        .test("fileType", "Only JPEG, JPG, PNG, and GIF are allowed", (value) => {
+            return value && ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(value.type);
+        }),
+        nationality: Yup.string().required("Nationality is required"),
     });
 
     return (
@@ -87,11 +210,11 @@ const ManageAuthors = () => {
                 {/* Add Author Form */}
                 {action === "add" && (
                     <Formik
-                        initialValues={{ name: "", bio: "" }}
+                        initialValues={{ name: "", biography: "", birthYear: "", image: null, nationality: "" }}
                         validationSchema={authorSchema}
                         onSubmit={handleAddAuthor}
                     >
-                        {({ touched, errors }) => (
+                        {({ touched, errors, setFieldValue, isSubmitting }) => (
                             <Section className="mt-4">
                                 <SectionTitle>Add Author</SectionTitle>
                                 <StyledForm>
@@ -101,11 +224,42 @@ const ManageAuthors = () => {
                                         {touched.name && errors.name && <ErrorMessageStyled>{errors.name}</ErrorMessageStyled>}
                                     </FormGroup>
                                     <FormGroup>
-                                        <FormLabel>Bio</FormLabel>
-                                        <Field as={StyledTextarea} name="bio" placeholder="Author Bio" />
-                                        {touched.bio && errors.bio && <ErrorMessageStyled>{errors.bio}</ErrorMessageStyled>}
+                                        <FormLabel>Birth Year</FormLabel>
+                                        <FormInput name="birthYear" type="text" placeholder="Enter Author Birth Year" />
+                                        {touched.birthYear && errors.birthYear && <ErrorMessageStyled>{errors.birthYear}</ErrorMessageStyled>}
                                     </FormGroup>
-                                    <SubmitButton type="submit">Add Author</SubmitButton>
+                                    <FormGroup>
+                                        <FormLabel>Death Year (Optional)</FormLabel>
+                                        <FormInput name="deathYear" type="text" placeholder="Enter Author Death Year" />
+                                        {touched.deathYear && errors.deathYear && <ErrorMessageStyled>{errors.deathYear}</ErrorMessageStyled>}
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <FormLabel>Nationality</FormLabel>
+                                        <FormInput name="nationality" type="text" placeholder="Enter Author Nationality" />
+                                        {touched.nationality && errors.nationality && <ErrorMessageStyled>{errors.nationality}</ErrorMessageStyled>}
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <FormLabel>Biography</FormLabel>
+                                        <Field as={StyledTextarea} name="biography" placeholder="Author Bio" />
+                                        {touched.biography && errors.biography && <ErrorMessageStyled>{errors.biography}</ErrorMessageStyled>}
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <FormLabel>Upload Image</FormLabel>
+                                        <FormInput 
+                                            name="image"
+                                            type="file"
+                                            accept="image/jpeg, image/jpg, image/png, image/gif"
+                                            onChange={(event) => {
+                                                setFieldValue("image", event.currentTarget.files[0]);
+                                            }}
+                                            // disabled={imageUploading} // Disable input when uploading
+                                        />
+                                        {imageUploading && <FaSpinner className="spinner" />} {/* Spinner Animation */}
+                                        {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
+                                    </FormGroup>
+                                    <SubmitButton type="submit" disabled={imageUploading}>
+                                        {imageUploading || isSubmitting ? <FaSpinner className="spinner" /> : "Add Author"}
+                                    </SubmitButton>
                                 </StyledForm>
                             </Section>
                         )}
@@ -147,13 +301,17 @@ const ManageAuthors = () => {
                     <Formik
                         initialValues={{
                             name: selectedAuthor?.name || "",
-                            bio: selectedAuthor?.bio || "",
+                            biography: selectedAuthor?.biography || "",
+                            birthYear: selectedAuthor?.birthYear || "",
+                            deathYear: selectedAuthor?.deathYear || "",
+                            nationality: selectedAuthor?.nationality || "",
+                            image: selectedAuthor?.image || null,
                         }}
                         enableReinitialize
                         validationSchema={authorSchema}
                         onSubmit={handleEditAuthor}
                     >
-                        {({ values, handleChange }) => (
+                        {({ values, handleChange, setFieldValue }) => (
                             <Section className="mt-4">
                                 <SectionTitle>Edit Author</SectionTitle>
                                 <StyledForm>
@@ -184,13 +342,53 @@ const ManageAuthors = () => {
                                                 />
                                             </FormGroup>
                                             <FormGroup>
-                                                <FormLabel>Bio</FormLabel>
-                                                <StyledTextarea
-                                                    name="bio"
-                                                    value={values.bio}
+                                                <FormLabel>Birth Year</FormLabel>
+                                                <StyledInput
+                                                    name="birthYear"
+                                                    value={values.birthYear}
                                                     onChange={handleChange}
-                                                    placeholder="Bio"
+                                                    placeholder="Birth Year"
                                                 />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Death Year</FormLabel>
+                                                <StyledInput
+                                                    name="deathYear"
+                                                    value={values.deathYear}
+                                                    onChange={handleChange}
+                                                    placeholder="Death Year"
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Nationality</FormLabel>
+                                                <StyledInput
+                                                    name="nationality"
+                                                    value={values.nationality}
+                                                    onChange={handleChange}
+                                                    placeholder="Nationality"
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Biography</FormLabel>
+                                                <StyledTextarea
+                                                    name="biography"
+                                                    value={values.biography}
+                                                    onChange={handleChange}
+                                                    placeholder="Biography"
+                                                />
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <FormLabel>Author Picture</FormLabel>
+                                                <StyledInput
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => handleImageUpload(e, setFieldValue)}
+                                                />
+                                                {uploading ? (
+                                                    <div className="spinner"></div>
+                                                ) : values.image ? (
+                                                    <img src={values.image} alt="Author Picture" style={{ placeSelf:'center' ,width: '150px', height: 'auto'}} />
+                                                ) : null}
                                             </FormGroup>
                                             <SubmitButton type="submit">Update Author</SubmitButton>
                                         </>
