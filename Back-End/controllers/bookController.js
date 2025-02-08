@@ -86,45 +86,63 @@ exports.getBooksByTitle = async (req, res) => {
     }
 };
 
-// Post Book + BookGenres (with Genre validation)
 exports.createBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-
+  
     try {
-        const { title, releaseDate, content, description, image, author_id, genres } = req.body;
-
-        // Ensure at least one genre is provided
-        if (!genres || genres.length === 0) {
-            return res.status(400).json({ message: "At least one genre must be added" });
-        }
-
-        // Create the new book
-        const newBook = new Book({ title, releaseDate, content, description, author_id });
-        await newBook.save({ session });
-
-        // If genres are provided, associate them with the book
-        const bookGenres = genres.map(genreObj => ({ book_id: newBook._id, genre_id: genreObj._id }));
-        await BookGenre.insertMany(bookGenres);
-
-        // Fetch associated genres
-        const bookWithGenres = await Book.findById(newBook._id)
-            .populate('author_id')
-            .session(session);
-
-        // Commit transaction
-        await session.commitTransaction();
-
-        res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
+      const { title, releaseDate, content, description, image, author_id, genres } = req.body;
+  
+      // Ensure at least one genre is provided
+      if (!genres || genres.length === 0) {
+        return res.status(400).json({ message: "At least one genre must be added" });
+      }
+  
+      // Extract genre IDs from the incoming genres array.
+      // Accept both objects (with _id) or string ids.
+      const genreIds = genres.map(genreObj =>
+        typeof genreObj === 'object' && genreObj._id ? genreObj._id : genreObj
+      );
+  
+      // Validate that each provided genre id has a valid ObjectId format.
+      const invalidIds = genreIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
+      if (invalidIds.length > 0) {
+        return res.status(400).json({ message: "One or more genre ids are invalid.", invalidIds });
+      }
+  
+      // Check the existence of each genre id in the Genre collection.
+      // (Make sure you've imported your Genre model.)
+      const foundGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
+      if (foundGenres.length !== genreIds.length) {
+        return res.status(400).json({ message: "One or more genre ids do not exist." });
+      }
+  
+      // Create the new book
+      const newBook = new Book({ title, releaseDate, content, description, image, author_id });
+      await newBook.save({ session });
+  
+      // Associate the valid genres with the new book.
+      const bookGenres = genreIds.map(id => ({ book_id: newBook._id, genre_id: id }));
+      await BookGenre.insertMany(bookGenres, { session });
+  
+      // Fetch the new book with populated author (and add further population if needed)
+      const bookWithGenres = await Book.findById(newBook._id)
+        .populate('author_id')
+        .session(session);
+  
+      // Commit transaction
+      await session.commitTransaction();
+  
+      res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
     } catch (error) {
-        await session.abortTransaction();
-        console.error("Error adding book:", error);
-        res.status(500).json({ message: "Error adding book", error: error.message });
+      await session.abortTransaction();
+      console.error("Error adding book:", error);
+      res.status(500).json({ message: "Error adding book", error: error.message });
     } finally {
-        session.endSession();
+      session.endSession();
     }
-};
-
+  };
+  
 // Search Books by Title, Author, or Description (Search bar)
 exports.searchBook = async (req, res) => {
     try {
