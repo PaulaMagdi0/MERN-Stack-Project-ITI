@@ -292,67 +292,44 @@ exports.getUserInfo = async (req, res) => {
 // Update User Info and Subscription Plan
 exports.UpdateUserInfo = async (req, res) => {
   try {
-    // Assuming req.user is populated by authentication middleware
+    // Assuming req.user is set by your authentication middleware
     const { id } = req.user;
     const updateData = {};
     const allowedFields = ["username", "email", "address", "phone", "dateOfBirth", "image"];
-    
-    allowedFields.forEach((field) => {
+    allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
       }
     });
-    
-    // If no data to update and no planId provided, return error
-    if (Object.keys(updateData).length === 0 && !req.body.planId) {
+
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ message: "No data provided for update." });
     }
-    
-    if (updateData.username && updateData.username.length < 4) {
-      return res.status(400).json({ message: "Username must be at least 4 characters long." });
+
+    // Check username length and uniqueness (username is allowed to be updated)
+    if (updateData.username) {
+      if (updateData.username.length < 4) {
+        return res.status(400).json({ message: "Username must be at least 4 characters long." });
+      }
+      // Check if the username already exists
+      const usernameExists = await User.findOne({ username: updateData.username });
+      if (usernameExists && usernameExists._id.toString() !== id) {
+        return res.status(400).json({ message: "Username already exists." });
+      }
     }
-    
+
+    // Check email uniqueness even though email is not editable (this is extra protection)
     if (updateData.email) {
       const emailExists = await User.findOne({ email: updateData.email });
       if (emailExists && emailExists._id.toString() !== id) {
         return res.status(400).json({ message: "Email already exists." });
       }
     }
-    
-    // Update user info
+
     const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true }).select("-password");
-    
-    // Check if subscription update is requested
-    if (req.body.planId) {
-      const planId = req.body.planId;
-      // Validate planId format
-      if (!mongoose.Types.ObjectId.isValid(planId)) {
-        return res.status(400).json({ message: "Invalid plan ID format." });
-      }
-      
-      // Check if the user already has a subscription
-      let subscription = await Subscription.findOne({ userId: id });
-      
-      if (subscription) {
-        // Update the subscription with the new planId and reset the subscriptionDate (renewalDate will be recalculated by pre-save hook)
-        subscription.planId = planId;
-        subscription.subscriptionDate = new Date();
-        await subscription.save();
-      } else {
-        // Create a new subscription for the user
-        subscription = new Subscription({
-          userId: id,
-          planId,
-          subscriptionDate: new Date()
-        });
-        await subscription.save();
-      }
-    }
-    
     res.status(200).json({ message: "Profile updated successfully.", updatedUser });
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };
-

@@ -26,8 +26,8 @@ export const signIn = createAsyncThunk(
 
       // Ensure the response contains both user data and token
       return {
-        user: data.user,  // Assuming backend returns user data
-        token: data.token // If using token in frontend
+        user: data.user,
+        token: data.token
       };
     } catch (error) {
       return rejectWithValue(error.message || "Something went wrong.");
@@ -45,7 +45,7 @@ export const getUserInfo = createAsyncThunk(
       });
       
       console.log('User Info Response:', response.data);
-      return response.data.user || response.data; // Handle different response formats
+      return response.data.user || response.data;
     } catch (error) {
       console.error('Error fetching user info:', error.response?.data || error.message);
       return rejectWithValue(
@@ -53,6 +53,32 @@ export const getUserInfo = createAsyncThunk(
         error.response?.data?.error || 
         error.message || 
         "Failed to fetch user info."
+      );
+    }
+  }
+);
+
+// NEW: Async thunk for updating user profile
+export const updateUserProfile = createAsyncThunk(
+  "auth/updateUserProfile",
+  async (updateValues, { rejectWithValue }) => {
+    try {
+      // updateValues should include the fields the user is allowed to update.
+      // The update endpoint is /users/update-profile and expects a PUT request.
+      const response = await axios.put(
+        `${API_URL}/users/update-profile`,
+        updateValues,
+        { withCredentials: true }
+      );
+      // Assume response.data.updatedUser contains the updated user data.
+      return response.data.updatedUser;
+    } catch (error) {
+      console.error("Error updating profile:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to update profile."
       );
     }
   }
@@ -80,7 +106,6 @@ const authSlice = createSlice({
       })
       .addCase(signIn.fulfilled, (state, action) => {
         state.loading = false;
-        // Handle both nested user data and direct user object
         state.user = action.payload.user || action.payload;
       })
       .addCase(signIn.rejected, (state, action) => {
@@ -93,10 +118,23 @@ const authSlice = createSlice({
       })
       .addCase(getUserInfo.fulfilled, (state, action) => {
         state.loading = false;
-        // Handle different response formats
         state.user = action.payload.user || action.payload;
       })
       .addCase(getUserInfo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Update profile extra reducers
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the user object with the updated data.
+        state.user = action.payload;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
