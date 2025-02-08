@@ -10,11 +10,14 @@ import SignIn from "./pages/login/Login";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect , useState } from "react";
 import { authAction } from "./store/auth";
+import ResetPassword from "./pages/restartpassword/ResetPassword";
+import ForgetPassword from "./pages/forgetpassword/ForgetPassword";
 
 function App() {
   const dispatch = useDispatch();
   const role= useSelector((state)=>state.auth.role);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  
 
   useEffect(() => {
       const checkToken = async () => {
@@ -58,6 +61,8 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/signup" element={< SignUp/>} />
         <Route path="/signin" element={<SignIn/>}/>
+        <Route path="reset-password" element={<ResetPassword/>}/>
+        <Route path="forget-password" element={<ForgetPassword/>}/>
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

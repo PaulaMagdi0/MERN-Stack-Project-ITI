@@ -7,12 +7,19 @@ require("dotenv").config();
 const rateLimit = require("express-rate-limit");
 const validator = require("validator");
 const nodemailer = require('nodemailer');
-const { generateOtp , mailTransport} = require("../utils/mail");
-const VerifyToken = require("../models/verificationtokens")
-
-
+const { generateOtp , mailTransport , GeneratePasswordResetTemplate} = require("../utils/mail");
+const VerifyToken = require("../models/verificationtokens");
+const ResetToken = require("../models/resetToken");
+const crypto =require('crypto')
+const { isValidObjectId } = require("mongoose");
+const { resolve } = require("path");
+const { rejects } = require("assert");
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
+const RestToken = require("../models/resetToken");
+const { isResetTokenValid } = require("../middleware/user");
+
+
 
 // Rate limiting for signup and signin
 const signupSigninLimiter = rateLimit({
@@ -22,68 +29,105 @@ const signupSigninLimiter = rateLimit({
 });
 
 // Signup Route
+// router.post("/sign-up", signupSigninLimiter, async (req, res) => {
+//     try {
+//         const { username, email, password, address, phone, dateOfBirth } = req.body;    
+
+//         if (!username || !email || !password || !phone) {
+//             return res.status(400).json({ message: "Username, email, password, and phone are required." });
+//         }
+
+//         if (!validator.isEmail(email)) {
+//             return res.status(400).json({ message: "Invalid email format." });
+//         }
+
+//         // Validate phone number (at least 10 digits)
+//         if (!validator.isMobilePhone(phone, "any", { strictMode: false })) {
+//             return res.status(400).json({ message: "Invalid phone number." });
+//         }
+
+//         if (username.length < 4) {
+//             return res.status(400).json({ message: "Username must be at least 4 characters long." });
+//         }
+
+//         // Check if username or email already exists
+//         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+//         if (existingUser) {
+//             return res.status(400).json({ message: "Username or email already exists." });
+//         }
+
+//         if (password.length < 6) {
+//             return res.status(400).json({ message: "Password must be at least 6 characters long." });
+//         }
+
+//         if (phone.length < 10) {
+//             return res.status(400).json({ message: "Phone number must be at least 10 digits long." });
+//         }
+
+//         const hashedPassword = await bcrypt.hash(password, 10);
+//         const role = email === "admin@gmail.com" ? "admin" : "user";
+
+//         const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth, role });
+
+//         const OTP = generateOtp();
+//        const verfivicationToken = new VerifyToken({
+//             owner:newUser._id,
+//             token:OTP
+//         })
+
+//         await verfivicationToken.save();
+//         await newUser.save();
+
+//         mailTransport().sendMail({
+//             from:"emailverification@email.com",
+//             to: newUser.email,
+//             subject:"Verify your Email please!",
+//             html :`<h1>${OTP}</h1>`
+//         })
+
+//         return res.status(201).json({ message: "Signup successful." });
+//     } catch (error) {
+//         console.error("Error during signup:", error);
+//         res.status(500).json({ message: "Internal server error." });
+//     }
+// });
+
 router.post("/sign-up", signupSigninLimiter, async (req, res) => {
     try {
-        const { username, email, password, address, phone, dateOfBirth } = req.body;    
+        const { username, email, password, address, phone, dateOfBirth } = req.body;
 
         if (!username || !email || !password || !phone) {
             return res.status(400).json({ message: "Username, email, password, and phone are required." });
         }
 
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({ message: "Invalid email format." });
-        }
-
-        // Validate phone number (at least 10 digits)
-        if (!validator.isMobilePhone(phone, "any", { strictMode: false })) {
-            return res.status(400).json({ message: "Invalid phone number." });
-        }
-
-        if (username.length < 4) {
-            return res.status(400).json({ message: "Username must be at least 4 characters long." });
-        }
-
-        // Check if username or email already exists
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
             return res.status(400).json({ message: "Username or email already exists." });
         }
 
-        if (password.length < 6) {
-            return res.status(400).json({ message: "Password must be at least 6 characters long." });
-        }
-
-        if (phone.length < 10) {
-            return res.status(400).json({ message: "Phone number must be at least 10 digits long." });
-        }
-
         const hashedPassword = await bcrypt.hash(password, 10);
-        const role = email === "admin@gmail.com" ? "admin" : "user";
-
-        const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth, role });
+        const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth });
 
         const OTP = generateOtp();
-       const verfivicationToken = new VerifyToken({
-            owner:newUser._id,
-            token:OTP
-        })
+        const verificationToken = new VerifyToken({ owner: newUser._id, token: OTP });
 
-        await verfivicationToken.save();
+        await verificationToken.save();
         await newUser.save();
 
         mailTransport().sendMail({
-            from:"emailverification@email.com",
+            from: "emailverification@email.com",
             to: newUser.email,
-            subject:"Verify your Email please!",
-            html :`<h1>${OTP}</h1>`
-        })
+            subject: "Verify your Email please!",
+            html: `<h1>${OTP}</h1>`
+        });
 
-        return res.status(201).json({ message: "Signup successful." });
+        return res.status(201).json({ message: "Signup successful.", userId: newUser._id });
     } catch (error) {
         console.error("Error during signup:", error);
         res.status(500).json({ message: "Internal server error." });
     }
 });
+
 
 // Signin Route
 router.post("/sign-in", signupSigninLimiter, async (req, res) => {
@@ -163,69 +207,186 @@ router.post("/validate-token", authenticationToken, (req, res) => {
     res.status(200).json({ valid: true, message: "Token is valid." });
 });
 
+const sendError = (res, message, status = 401) => {
+    return res.status(status).json({ success: false, error: message });
+};
+router.post("/verify-email", async (req, res) => {
+    try {
+        const { userId, otp } = req.body;
+
+        if (!userId || !otp.trim()) {
+            return sendError(res, "Invalid request, missing parameters");
+        }
+
+        if (!isValidObjectId(userId)) {
+            return sendError(res, "Invalid user ID");
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return sendError(res, "Sorry, user not found!");
+        }
+
+        if (user.verified) {
+            return sendError(res, "This email is already verified");
+        }
+
+        const token = await VerifyToken.findOne({ owner: user._id });
+        if (!token) {
+            return sendError(res, "Verification token not found!");
+        }
+
+        // التحقق من مطابقة الـ OTP
+        const isMatched = await token.compareToken(otp);
+        if (!isMatched) {
+            return sendError(res, "Please provide a valid token!");
+        }
+
+        user.verified = true;
+        await user.save();
+
+        await VerifyToken.findByIdAndDelete(token._id);
+
+        await mailTransport().sendMail({
+            from: "emailverification@email.com",
+            to: user.email,
+            subject: "Congrats!",
+            html: `<h1>Email verification successful, thanks for connecting with us!</h1>`
+        });
+
+        // إرجاع الاستجابة النهائية
+        return res.status(200).json({ success: true, message: "Email verified successfully!" });
+
+    } catch (error) {
+        console.error("Error verifying email:", error);
+        return res.status(500).json({ success: false, error: "Internal server error" });
+    }
+});
+
+//Forget password 
+creatRandomBytes =()=>new Promise((resolve , reject)=>{
+    crypto.randomBytes(30 , (err , buff)=>{
+        if(err) reject(err);
+        const token =buff.toString('hex');
+        resolve(token);
+
+    })
+
+})
+router.post("/forget-password", async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return sendError(res, "Please provide a valid Email!");
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) return sendError(res, "User not found, Invalid request!");
+
+    const existingToken = await ResetToken.findOne({ owner: user._id });
+    if (existingToken) return sendError(res, "Only after one hour can you request another token!");
+
+    const randomBytes = await creatRandomBytes();
+    const resetToken = new ResetToken({ owner: user._id, token: randomBytes });
+
+    await resetToken.save(); 
+
+    await mailTransport().sendMail({
+        from: "security@email.com",
+        to: user.email,
+        subject: "Password Reset",
+        html: GeneratePasswordResetTemplate(`http://localhost:5173/reset-password?token=${randomBytes}&id=${user._id}`)
+    });
+
+    res.json({ success: true, message: "Password reset link is sent to your email." });
+});
+
+//Reset Password
+router.post("/reset-password",isResetTokenValid , async (req, res) => {
+    const{password}= req.body;
+    const user = await User.findById(req.user._id);
+    if(!user) return sendError(res , "user not found !");
+    const isSamePass= await user.comparePassword(password);
+    if(isSamePass) return sendError(res , "new password must be deffrent !");
+    if(password.trim().length <8 || password.trim().length > 20)
+        return sendError(res , "new password must be 8 to 20 char !");
+
+    user.password = password.trim();
+    await user.save();
+    await RestToken.findOneAndDelete({ owner: user._id });
+
+
+ 
+    await mailTransport().sendMail({
+    from: "security@email.com",
+    to: user.email,
+    subject: "Password Reset sucessfully",
+    html: `<h1>congrats password reset done !</h1>`
+});
+
+res.json({ success:true , message:"Password Reset Sucessfully "})
+
+
+})
+
+
+router.get("/verify-token", isResetTokenValid, async (req, res) => {
+    res.json({success : true , })
+}
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // router.post("/forgot-password", async (req, res) => {
-//     const { email } = req.body;
-//     const user = await User.findOne({ email });
-  
-//     if (!user) {
-//       return res.status(400).json({ message: "User not found" });
+
+//     const {userId ,otp }=req.body
+//     if(!userId || !otp.trim()){
+//         return sendError(res , "Invalid req , missing parameters")
 //     }
-  
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-  
-//     user.resetToken = token;
-//     user.resetTokenExpires = Date.now() + 3600000; // 1 ساعة
-//     await user.save();
-  
-//     // إرسال الإيميل
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: process.env.EMAIL, 
-//         pass: process.env.EMAIL_PASSWORD 
-//     },
-//     tls: {
-//         rejectUnauthorized: false
-//     }    });
-  
-//     const resetLink = `http://localhost:3000/reset-password/${token}`;
-  
-//     await transporter.sendMail({
-//       from: process.env.EMAIL,
-//       to: user.email,
-//       subject: "Password Reset Request",
-//       html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
-//     });
-  
-//     res.json({ message: "Password reset link sent to your email" });
-//   });
-  
-//   //  إعادة تعيين كلمة المرور
-//   router.post("/reset-password", async (req, res) => {
-//     const { token, password } = req.body;
-  
-//     try {
-//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//       const user = await User.findById(decoded.id);
-  
-//       if (!user || user.resetToken !== token || user.resetTokenExpires < Date.now()) {
-//         return res.status(400).json({ message: "Invalid or expired token" });
-//       }
-  
-//       const hashedPassword = await bcrypt.hash(password, 10);
-//       user.password = hashedPassword;
-//       user.resetToken = undefined;
-//       user.resetTokenExpires = undefined;
-//       await user.save();
-  
-//       res.json({ message: "Password reset successfully" });
-//     } catch (error) {
-//       res.status(400).json({ message: "Invalid token" });
+//     if(isValidObjectId(userId)){
+//         return sendError(res , "Invalid user id ")
 //     }
-//   });
-  
+//     const user = await User.findById(userId)
+//     if(!user) return sendError(res , "sorry , user not found!")
+
+//     if(user.verified) return sendError(res , "this is email already verfiyed ")
+//  const token=   await VerifyToken.findOne({owner:user._id})
+//     if(!token) return sendError(res , "sorry , user not found!");
+
+//    const isMacted = await token.compareToken(otp);
+//    if(!isMacted) return sendError(res , "please provied a valid token !");
+
+//    user.verified= true;
+
+//    await VerifyToken.findByIdAndDelete(token._id);
+//    await user.save();
+
+//    mailTransport().sendMail({
+//     from:"emailverification@email.com",
+//     to: user.email,
+//     subject:"Verify your Email please!",
+//     html :`<h1>Email Verification secussfully , thanks for connection with us</h1>`
+// })}
+// )
+
+
 
 module.exports = router;

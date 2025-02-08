@@ -26,7 +26,7 @@ function SignIn() {
         }
     }, [authData, navigate]);
     return (
-        <div className="signup">
+        <div className="signin">
             <section className="container containerrr">
                 <Formik
                     initialValues={initialValues}
@@ -114,7 +114,7 @@ function SignIn() {
                             <div className="col-12">
                                 <button type="submit" className="btn btn-primary">Sign In</button>
                             </div>
-                            <small>If you forget your password please click <a href="#">here</a> </small>
+                            <small>If you forget your password please click <Link to="/forget-password">here</Link></small>
                             <small>
                                 Don't have an account? <Link to="/signup">Sign up</Link>
                             </small>                        </Form>

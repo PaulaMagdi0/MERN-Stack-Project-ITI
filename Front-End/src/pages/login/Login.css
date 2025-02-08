@@ -1,4 +1,4 @@
-.signup{
+.signin{
     background-image: url("../../assets/567b013f67ef101b947afb9cd76c96be.jpg");
     background-size: cover;
     min-height: 70vh;
@@ -7,7 +7,7 @@
     align-items: center;
     background-repeat: no-repeat;
 }
-.containerrr{
+.signin .containerrr{
     background: rgba(255, 255, 255, 0.1); /* شفافية لإظهار الخلفية */
     width: 40%;
     border-radius: 15px;
@@ -19,8 +19,10 @@
     width: 50%;
     margin-top: 50px;
     margin-bottom: 50px;
+    animation: fadeIn 0.5s ease-in-out;
+
 }
-.containerrr h1 {
+.signin .containerrr h1 {
     color: #F8E4A1;
     font-size: 40px;
     margin-bottom: 20px;
@@ -29,13 +31,13 @@
 
 }
 
-.form-group label {
+.signin .form-group label {
     color: #fff;
     font-size: 16px;
     font-weight: bold;
     
 }
-.form-group input {
+.signin .form-group input {
     /* width: 100%; */
     padding: 12px;
     border: none;
@@ -46,11 +48,11 @@
     outline: none;
     transition: 0.3s;
 }
-.form-group input:focus {
+.signin .form-group input:focus {
     background: rgba(255, 255, 255, 0.3);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
-.btn {
+.signin .btn {
     margin-top: 30px;
     display: inline-block;
     width: 100%;
@@ -64,7 +66,19 @@
     cursor: pointer;
     transition: 0.3s;
 }
-.btn:hover {
+.signin .btn:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 15px #F8E4A1;
 }
+
+
+@keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
