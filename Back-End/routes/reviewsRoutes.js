@@ -1,59 +1,52 @@
-const reviews = require ('../models/reviews');
-const express = require ('express');
-const routes = express.Router;
+// routes/reviews.js
+const express = require('express');
+const Review = require('../models/reviews'); // Using the corrected model
+const router = express.Router();
 
-
-routes.get('/', async (req , res)=>{
-    let reviews=[];
-
-    try{
-        if (req.query.book_id!=undefined && req.query.book_id!=null && req.query.book_id!="")
-        {
-            reviews = await customElements.find({ book_id: req.query.book_id});
-
-        }else{
-            reviews= await customElements.find();
-        }
-        if (!reviews){
-            res.status(500).json({success : false})
-        }
-        return res.status(200).json(reviews);
-    }catch(error){
-
-        res.status(500).json({success : false})
+// GET all reviews or filter by book_id
+router.get('/', async (req, res) => {
+  try {
+    let reviews;
+    if (req.query.book_id) {
+      reviews = await Review.find({ book_id: req.query.book_id });
+    } else {
+      reviews = await Review.find();
     }
-
-
-
-
-
+    return res.status(200).json(reviews);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
 });
 
-routes.get('/:id', async (req , res)=>{
-    const review = await customElements.findById(req.prams.id);
-
-    if(!review){
-        res.status(500).json({message:"the review not found"})
+// GET a single review by id
+router.get('/:id', async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
     }
-    return res.status(200).send(review);
-})
+    return res.status(200).json(review);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-routes.post('/add', async (req,res)=>{
-    let review = new comments({
-        user_id : req.body.user_id,
-        comments: req.body.comments,
-        rate: req.body.rate,
-        book_id: req.body.book_id
+// POST create a new review
+router.post('/add', async (req, res) => {
+  try {
+    const { user_id, comments, rate, book_id } = req.body;
+    const newReview = new Review({
+      user_id,
+      comments,
+      rate,
+      book_id,
+      reviewDate: new Date(),
     });
-
-    if(!review){
-        res,status(500).json({
-            error:err,
-            success: false
-        })
-
-    }
-    review = await review.save();
-    res.status(201).json(review);
-
+    const savedReview = await newReview.save();
+    return res.status(201).json(savedReview);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
 });
+
+module.exports = router;

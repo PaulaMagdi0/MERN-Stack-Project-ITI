@@ -13,6 +13,8 @@ const bookGenreRoutes = require("./routes/bookGenreRoute");
 const authorsGenreRoutes = require("./routes/authorGenraRoute");
 const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
+const reviewRoutes = require('./routes/reviewsRoutes');
+
 const wishListRoutes = require("./routes/wishListRoutes");
 
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
@@ -74,6 +76,7 @@ app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
 app.use("/wishlist",wishListRoutes)
 app.use("/api/payments", paymentRoutes);
+app.use("/reviews", reviewRoutes);
 
 
 // ✅ Connect to MongoDB and Start Server
