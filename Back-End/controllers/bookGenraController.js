@@ -5,7 +5,6 @@ const Book = require("../models/books");
 
 const mongoose = require('mongoose');
 const GenreForBook = require('./bookGenraController')
-
 exports.GetBooksWithGenres = async (req, res) => {
     try {
       const { page = 1, perPage = 10 } = req.query;
@@ -13,8 +12,9 @@ exports.GetBooksWithGenres = async (req, res) => {
       const itemsPerPage = Math.max(1, parseInt(perPage, 10));
       const skip = (currentPage - 1) * itemsPerPage;
   
-      // Aggregation pipeline: lookup books, lookup genres, group by book
+      // Aggregation pipeline: lookup books, then populate author and genres, and group by book
       const results = await BookGenre.aggregate([
+        // Lookup and unwind the related book document
         {
           $lookup: {
             from: "books",           // Books collection
@@ -24,6 +24,19 @@ exports.GetBooksWithGenres = async (req, res) => {
           }
         },
         { $unwind: "$book" },
+        
+        // Lookup and unwind the author document referenced in book.author_id
+        {
+          $lookup: {
+            from: "authors",         // Authors collection (make sure it's named correctly in your DB)
+            localField: "book.author_id",
+            foreignField: "_id",
+            as: "author"
+          }
+        },
+        { $unwind: "$author" },
+  
+        // Lookup and unwind the genre document
         {
           $lookup: {
             from: "genres",          // Genres collection
@@ -33,10 +46,14 @@ exports.GetBooksWithGenres = async (req, res) => {
           }
         },
         { $unwind: "$genre" },
+  
+        // Group the documents by book and accumulate the genres.
+        // Also include the author document.
         {
           $group: {
             _id: "$book._id",
             book: { $first: "$book" },
+            author: { $first: "$author" },
             genres: { $push: "$genre" }
           }
         },
@@ -52,24 +69,33 @@ exports.GetBooksWithGenres = async (req, res) => {
       ]);
       const totalCount = countAgg[0] ? countAgg[0].total : 0;
   
-      // Destructure the aggregated results into a cleaner format
-      const formattedResults = results.map(({ _id, book, genres }) => ({
+      // Format the aggregated results into a cleaner output
+      const formattedResults = results.map(({ _id, book, author, genres }) => ({
         _id: _id,
         title: book.title,
         releaseDate: book.releaseDate,
         content: book.content,
         description: book.description,
         image: book.image,
-        author: book.author_id, // Assumes author_id is already populated in book (if configured)
-        genres: genres.map(g => g.name) // You can return complete objects if needed
+        // Include the populated author details
+        author: {
+          _id: author._id,
+          name: author.name,
+          biography: author.biography,
+          birthYear: author.birthYear,
+          deathYear: author.deathYear,
+          image: author.image,
+          nationality: author.nationality
+        },
+        // Return only the genre names (you can return the full object if needed)
+        genres: genres.map(g => g.name)
       }));
   
       res.status(200).json({
-    
-          totalItems: totalCount,
-          currentPage,
-          itemsPerPage,
-          totalPages: Math.ceil(totalCount / itemsPerPage),
+        totalItems: totalCount,
+        currentPage,
+        itemsPerPage,
+        totalPages: Math.ceil(totalCount / itemsPerPage),
         books: formattedResults
       });
     } catch (error) {
@@ -77,7 +103,6 @@ exports.GetBooksWithGenres = async (req, res) => {
       res.status(500).json({ message: "Error fetching books with genres" });
     }
   };
-  
   
 // exports.GetBookGenre = async (req, res) => {
 //             try {
