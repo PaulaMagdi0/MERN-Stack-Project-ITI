@@ -1,9 +1,8 @@
 import { Formik, Form, Field } from "formik";
 import "./SignUp.css";
 import { SignUpValidation } from "./validation"
-import { useState, } from "react";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-import axios from "axios"; 
+
 const initialValues ={
     username: "",  
     email: "",

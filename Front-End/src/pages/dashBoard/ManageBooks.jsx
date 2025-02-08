@@ -11,54 +11,57 @@ const ManageBooks = () => {
     const [authors, setAuthors] = useState([]);
     const [action, setAction] = useState("");
     const [selectedBook, setSelectedBook] = useState(null);
+    // eslint-disable-next-line no-unused-vars
     const [bookGenres, setBookGenres] = useState([]);
     const [selectedGenres, setSelectedGenres] = useState([]);
 
     useEffect(() => {
         fetchBooks();
-        fetchBookGenres();
         fetchGenres();
         fetchAuthors();
     },[]);
 
     const fetchBooks = async () => {
-        try {
-            const response = await fetch(`${API_URL}/books?page=1`);
-            const data = await response.json();
-            const totalItems = data.totalItems;
-            const itemsPerPage = data.itemsPerPage;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            let allBooks = [];
-            let currentPage = 1;
+    try {
+        const response = await fetch(`${API_URL}/bookgenre?page=1`);
+        const data = await response.json();
 
-            while (currentPage <= totalPages) {
-                const pageResponse = await fetch(`${API_URL}/books?page=${currentPage}`);
-                const pageData = await pageResponse.json();
+        if (!data || !data.books || !Array.isArray(data.books)) {
+            throw new Error("Invalid API response structure");
+        }
+
+        const totalPages = data.totalPages; // Corrected: `totalPages` exists in `data`
+        let allBooks = [...data.books]; // First page books
+        let currentPage = 2; // First page is already fetched
+
+        while (currentPage <= totalPages) {
+            const pageResponse = await fetch(`${API_URL}/bookgenre?page=${currentPage}`);
+            const pageData = await pageResponse.json();
+
+            if (pageData && Array.isArray(pageData.books)) {
                 allBooks = [...allBooks, ...pageData.books];
-                currentPage++;
             }
-
-            setBooks(allBooks);
-        } catch (error) {
-            console.error("Error fetching books:", error);
+            currentPage++;
         }
-    };  
 
-    const fetchBookGenres = async () => {
-        try {
-            const response = await fetch("${API_URL}/bookgenre");
-            const data = await response.json();
-            
-            // Filter out invalid book-genre mappings
-            const validBookGenres = data.data.filter(bg => bg.book_id !== null);
+        // ✅ Extract genres from all books
+        let allGenres = new Set();
+        allBooks.forEach(book => {
+            if (book.genres && Array.isArray(book.genres)) {
+                book.genres.forEach(genre => allGenres.add(genre));
+            }
+        });
 
-            console.log('book = ', bookGenres);
-            setBookGenres(validBookGenres);
-            console.log('set = ', validBookGenres);
-        } catch (error) {
-            console.error("Error fetching book genres:", error);
-        }
-    };  
+        setBooks(allBooks);
+        setBookGenres([...allGenres]);
+
+        console.log("✅ Fetched Books:", allBooks);
+        console.log("✅ Fetched Genres:", [...allGenres]);
+    } catch (error) {
+        console.error("❌ Error fetching books and genres:", error);
+    }
+};
+
 
     const fetchGenres = async () => {
         try {
@@ -69,51 +72,25 @@ const ManageBooks = () => {
             console.error("Error fetching genres:", error);
         }
     };
-
-    const handleGenreToggle = async (genreId) => {
-        if (!selectedBook) return;
-
-        try {
-            if (!genreId) {
-                console.error("Invalid genre ID:", genreId);
-                return;
-            }
-
-            // ✅ Toggle genre selection correctly
-            const updatedGenres = selectedGenres.includes(genreId)
+const handleGenreToggle = (genreId, setFieldValue = null) => {
+        // If we're in edit mode and have setFieldValue
+        if (setFieldValue) {
+            setFieldValue("genres", selectedGenres.includes(genreId)
                 ? selectedGenres.filter(id => id !== genreId)
-                : [...selectedGenres, genreId];
-
-            setSelectedGenres(updatedGenres);
-
-            // ✅ Update bookGenres state optimistically
-            const updatedBookGenres = updatedGenres.map(id => ({
-                book_id: { _id: selectedBook._id },
-                genre_id: { _id: id }
-            }));
-
-            setBookGenres(updatedBookGenres);
-
-            // ✅ Send update request to backend
-            const response = await fetch(`${API_URL}/books/edit-book/${selectedBook._id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ genres: updatedGenres })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to update book genres. Status: ${response.status}`);
-            }
-
-            console.log("✅ Genres updated successfully");
-            // fetchBookGenres(); // ✅ Ensure frontend and backend are in sync
-
-        } catch (error) {
-            console.error("❌ Error toggling genre:", error);
-            setSelectedGenres([...selectedGenres]);  // Revert on failure
-            setBookGenres([...bookGenres]);
+                : [...selectedGenres, genreId]
+            );
+            return;
         }
-    };        
+
+        // For add mode
+        setSelectedGenres(prevGenres => {
+            if (prevGenres.includes(genreId)) {
+                return prevGenres.filter(id => id !== genreId);
+            } else {
+                return [...prevGenres, genreId];
+            }
+        });
+    };  
     
     const fetchAuthors = async () => {
         try {
@@ -185,23 +162,14 @@ const ManageBooks = () => {
         if (!selectedBook) return;
 
         try {
-            // ✅ Ensure selectedGenres contains unique genre IDs
-            const uniqueGenres = selectedGenres && Array.isArray(selectedGenres)
-                ? [...new Set(selectedGenres.map(g => g._id || g))]
-                : [];
-
             const formattedValues = {
                 ...values,
-                genres: uniqueGenres,
+                genres: values.genres, // Use the values.genres from Formik
                 releaseDate: values.releaseDate 
                     ? new Date(values.releaseDate).toISOString().split('T')[0] 
                     : '',
             };
 
-            console.log("📤 Sending request to backend:", formattedValues);
-            console.log("✅ Selected Genres at request:", uniqueGenres);
-
-            // ✅ Send PUT request to update book data
             const response = await fetch(`${API_URL}/books/edit-book/${selectedBook._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -209,20 +177,19 @@ const ManageBooks = () => {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to update book. Status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(`Failed to update book: ${errorData.message || response.statusText}`);
             }
 
             console.log("✅ Book updated successfully");
-
-            // ✅ Refresh book list and genre mappings
-            fetchBooks();
-            fetchBookGenres();
+            await fetchBooks();
             setSelectedBook(null);
-
+            setSelectedGenres([]); // Clear selected genres
         } catch (error) {
             console.error("❌ Error updating book:", error);
         }
     };
+
     
     const bookSchema = Yup.object().shape({
         title: Yup.string().required("Title is required"),
@@ -299,7 +266,9 @@ const ManageBooks = () => {
                                                         borderRadius: "15px",
                                                         cursor: "pointer",
                                                     }}
-                                                    onClick={() => handleGenreToggle(genre._id)}
+                                                    onClick={() =>{ 
+                                                        console.log(genre._id);
+                                                        return handleGenreToggle(genre._id)}}
                                                 >
                                                     {genre.name}
                                                 </span>
@@ -370,15 +339,13 @@ const ManageBooks = () => {
                             content: selectedBook?.content || "",
                             description: selectedBook?.description || "",
                             image: selectedBook?.image || "",
-                            genres: bookGenres
-                                    .filter(bg => bg.book_id?._id === selectedBook?._id)
-                                    .map(bg => bg.genre_id?.name) 
+                            genres: selectedBook?.genres?.map(g => g._id) || [], // Ensure genres are stored as IDs
                         }}
                         enableReinitialize
                         validationSchema={bookSchema}
                         onSubmit={handleEditBook}
                     >
-                        {({ values, touched, errors, handleChange }) => (
+                        {({ values, touched, errors, handleChange, setFieldValue }) => (
                             <Section className="mt-4">
                                 <SectionTitle>Edit Book</SectionTitle>
                                 <StyledForm>
@@ -436,31 +403,34 @@ const ManageBooks = () => {
                                                     onChange={handleChange}
                                                 />
                                             </FormGroup>
-                                            <FormGroup>
-                                                <FormLabel>Genres</FormLabel>
-                                                <div>
-                                                    {genres.map((genre) => (
-                                                        <span
-                                                        key={genre._id}
-                                                        className="badge"
-                                                        style={{
-                                                                margin: "5px",
-                                                                padding: "8px 12px",
-                                                                backgroundColor: bookGenres.some(bg => bg.book_id._id === selectedBook._id && bg.genre_id?._id === genre._id) ? '#007bff' : '#ddd', // Check if genre is selected
-                                                                color: '#fff',
-                                                                borderRadius: "15px",
-                                                                cursor: "pointer",
-                                                            }}
-                                                            onClick={() => {
-                                                                console.log("Clicked Genre ID:", values.genres.name )
-                                                                handleGenreToggle(genre._id);  // Pass the genre ID here
-                                                            }}
-                                                        >
-                                                            {genre.name}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </FormGroup>
+    <FormGroup>
+                    <FormLabel>Genres</FormLabel>
+                    <div>
+                        {genres.map((genre) => (
+                                        <span
+                                            key={genre._id}
+                                            className="badge"
+                                            style={{
+                                                margin: "5px",
+                                                padding: "8px 12px",
+                                                backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddd",
+                                                color: values.genres.includes(genre._id) ? "#fff" : "#333",
+                                                borderRadius: "15px",
+                                                cursor: "pointer",
+                                            }}
+                                            onClick={() => {
+                                                const updatedGenres = values.genres.includes(genre._id)
+                                                    ? values.genres.filter(id => id !== genre._id)
+                                                    : [...values.genres, genre._id];
+                                                setFieldValue("genres", updatedGenres);
+                                            }}
+                                        >
+                                            {genre.name}
+                                        </span>
+                                    ))}
+                    </div>
+                </FormGroup>
+
                                             <FormGroup>
                                                 <FormLabel>Content</FormLabel>
                                                 <StyledTextarea
