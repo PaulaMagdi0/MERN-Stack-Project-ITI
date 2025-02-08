@@ -51,7 +51,7 @@ exports.getBooks = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching books:", error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: "Error fetching books",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -101,50 +101,50 @@ exports.getBooksByTitle = async (req, res) => {
 // exports.createBook = async (req, res) => {
 //     const session = await mongoose.startSession();
 //     session.startTransaction();
-  
+
 //     try {
 //       const { title, releaseDate, content, description, image, author_id, genres } = req.body;
-  
+
 //       // Ensure at least one genre is provided
 //       if (!genres || genres.length === 0) {
 //         return res.status(400).json({ message: "At least one genre must be added" });
 //       }
-  
+
 //       // Extract genre IDs from the incoming genres array.
 //       // Accept both objects (with _id) or string ids.
 //       const genreIds = genres.map(genreObj =>
 //         typeof genreObj === 'object' && genreObj._id ? genreObj._id : genreObj
 //       );
-  
+
 //       // Validate that each provided genre id has a valid ObjectId format.
 //       const invalidIds = genreIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
 //       if (invalidIds.length > 0) {
 //         return res.status(400).json({ message: "One or more genre ids are invalid.", invalidIds });
 //       }
-  
+
 //       // Check the existence of each genre id in the Genre collection.
 //       // (Make sure you've imported your Genre model.)
 //       const foundGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
 //       if (foundGenres.length !== genreIds.length) {
 //         return res.status(400).json({ message: "One or more genre ids do not exist." });
 //       }
-  
+
 //       // Create the new book
 //       const newBook = new Book({ title, releaseDate, content, description, image, author_id });
 //       await newBook.save({ session });
-  
+
 //       // Associate the valid genres with the new book.
 //       const bookGenres = genreIds.map(id => ({ book_id: newBook._id, genre_id: id }));
 //       await BookGenre.insertMany(bookGenres, { session });
-  
+
 //       // Fetch the new book with populated author (and add further population if needed)
 //       const bookWithGenres = await Book.findById(newBook._id)
 //         .populate('author_id')
 //         .session(session);
-  
+
 //       // Commit transaction
 //       await session.commitTransaction();
-  
+
 //       res.status(201).json({ book: bookWithGenres, message: "Book added successfully" });
 //     } catch (error) {
 //       await session.abortTransaction();
@@ -224,12 +224,12 @@ exports.searchBook = async (req, res) => {
                 { description: { $regex: req.query.q, $options: 'i' } }
             ]
         })
-        .populate({
-            path: 'author_id',
-            select: 'name biography birthYear deathYear image nationality'
-        })
-        .limit(10);
-        
+            .populate({
+                path: 'author_id',
+                select: 'name biography birthYear deathYear image nationality'
+            })
+            .limit(10);
+
         res.json(books);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -239,7 +239,7 @@ exports.searchBook = async (req, res) => {
 // exports.updateBook = async (req, res) => {
 //     const session = await mongoose.startSession();
 //     session.startTransaction();
-    
+
 //     try {
 //         const { bookID } = req.params;
 //         const { title, content, description, image, author_id, releaseDate, genres } = req.body;
@@ -260,7 +260,7 @@ exports.searchBook = async (req, res) => {
 //             { title, content, description, image, author_id, releaseDate },
 //             { new: true, runValidators: true, session }
 //         ).populate('author_id', 'name nationality');
-        
+
 //         if (!updatedBook) {
 //             await session.abortTransaction();
 //             return res.status(404).json({ message: "Book not found" });
@@ -273,7 +273,7 @@ exports.searchBook = async (req, res) => {
 
 //             // Find valid genres based on the provided IDs
 //             const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
-            
+
 //             if (validGenres.length !== genreIds.length) {
 //                 await session.abortTransaction();
 //                 return res.status(400).json({ message: "One or more invalid genre IDs" });
@@ -291,7 +291,7 @@ exports.searchBook = async (req, res) => {
 //         }
 
 //         await session.commitTransaction();
-        
+
 //         // Fetch the updated genre associations
 //         const updatedGenres = await BookGenre.find({ book_id: bookID })
 //             .populate('genre_id', 'name')
@@ -306,7 +306,7 @@ exports.searchBook = async (req, res) => {
 //     } catch (error) {
 //         await session.abortTransaction();
 //         console.error("Update Error:", error);
-        
+
 //         if (error.name === 'ValidationError') {
 //             return res.status(400).json({
 //                 message: "Validation failed",
@@ -331,7 +331,7 @@ exports.searchBook = async (req, res) => {
 exports.updateBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const { bookID } = req.params;
         const { title, content, description, author_id, releaseDate, genres } = req.body;
@@ -420,14 +420,14 @@ exports.updateBook = async (req, res) => {
 exports.deleteBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const { bookID } = req.params;
 
         if (!mongoose.Types.ObjectId.isValid(bookID)) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "INVALID_ID",
-                message: "Invalid book ID format" 
+                message: "Invalid book ID format"
             });
         }
 
@@ -437,9 +437,9 @@ exports.deleteBook = async (req, res) => {
 
         if (!deletedBook) {
             await session.abortTransaction();
-            return res.status(404).json({ 
+            return res.status(404).json({
                 code: "BOOK_NOT_FOUND",
-                message: "Book not found" 
+                message: "Book not found"
             });
         }
 
@@ -456,7 +456,7 @@ exports.deleteBook = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error("Delete Book Error:", error);
-        
+
         if (error.name === 'CastError') {
             return res.status(400).json({
                 code: "INVALID_ID",

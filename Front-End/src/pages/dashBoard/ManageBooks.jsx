@@ -113,14 +113,14 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
     try {
       setImageUploading(true);
 
-      const response = await fetch(`${API_URL}/upload`, {
+      const response = await fetch(`${API_URL}/books/post-book`, {
         method: "POST",
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Image upload failed");
-      }
+    //   if (!response.ok) {
+    //     throw new Error("Image upload failed");
+    //   }
 
       const data = await response.json();
       setFieldValue("image", data.imageUrl);
@@ -259,12 +259,18 @@ const handleGenreToggle = (genreId, setFieldValue = null) => {
         releaseDate: Yup.string().required("Release Date is required"),
         // genre: Yup.string().required("Genre is required"),
         image: Yup.mixed()
-            .required("Image is required")
-            .test("fileFormat", "Unsupported file format", value => {
-            if (value instanceof File) {
-                return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(value.type);
-            }
+        // .required("Image is required")
+        .test("fileFormat", "Unsupported file format", value => {
+        if (value instanceof File) {
+            return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(value.type);
+        }
+        return true;
+        })
+        .test("required", "Image is required", (value) => {
+        if (value instanceof File) {
             return true;
+        }
+        return value !== ""; // Allow non-empty string values
         }),
         content: Yup.string().required("Content is required"),
         description: Yup.string().required("Description is required"),
