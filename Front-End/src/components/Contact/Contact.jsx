@@ -15,7 +15,7 @@ const Contact = () => {
     dispatch(getUserInfo());
   }, [dispatch]);
 
-  // Use user data to pre-populate the form values (name and email)
+  // Pre-populate the form values with user data (use phone for telephone)
   const initialValues = {
     name: user?.username || "",
     email: user?.email || "",
@@ -29,14 +29,14 @@ const Contact = () => {
     email: Yup.string()
       .email("Invalid email address")
       .required("Email is required"),
-    telephone: Yup.string().required("Telephone is required"),
+    telephone: Yup.string().required("Phone is required"),
     subject: Yup.string().required("Please select a subject"),
     message: Yup.string().required("Message cannot be empty"),
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      // Send form data to Formspree
+      // Send form data to Formspree (or your designated endpoint)
       const response = await fetch("https://formspree.io/f/mdkazzbj", {
         method: "POST",
         headers: {
@@ -47,7 +47,7 @@ const Contact = () => {
 
       if (response.ok) {
         alert("Message sent successfully!");
-        resetForm();
+        resetForm(); // Reset form after submission
       } else {
         alert("Something went wrong. Please try again.");
       }
@@ -61,9 +61,9 @@ const Contact = () => {
 
   return (
     <div className="contact-page">
-      {/* Optionally, your Navbar can be here or imported separately */}
+      {/* Navbar can be included here if desired */}
       <Container className="my-5">
-        <Card className="shadow p-4">
+        <Card className="shadow p-4 mail-card">
           <Card.Body>
             <h1 className="mb-3 text-center">Contact Us</h1>
             <div className="underline mb-4"></div>
@@ -76,7 +76,9 @@ const Contact = () => {
               {({ isSubmitting }) => (
                 <Form id="contact_form">
                   <div className="mb-3">
-                    <label htmlFor="name">Name</label>
+                    <label htmlFor="name" className="form-label">
+                      Name
+                    </label>
                     <Field
                       type="text"
                       name="name"
@@ -86,27 +88,34 @@ const Contact = () => {
                     <ErrorMessage name="name" component="div" className="error" />
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="email" className="form-label">
+                      Email
+                    </label>
                     <Field
                       type="email"
                       name="email"
                       placeholder="My e-mail is"
                       className="form-control"
+                      readOnly
                     />
                     <ErrorMessage name="email" component="div" className="error" />
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="telephone">phone</label>
+                    <label htmlFor="telephone" className="form-label">
+                      Phone
+                    </label>
                     <Field
                       type="text"
                       name="telephone"
-                      placeholder="My number is"
+                      placeholder="My phone number is"
                       className="form-control"
                     />
                     <ErrorMessage name="telephone" component="div" className="error" />
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="subject">Subject</label>
+                    <label htmlFor="subject" className="form-label">
+                      Subject
+                    </label>
                     <Field as="select" name="subject" className="form-select">
                       <option disabled hidden value="">
                         Subject line
@@ -121,7 +130,9 @@ const Contact = () => {
                     <ErrorMessage name="subject" component="div" className="error" />
                   </div>
                   <div className="mb-3">
-                    <label htmlFor="message">Message</label>
+                    <label htmlFor="message" className="form-label">
+                      Message
+                    </label>
                     <Field
                       as="textarea"
                       name="message"
@@ -131,7 +142,12 @@ const Contact = () => {
                     <ErrorMessage name="message" component="div" className="error" />
                   </div>
                   <div className="text-center">
-                    <Button type="submit" disabled={isSubmitting} id="form_button" variant="primary">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      id="form_button"
+                      variant="primary"
+                    >
                       {isSubmitting ? "Sending..." : "Send Message"}
                     </Button>
                   </div>
