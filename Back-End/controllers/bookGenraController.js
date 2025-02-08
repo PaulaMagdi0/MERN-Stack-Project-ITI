@@ -54,7 +54,7 @@ exports.GetBooksWithGenres = async (req, res) => {
   
       // Destructure the aggregated results into a cleaner format
       const formattedResults = results.map(({ _id, book, genres }) => ({
-        id: _id,
+        _id: _id,
         title: book.title,
         releaseDate: book.releaseDate,
         content: book.content,
