@@ -163,7 +163,24 @@ exports.createBook = async (req, res) => {
         const { title, releaseDate, content, description, author_id, genres } = req.body;
         let imageUrl = null;
 
-        // Upload image if provided
+        // Ensure at least one genre is provided
+        if (!genres || genres.length === 0) {
+            return res.status(400).json({ message: "At least one genre must be added" });
+        }
+
+        const newBook = new Book({
+            title,
+            releaseDate,
+            content,
+            description,
+            image: imageUrl,  // Initially no image
+            author_id,
+        });
+
+        // Save the book in the database first
+        await newBook.save({ session });
+
+        // Now upload the image only if the book was successfully created
         if (req.file) {
             // Upload the image to Cloudinary
             const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
@@ -173,6 +190,10 @@ exports.createBook = async (req, res) => {
 
             // Get the URL of the uploaded image
             imageUrl = cloudinaryResponse.secure_url;
+
+            // Update the book with the image URL
+            newBook.image = imageUrl;
+            await newBook.save({ session });
 
             // Delete the local image file after uploading to Cloudinary
             fs.unlink(req.file.path, (err) => {
@@ -184,27 +205,24 @@ exports.createBook = async (req, res) => {
             });
         }
 
-        // Ensure at least one genre is provided
-        if (!genres || genres.length === 0) {
-            return res.status(400).json({ message: "At least one genre must be added" });
-        }
-
-        const newBook = new Book({
-            title,
-            releaseDate,
-            content,
-            description,
-            image: imageUrl,
-            author_id,
-        });
-
-        await newBook.save({ session });
+        // Commit the transaction
         await session.commitTransaction();
 
         res.status(201).json({ book: newBook, message: "Book added successfully" });
 
     } catch (error) {
+        // If any error occurs, abort the transaction and delete the image if uploaded
         await session.abortTransaction();
+
+        // If the image was uploaded, delete the local image
+        if (req.file) {
+            fs.unlink(req.file.path, (err) => {
+                if (err) {
+                    console.error("Error deleting local file:", err);
+                }
+            });
+        }
+
         console.error("Error adding book:", error);
         res.status(500).json({ message: "Error adding book", error: error.message });
     } finally {
