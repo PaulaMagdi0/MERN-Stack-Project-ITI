@@ -13,5 +13,5 @@ const authorGenreSchema = new Schema({
         required: true
     }
 })
-module.exports = mongoose.model("authorgenres", authorGenreSchema);
+module.exports = mongoose.model("AuthorGenre", authorGenreSchema);
 

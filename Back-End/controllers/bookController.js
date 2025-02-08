@@ -155,19 +155,31 @@ exports.getBooksByTitle = async (req, res) => {
 //     }
 //   };
 
+
+
 exports.createBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
+    let imageUrl = null;
+
     try {
         const { title, releaseDate, content, description, author_id, genres } = req.body;
-        let imageUrl = null;
+
+        console.log('Received data:', { title, releaseDate, content, description, author_id, genres });
 
         // Ensure at least one genre is provided
-        if (!genres || genres.length === 0) {
+        if (!genres || !Array.isArray(genres) || genres.length === 0) {
             return res.status(400).json({ message: "At least one genre must be added" });
         }
 
+        // Validate that all genre IDs are valid ObjectId strings
+        const isValidGenreIds = genres.every(genreId => mongoose.Types.ObjectId.isValid(genreId));
+        if (!isValidGenreIds) {
+            return res.status(400).json({ message: "One or more genre IDs are invalid" });
+        }
+
+        // Create the book document without the image initially
         const newBook = new Book({
             title,
             releaseDate,
@@ -180,7 +192,7 @@ exports.createBook = async (req, res) => {
         // Save the book in the database first
         await newBook.save({ session });
 
-        // Now upload the image only if the book was successfully created
+        // Handle image upload if there's a file
         if (req.file) {
             // Upload the image to Cloudinary
             const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
@@ -205,26 +217,52 @@ exports.createBook = async (req, res) => {
             });
         }
 
-        // Commit the transaction
+        console.log('New book ID:', newBook._id);
+
+        // Validate and associate genres
+        // Ensure the genres exist in the database
+        const validGenres = await Genre.find({ _id: { $in: genres } }).session(session);
+
+        console.log('Found genres:', validGenres);
+
+        // Check if all provided genres are valid
+        if (validGenres.length !== genres.length) {
+            await session.abortTransaction();
+            return res.status(400).json({ message: "One or more genres are invalid" });
+        }
+
+        // Add the book-genre relationships in the BookGenre collection
+        const newRelations = genres.map(genreId => ({
+            book_id: newBook._id, // Ensure this is an ObjectId
+            genre_id: new mongoose.Types.ObjectId(genreId), // Convert string to ObjectId
+        }));
+
+        console.log('New genre relations:', newRelations);
+
+        // Insert the book-genre relationships
+        await BookGenre.insertMany(newRelations, { session });
+
+        // Commit the transaction if everything is successful
         await session.commitTransaction();
 
         res.status(201).json({ book: newBook, message: "Book added successfully" });
 
     } catch (error) {
-        // If any error occurs, abort the transaction and delete the image if uploaded
+        // If any error occurs, abort the transaction
         await session.abortTransaction();
 
         // If the image was uploaded, delete the local image
         if (req.file) {
             fs.unlink(req.file.path, (err) => {
-                if (err) {
-                    console.error("Error deleting local file:", err);
-                }
+                if (err) console.error("Error deleting local file:", err);
             });
         }
 
         console.error("Error adding book:", error);
-        res.status(500).json({ message: "Error adding book", error: error.message });
+        res.status(500).json({
+            message: "Error adding book",
+            error: process.env.NODE_ENV === "development" ? error.message : undefined,
+        });
     } finally {
         session.endSession();
     }
