@@ -6,7 +6,7 @@ const authorSchema = new Schema({
         biography: { type: String, required: true },
         birthYear: { type: String, required: true },
         deathYear: { type: String, required: false },
-        image: { type: String, required: true },
+        image: { type: Buffer, required: true },
         nationality: { type: String, required: true },
 })
 
