@@ -17,7 +17,8 @@ const Footer = () => {
 
             <p className="menu my-4">
               <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Home</Link>
-              <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Subscription</Link>
+              <Link to="/subscriptions" className={({ isActive }) => isActive ? "active-link" : ""}>
+                Subscription</Link>              
               <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>About</Link>
               <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Contact</Link>
             </p>
