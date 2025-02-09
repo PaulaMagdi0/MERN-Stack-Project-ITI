@@ -1,22 +1,25 @@
-import React, { useState } from 'react';
-import { Container, Card, Form, Button, Row, Col, Image } from 'react-bootstrap';
+import { useEffect } from 'react';
+import { Container, Card, Form, Button, Row, Col, Image, Alert } from 'react-bootstrap';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserInfo, updateUserProfile } from '../../store/authSlice';
 
 const ProfilePage = () => {
-  const [profilePicture, setProfilePicture] = useState(
-    "https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg"
-  );
+  const dispatch = useDispatch();
+  const { user, error } = useSelector((state) => state.auth);
+ 
+  // Fetch user info on mount
+  useEffect(() => {
+    dispatch(getUserInfo());
+  }, [dispatch]);
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicture(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  // Prepare initial values based on the user (if available)
+  const initialValues = {
+    fullName: user?.username || "",
+    dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : "",
+    phone: user?.phone || "",
+    address: user?.address || ""
   };
 
   const validationSchema = Yup.object({
@@ -28,18 +31,39 @@ const ProfilePage = () => {
     address: Yup.string().required("Address is required"),
   });
 
+  const handleSubmit = async (values, { setSubmitting }) => {
+    // Create an update object that does NOT include email
+    const updateData = {
+      username: values.fullName, // mapping fullName to username
+      dateOfBirth: values.dateOfBirth,
+      phone: values.phone,
+      address: values.address,
+    };
+
+    try {
+      await dispatch(updateUserProfile(updateData)).unwrap();
+      // After successful update, re-fetch user info (or rely on updated auth state)
+      dispatch(getUserInfo());
+      // Optionally show a success message, etc.
+    } catch (updateError) {
+      console.error("Profile update error:", updateError);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Container className="my-5">
       <Card className="shadow">
         <Card.Body>
           <Row className="mb-4">
-            {/* Left Side: Centering Profile Picture and Email */}
+            {/* Left Side: Profile Picture and Email */}
             <Col xs={12} md={5} className="d-flex flex-column align-items-center justify-content-center text-center border-end p-4">
               <div className="position-relative d-inline-block mb-4">
                 <Image
-                  src={profilePicture}
+                  src={user?.image }
                   roundedCircle
-                  style={{ width: '250px', height: '250px', objectFit: 'cover' }} // Increased size
+                  style={{ width: '250px', height: '250px', objectFit: 'cover' }}
                 />
                 <div className="position-absolute bottom-0 end-0">
                   <Form.Label 
@@ -60,24 +84,26 @@ const ProfilePage = () => {
                     type="file"
                     id="profile-upload"
                     accept="image/*"
-                    onChange={handleImageUpload}
+                    onChange={() => { /* Leave image upload handling aside */ }}
                     style={{ display: 'none' }}
                   />
                 </div>
               </div>
-              <h4 className="mb-2">User Name</h4>
-              <p className="text-muted fs-5">user@example.com</p>
+              <h4 className="mb-2">{user?.username || "User Name"}</h4>
+              <p className="text-muted fs-5">{user?.email || "user@example.com"}</p>
             </Col>
 
-            {/* Right Side: Adjusting Padding & Header Spacing */}
+            {/* Right Side: Profile Form */}
             <Col xs={12} md={7} className="p-4">
-              <h3 className="mb-4 mt-4">Profile Settings</h3> {/* Added mt-4 to push it down */}
+              <h3 className="mb-4 mt-4">Profile Settings</h3>
+              {error && <Alert variant="danger">{error}</Alert>}
               <Formik
-                initialValues={{ fullName: "", dateOfBirth: "", phone: "", address: "" }}
+                enableReinitialize
+                initialValues={initialValues}
                 validationSchema={validationSchema}
-                onSubmit={(values) => console.log("Form submitted", values)}
+                onSubmit={handleSubmit}
               >
-                {({ handleSubmit, handleChange, values, touched, errors }) => (
+                {({ handleSubmit, handleChange, values, touched, errors, isSubmitting }) => (
                   <Form noValidate onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
                       <Form.Label>Name</Form.Label>
@@ -139,7 +165,7 @@ const ProfilePage = () => {
                     </Form.Group>
 
                     <div className="text-end">
-                      <Button type="submit" variant="primary">
+                      <Button type="submit" variant="primary" disabled={isSubmitting}>
                         Update Profile
                       </Button>
                     </div>

@@ -318,12 +318,12 @@ exports.getUserInfo = async (req, res) => {
 // Update User Info and Subscription Plan
 exports.UpdateUserInfo = async (req, res) => {
   try {
-    // Assuming req.user is populated by authentication middleware
+    // Assuming req.user is set by your authentication middleware
     const { id } = req.user;
     const updateData = {};
     const allowedFields = ["username", "email", "address", "phone", "dateOfBirth", "image"];
 
-    allowedFields.forEach((field) => {
+    allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
       }
@@ -338,6 +338,7 @@ exports.UpdateUserInfo = async (req, res) => {
       return res.status(400).json({ message: "Username must be at least 4 characters long." });
     }
 
+    // Check email uniqueness even though email is not editable (this is extra protection)
     if (updateData.email) {
       const emailExists = await User.findOne({ email: updateData.email });
       if (emailExists && emailExists._id.toString() !== id) {
@@ -381,4 +382,3 @@ exports.UpdateUserInfo = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
-
