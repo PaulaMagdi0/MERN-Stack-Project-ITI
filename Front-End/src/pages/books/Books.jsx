@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Card from '../../components/card/Card';
 import { Container, CircularProgress, Alert, Button, Typography, Grid2 } from '@mui/material';
 import { fetchBooks, getAllGenres, getBooksByGenre } from '../../store/bookSlice';
+import Reviews from "../../components/review";
+
 
 function Books() {
     const [genre, setGenre] = useState();
@@ -108,6 +110,8 @@ function Books() {
                     </Button>
                 </div>
             )}
+                  <Reviews bookId={book._id} />
+
         </Container>
     );
 }
