@@ -1,10 +1,9 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Formik, Form } from "formik"
 import * as Yup from "yup"
 import { FaUser, FaSpinner } from "react-icons/fa"
 import styled, { keyframes } from "styled-components"
+import { AnimatePresence, motion } from "framer-motion"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
 
@@ -13,12 +12,28 @@ const ManageAuthors = () => {
   const [genres, setGenres] = useState([])
   const [action, setAction] = useState("")
   const [selectedAuthor, setSelectedAuthor] = useState(null)
-  const [selectedGenres, setSelectedGenres] = useState([])
   const [imageUploading, setImageUploading] = useState(false)
+  const [formVisible, setFormVisible] = useState(false)
+
+  const toggleFormVisibility = useCallback(() => {
+    setFormVisible((prev) => !prev)
+  }, [])
 
   useEffect(() => {
     fetchAuthors()
+    fetchGenres()
   }, [])
+
+  const fetchGenres = async () => {
+    try {
+      const response = await fetch(`${API_URL}/genre`)
+      const data = await response.json()
+      console.log("🚀 ~ fetchGenres ~ data:", data)
+      setGenres(data)
+    } catch (error) {
+      console.error("Error fetching genres:", error)
+    }
+  }
 
   const fetchAuthors = async () => {
     try {
@@ -43,22 +58,12 @@ const ManageAuthors = () => {
         currentPage++
       }
 
-      const allGenres = new Set()
-      allAuthors.forEach((author) => {
-        if (author.genres && Array.isArray(author.genres)) {
-          author.genres.forEach((genre) => allGenres.add(genre))
-        }
-      })
-
       setAuthors(allAuthors)
-      setGenres([...allGenres])
-
       console.log("✅ Fetched Authors:", allAuthors)
-      console.log("✅ Fetched Genres:", [...allGenres])
     } catch (error) {
       console.error("❌ Error fetching authors and genres:", error)
     }
-  }
+  };
 
   const handleAddAuthor = async (values, { resetForm, setSubmitting }) => {
     setImageUploading(true)
@@ -74,17 +79,19 @@ const ManageAuthors = () => {
         formData.append("deathYear", values.deathYear)
       }
 
-      // Append genres
-      selectedGenres.forEach((genreId, index) => {
-        formData.append(`genres[${index}]`, genreId)
-      })
+      // Append genres as JSON string
+      formData.append("genres", JSON.stringify(values.genres))
 
-      // Append image if it exists
+      // Append image if it exists and is a File
       if (values.image instanceof File) {
-        formData.append("image", values.image)
+          formData.append('image', values.image);
+          console.log("🚀 ~ handleAddAuthor ~ image:", values.image)
+      } else if (typeof values.image === 'string') {
+          formData.append('image', values.image);
       }
+      console.log("🚀 ~ handleAddAuthor ~ values:", values)
 
-      const response = await fetch(`${API_URL}/authors/post-author`, {
+      const response = await fetch(`${API_URL}/authors/add-author`, {
         method: "POST",
         body: formData,
       })
@@ -96,7 +103,6 @@ const ManageAuthors = () => {
       console.log("✅ Author added successfully!")
       fetchAuthors()
       resetForm()
-      setSelectedGenres([])
       setAction("")
     } catch (error) {
       console.error("❌ Error adding author:", error)
@@ -122,10 +128,10 @@ const ManageAuthors = () => {
         formData.append("deathYear", values.deathYear)
       }
 
-      // Append genres
+      // Append genres as JSON string
       formData.append("genres", JSON.stringify(values.genres))
 
-      // Append image if it's changed
+      // Append image if it's changed and is a File
       if (values.image instanceof File) {
         formData.append("image", values.image)
       }
@@ -150,79 +156,71 @@ const ManageAuthors = () => {
       setImageUploading(false)
     }
   }
-  
+
   const handleDeleteAuthor = async () => {
     if (!selectedAuthor?._id) {
-        console.error("❌ No author selected for deletion");
-        return;
+      console.error("❌ No author selected for deletion")
+      return
     }
 
     try {
-        const response = await fetch(`${API_URL}/authors/delete-author/${selectedAuthor._id}`, {
-            method: "DELETE",
-        });
+      const response = await fetch(`${API_URL}/authors/delete-author/${selectedAuthor._id}`, {
+        method: "DELETE",
+      })
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to delete author: ${errorText || response.statusText}`);
-        }
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Failed to delete author: ${errorText || response.statusText}`)
+      }
 
-        console.log("✅ Author deleted successfully");
+      console.log("✅ Author deleted successfully")
 
-        fetchAuthors();
-        setSelectedAuthor(null);
-        setAction("");
+      fetchAuthors()
+      setSelectedAuthor(null)
+      setAction("")
     } catch (error) {
-        console.error("❌ Error deleting author:", error.message);
+      console.error("❌ Error deleting author:", error.message)
     }
-};
+  }
 
-  
+  const authorSchema = Yup.object().shape({
+    name: Yup.string().required("Name is required").max(100, "Name is too long"),
 
-const authorSchema = Yup.object().shape({
-    name: Yup.string()
-        .required("Name is required")
-        .max(100, "Name is too long"),
-    
-    biography: Yup.string()
-        .required("Biography is required")
-        .max(2000, "Biography is too long"),
-    
+    biography: Yup.string().required("Biography is required").max(2000, "Biography is too long"),
+
     birthYear: Yup.number()
-        .transform((value) => (isNaN(value) ? undefined : value))
-        .required("Birth year is required")
-        .min(1000, "Invalid year")
-        .max(new Date().getFullYear(), "Birth year cannot be in the future"),
-    
-    nationality: Yup.string()
-        .required("Nationality is required")
-        .max(50, "Nationality name is too long"),
-    
+      .transform((value) => (isNaN(value) ? undefined : value))
+      .required("Birth year is required")
+      .min(1000, "Invalid year")
+      .max(new Date().getFullYear(), "Birth year cannot be in the future"),
+
+    nationality: Yup.string().required("Nationality is required").max(50, "Nationality name is too long"),
+
     deathYear: Yup.number()
-        .transform((value) => (isNaN(value) ? undefined : value))
-        .nullable()
-        .min(1000, "Invalid year")
-        .max(new Date().getFullYear(), "Death year cannot be in the future")
-        .test("death-after-birth", "Death year must be after birth year", function(value) {
-            const { birthYear } = this.parent;
-            if (!value || !birthYear) return true;
-            return Number(value) > Number(birthYear);
-        }),
-    
+      .transform((value) => (isNaN(value) ? undefined : value))
+      .nullable()
+      .min(1000, "Invalid year")
+      .max(new Date().getFullYear(), "Death year cannot be in the future")
+      .test("death-after-birth", "Death year must be after birth year", function (value) {
+        const { birthYear } = this.parent
+        if (!value || !birthYear) return true
+        return Number(value) > Number(birthYear)
+      }),
+
     image: Yup.mixed()
-        .nullable()
-        .test("fileFormat", "Unsupported file format", (value) => {
-            if (!value) return true;
-            if (value instanceof File) {
-                return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(value.type);
-            }
-            return typeof value === 'string' || value instanceof String;
-        })
-        .test("fileSize", "File is too large", (value) => {
-            if (!value || !(value instanceof File)) return true;
-            return value.size <= 5 * 1024 * 1024; // 5MB limit
-        })
-});
+      .nullable()
+      .test("fileFormat", "Unsupported file format", (value) => {
+        if (!value) return true
+        if (value instanceof File) {
+          return ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(value.type)
+        }
+        return typeof value === "string" || value instanceof String
+      })
+      .test("fileSize", "File is too large", (value) => {
+        if (!value || !(value instanceof File)) return true
+        return value.size <= 5 * 1024 * 1024 // 5MB limit
+      }),
+  })
 
   return (
     <Container>
@@ -232,362 +230,401 @@ const authorSchema = Yup.object().shape({
           Manage Authors
         </SectionTitle>
         <div className="d-flex justify-content-between">
-          <SubmitButton onClick={() => setAction("add")}>Add Author</SubmitButton>
-          <SubmitButton onClick={() => setAction("delete")}>Delete Author</SubmitButton>
-          <SubmitButton onClick={() => setAction("edit")}>Edit Author</SubmitButton>
+          <SubmitButton
+            onClick={() => {
+              setAction("add")
+              toggleFormVisibility()
+            }}
+          >
+            Add Author
+          </SubmitButton>
+          <SubmitButton
+            onClick={() => {
+              setAction("delete")
+              toggleFormVisibility()
+            }}
+          >
+            Delete Author
+          </SubmitButton>
+          <SubmitButton
+            onClick={() => {
+              setAction("edit")
+              toggleFormVisibility()
+            }}
+          >
+            Edit Author
+          </SubmitButton>
         </div>
       </Section>
 
       <FormContainer>
-        {action === "add" && (
-          <Formik
-            initialValues={{
-              name: "",
-              biography: "",
-              birthYear: "",
-              nationality: "",
-              deathYear: "",
-              image: null,
-            }}
-            validationSchema={authorSchema}
-            onSubmit={handleAddAuthor}
-          >
-            {({ values, touched, errors, handleChange, setFieldValue, isSubmitting }) => (
-              <Section className="mt-4">
-                <SectionTitle>Add Author</SectionTitle>
-                <StyledForm>
-                  <FormGroup>
-                    <FormLabel>Name</FormLabel>
-                    <FormInput
-                      name="name"
-                      type="text"
-                      placeholder="Enter Author Name"
-                      value={values.name}
-                      onChange={handleChange}
-                    />
-                    {touched.name && errors.name && <ErrorMessageStyled>{errors.name}</ErrorMessageStyled>}
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel>Biography</FormLabel>
-                    <StyledTextarea
-                      name="biography"
-                      placeholder="Enter Author Biography"
-                      value={values.biography}
-                      onChange={handleChange}
-                    />
-                    {touched.biography && errors.biography && (
-                      <ErrorMessageStyled>{errors.biography}</ErrorMessageStyled>
-                    )}
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel>Birth Year</FormLabel>
-                    <FormInput
-                      name="birthYear"
-                      type="number"
-                      placeholder="Enter Birth Year"
-                      value={values.birthYear}
-                      onChange={handleChange}
-                    />
-                    {touched.birthYear && errors.birthYear && (
-                      <ErrorMessageStyled>{errors.birthYear}</ErrorMessageStyled>
-                    )}
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel>Nationality</FormLabel>
-                    <FormInput
-                      name="nationality"
-                      type="text"
-                      placeholder="Enter Nationality"
-                      value={values.nationality}
-                      onChange={handleChange}
-                    />
-                    {touched.nationality && errors.nationality && (
-                      <ErrorMessageStyled>{errors.nationality}</ErrorMessageStyled>
-                    )}
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel>Death Year (Optional)</FormLabel>
-                    <FormInput
-                      name="deathYear"
-                      type="number"
-                      placeholder="Enter Death Year"
-                      value={values.deathYear}
-                      onChange={handleChange}
-                    />
-                    {touched.deathYear && errors.deathYear && (
-                      <ErrorMessageStyled>{errors.deathYear}</ErrorMessageStyled>
-                    )}
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel>Genres</FormLabel>
-                    <div>
-                      {genres.map((genre) => (
-                        <span
-                          key={genre._id}
-                          className="badge"
-                          style={{
-                            margin: "5px",
-                            padding: "8px 12px",
-                            backgroundColor: selectedGenres.includes(genre._id) ? "#007bff" : "#ddf",
-                            color: selectedGenres.includes(genre._id) ? "#fff" : "#333",
-                            borderRadius: "15px",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => {
-                            setSelectedGenres((prev) =>
-                              prev.includes(genre._id) ? prev.filter((id) => id !== genre._id) : [...prev, genre._id],
-                            )
-                          }}
-                        >
-                          {genre.name}
-                        </span>
-                      ))}
-                    </div>
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel>Author Image (Optional)</FormLabel>
-                    <StyledInput
-                      type="file"
-                      accept="image/jpeg, image/jpg, image/png, image/gif"
-                      onChange={(event) => {
-                        const file = event.currentTarget.files[0]
-                        setFieldValue("image", file)
-                      }}
-                      disabled={imageUploading}
-                    />
-                    {imageUploading && (
-                      <UploadProgress>
-                        <LoadingSpinner />
-                        Uploading image...
-                      </UploadProgress>
-                    )}
-                    {values.image && (
-                      <ImagePreview
-                        src={values.image instanceof File ? URL.createObjectURL(values.image) : values.image}
-                        alt="Author preview"
-                      />
-                    )}
-                    {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
-                  </FormGroup>
-
-                  <SubmitButton type="submit" disabled={isSubmitting || imageUploading}>
-                    {isSubmitting ? "Adding Author..." : "Add Author"}
-                  </SubmitButton>
-                </StyledForm>
-              </Section>
-            )}
-          </Formik>
-        )}
-
-        {action === "delete" && (
-          <Section className="mt-4">
-            <SectionTitle>Delete Author</SectionTitle>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleDeleteAuthor()
-              }}
+        <AnimatePresence>
+          {formVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
             >
-              <FormGroup>
-                <FormLabel>Select Author to Delete</FormLabel>
-                <StyledSelect
-                  onChange={(e) => {
-                    const author = authors.find((a) => a._id === e.target.value)
-                    setSelectedAuthor(author || null)
+              {action === "add" && (
+                <Formik
+                  initialValues={{
+                    name: "",
+                    biography: "",
+                    birthYear: "",
+                    nationality: "",
+                    deathYear: "",
+                    image: null,
+                    genres: [],
                   }}
-                  value={selectedAuthor?._id || ""}
+                  validationSchema={authorSchema}
+                  onSubmit={handleAddAuthor}
                 >
-                  <option value="">Select an Author</option>
-                  {authors.map((author) => (
-                    <option key={author._id} value={author._id}>
-                      {author.name}
-                    </option>
-                  ))}
-                </StyledSelect>
-              </FormGroup>
-              <SubmitButton type="submit" disabled={!selectedAuthor}>
-                Delete Author
-              </SubmitButton>
-            </form>
-          </Section>
-        )}
-
-        {action === "edit" && (
-          <Formik
-            initialValues={{
-              name: selectedAuthor?.name || "",
-              biography: selectedAuthor?.biography || "",
-              birthYear: selectedAuthor?.birthYear || "",
-              nationality: selectedAuthor?.nationality || "",
-              deathYear: selectedAuthor?.deathYear || "",
-              image: selectedAuthor?.image || null,
-              genres: selectedAuthor?.genres?.map((g) => g._id) || [],
-            }}
-            enableReinitialize
-            validationSchema={authorSchema}
-            onSubmit={handleEditAuthor}
-          >
-            {({ values, touched, errors, handleChange, setFieldValue, isSubmitting }) => (
-              <Section className="mt-4">
-                <SectionTitle>Edit Author</SectionTitle>
-                <StyledForm>
-                  <FormGroup>
-                    <FormLabel>Select Author to Edit</FormLabel>
-                    <StyledSelect
-                      onChange={(e) => {
-                        const author = authors.find((a) => a._id === e.target.value)
-                        setSelectedAuthor(author || null)
-                      }}
-                      value={selectedAuthor?._id || ""}
-                    >
-                      <option value="">Select an Author</option>
-                      {authors.map((author) => (
-                        <option key={author._id} value={author._id}>
-                          {author.name}
-                        </option>
-                      ))}
-                    </StyledSelect>
-                  </FormGroup>
-
-                  {selectedAuthor && (
-                    <>
-                      <FormGroup>
-                        <FormLabel>Name</FormLabel>
-                        <FormInput
-                          name="name"
-                          type="text"
-                          placeholder="Enter Author Name"
-                          value={values.name}
-                          onChange={handleChange}
-                        />
-                        {touched.name && errors.name && <ErrorMessageStyled>{errors.name}</ErrorMessageStyled>}
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Biography</FormLabel>
-                        <StyledTextarea
-                          name="biography"
-                          placeholder="Enter Author Biography"
-                          value={values.biography}
-                          onChange={handleChange}
-                        />
-                        {touched.biography && errors.biography && (
-                          <ErrorMessageStyled>{errors.biography}</ErrorMessageStyled>
-                        )}
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Birth Year</FormLabel>
-                        <FormInput
-                          name="birthYear"
-                          type="number"
-                          placeholder="Enter Birth Year"
-                          value={values.birthYear}
-                          onChange={handleChange}
-                        />
-                        {touched.birthYear && errors.birthYear && (
-                          <ErrorMessageStyled>{errors.birthYear}</ErrorMessageStyled>
-                        )}
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Nationality</FormLabel>
-                        <FormInput
-                          name="nationality"
-                          type="text"
-                          placeholder="Enter Nationality"
-                          value={values.nationality}
-                          onChange={handleChange}
-                        />
-                        {touched.nationality && errors.nationality && (
-                          <ErrorMessageStyled>{errors.nationality}</ErrorMessageStyled>
-                        )}
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Death Year (Optional)</FormLabel>
-                        <FormInput
-                          name="deathYear"
-                          type="number"
-                          placeholder="Enter Death Year"
-                          value={values.deathYear}
-                          onChange={handleChange}
-                        />
-                        {touched.deathYear && errors.deathYear && (
-                          <ErrorMessageStyled>{errors.deathYear}</ErrorMessageStyled>
-                        )}
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Genres</FormLabel>
-                        <div>
-                          {genres.map((genre) => (
-                            <span
-                              key={genre._id}
-                              className="badge"
-                              style={{
-                                margin: "5px",
-                                padding: "8px 12px",
-                                backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
-                                color: values.genres.includes(genre._id) ? "#fff" : "#333",
-                                borderRadius: "15px",
-                                cursor: "pointer",
-                              }}
-                              onClick={() => {
-                                const updatedGenres = values.genres.includes(genre._id)
-                                  ? values.genres.filter((id) => id !== genre._id)
-                                  : [...values.genres, genre._id]
-                                setFieldValue("genres", updatedGenres)
-                              }}
-                            >
-                              {genre.name}
-                            </span>
-                          ))}
-                        </div>
-                      </FormGroup>
-
-                      <FormGroup>
-                        <FormLabel>Author Image (Optional)</FormLabel>
-                        <StyledInput
-                          type="file"
-                          accept="image/jpeg, image/jpg, image/png, image/gif"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files[0]
-                            setFieldValue("image", file)
-                          }}
-                          disabled={imageUploading}
-                        />
-                        {imageUploading && (
-                          <UploadProgress>
-                            <LoadingSpinner />
-                            Uploading image...
-                          </UploadProgress>
-                        )}
-                        {values.image && (
-                          <ImagePreview
-                            src={values.image instanceof File ? URL.createObjectURL(values.image) : values.image}
-                            alt="Author preview"
+                  {({ values, touched, errors, handleChange, setFieldValue, isSubmitting }) => (
+                    <Section className="mt-4">
+                      <CloseButton onClick={toggleFormVisibility}>×</CloseButton>
+                      <SectionTitle>Add Author</SectionTitle>
+                      <StyledForm>
+                        <FormGroup>
+                          <FormLabel>Name</FormLabel>
+                          <FormInput
+                            name="name"
+                            type="text"
+                            placeholder="Enter Author Name"
+                            value={values.name}
+                            onChange={handleChange}
                           />
-                        )}
-                        {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
-                      </FormGroup>
+                          {touched.name && errors.name && <ErrorMessageStyled>{errors.name}</ErrorMessageStyled>}
+                        </FormGroup>
 
-                      <SubmitButton type="submit" disabled={isSubmitting || imageUploading}>
-                        {isSubmitting ? "Updating Author..." : "Update Author"}
-                      </SubmitButton>
-                    </>
+                        <FormGroup>
+                          <FormLabel>Birth Year</FormLabel>
+                          <FormInput
+                            name="birthYear"
+                            type="text"
+                            placeholder="Enter Birth Year"
+                            value={values.birthYear}
+                            onChange={handleChange}
+                          />
+                          {touched.birthYear && errors.birthYear && (
+                            <ErrorMessageStyled>{errors.birthYear}</ErrorMessageStyled>
+                          )}
+                        </FormGroup>
+
+                        <FormGroup>
+                          <FormLabel>Death Year (Optional)</FormLabel>
+                          <FormInput
+                            name="deathYear"
+                            type="text"
+                            placeholder="Enter Death Year"
+                            value={values.deathYear}
+                            onChange={handleChange}
+                          />
+                          {touched.deathYear && errors.deathYear && (
+                            <ErrorMessageStyled>{errors.deathYear}</ErrorMessageStyled>
+                          )}
+                        </FormGroup>
+
+                        <FormGroup>
+                          <FormLabel>Nationality</FormLabel>
+                          <FormInput
+                            name="nationality"
+                            type="text"
+                            placeholder="Enter Nationality"
+                            value={values.nationality}
+                            onChange={handleChange}
+                          />
+                          {touched.nationality && errors.nationality && (
+                            <ErrorMessageStyled>{errors.nationality}</ErrorMessageStyled>
+                          )}
+                        </FormGroup>
+
+                        <FormGroup>
+                          <FormLabel>Genres</FormLabel>
+                          <div>
+                            {genres.map((genre) => (
+                              <span
+                                key={genre._id}
+                                className="badge"
+                                style={{
+                                  margin: "5px",
+                                  padding: "8px 12px",
+                                  backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
+                                  color: "#fff",
+                                  borderRadius: "15px",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => {
+                                  const updatedGenres = values.genres.includes(genre._id)
+                                    ? values.genres.filter((id) => id !== genre._id)
+                                    : [...values.genres, genre._id]
+                                  setFieldValue("genres", updatedGenres)
+                                }}
+                              >
+                                {genre.name}
+                              </span>
+                            ))}
+                          </div>
+                          {touched.genres && errors.genres && <ErrorMessageStyled>{errors.genres}</ErrorMessageStyled>}
+                        </FormGroup>
+
+                        <FormGroup>
+                          <FormLabel>Biography</FormLabel>
+                          <StyledTextarea
+                            name="biography"
+                            placeholder="Enter Author Biography"
+                            value={values.biography}
+                            onChange={handleChange}
+                          />
+                          {touched.biography && errors.biography && (
+                            <ErrorMessageStyled>{errors.biography}</ErrorMessageStyled>
+                          )}
+                        </FormGroup>
+
+                        <FormGroup>
+                          <FormLabel>Author Image (Optional)</FormLabel>
+                          <StyledInput
+                            type="file"
+                            accept="image/jpeg, image/jpg, image/png, image/gif"
+                            onChange={(event) => {
+                              const file = event.currentTarget.files[0]
+                              setFieldValue("image", file)
+                            }}
+                            disabled={imageUploading}
+                          />
+                          {imageUploading && (
+                            <UploadProgress>
+                              <LoadingSpinner />
+                              Uploading image...
+                            </UploadProgress>
+                          )}
+                          {values.image && (
+                            <ImagePreview
+                              src={values.image instanceof File ? URL.createObjectURL(values.image) : values.image}
+                              alt="Author preview"
+                            />
+                          )}
+                          {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
+                        </FormGroup>
+
+                        <SubmitButton type="submit" disabled={isSubmitting || imageUploading}>
+                          {isSubmitting ? "Adding Author..." : "Add Author"}
+                        </SubmitButton>
+                      </StyledForm>
+                    </Section>
                   )}
-                </StyledForm>
-              </Section>
-            )}
-          </Formik>
-        )}
+                </Formik>
+              )}
+
+              {action === "delete" && (
+                <Section className="mt-4">
+                  <CloseButton onClick={toggleFormVisibility}>×</CloseButton>
+                  <SectionTitle>Delete Author</SectionTitle>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      handleDeleteAuthor()
+                    }}
+                  >
+                    <FormGroup>
+                      <FormLabel>Select Author to Delete</FormLabel>
+                      <StyledSelect
+                        onChange={(e) => {
+                          const author = authors.find((a) => a._id === e.target.value)
+                          setSelectedAuthor(author || null)
+                        }}
+                        value={selectedAuthor?._id || ""}
+                      >
+                        <option value="">Select an Author</option>
+                        {authors.map((author) => (
+                          <option key={author._id} value={author._id}>
+                            {author.name}
+                          </option>
+                        ))}
+                      </StyledSelect>
+                    </FormGroup>
+                    <SubmitButton type="submit" disabled={!selectedAuthor}>
+                      Delete Author
+                    </SubmitButton>
+                  </form>
+                </Section>
+              )}
+
+              {action === "edit" && (
+                <Formik
+                  initialValues={{
+                    name: selectedAuthor?.name || "",
+                    biography: selectedAuthor?.biography || "",
+                    birthYear: selectedAuthor?.birthYear || "",
+                    nationality: selectedAuthor?.nationality || "",
+                    deathYear: selectedAuthor?.deathYear || "",
+                    image: selectedAuthor?.image || null,
+                    genres: selectedAuthor?.genres?.map((g) => g._id) || [],
+                  }}
+                  enableReinitialize
+                  validationSchema={authorSchema}
+                  onSubmit={handleEditAuthor}
+                >
+                  {({ values, touched, errors, handleChange, setFieldValue, isSubmitting }) => (
+                    <Section className="mt-4">
+                      <CloseButton onClick={toggleFormVisibility}>×</CloseButton>
+                      <SectionTitle>Edit Author</SectionTitle>
+                      <StyledForm>
+                        <FormGroup>
+                          <FormLabel>Select Author to Edit</FormLabel>
+                          <StyledSelect
+                            onChange={(e) => {
+                              const author = authors.find((a) => a._id === e.target.value)
+                              setSelectedAuthor(author || null)
+                            }}
+                            value={selectedAuthor?._id || ""}
+                          >
+                            <option value="">Select an Author</option>
+                            {authors.map((author) => (
+                              <option key={author._id} value={author._id}>
+                                {author.name}
+                              </option>
+                            ))}
+                          </StyledSelect>
+                        </FormGroup>
+
+                        {selectedAuthor && (
+                          <>
+                            <FormGroup>
+                              <FormLabel>Name</FormLabel>
+                              <FormInput
+                                name="name"
+                                type="text"
+                                placeholder="Enter Author Name"
+                                value={values.name}
+                                onChange={handleChange}
+                              />
+                              {touched.name && errors.name && <ErrorMessageStyled>{errors.name}</ErrorMessageStyled>}
+                            </FormGroup>
+
+                            <FormGroup>
+                              <FormLabel>Biography</FormLabel>
+                              <StyledTextarea
+                                name="biography"
+                                placeholder="Enter Author Biography"
+                                value={values.biography}
+                                onChange={handleChange}
+                              />
+                              {touched.biography && errors.biography && (
+                                <ErrorMessageStyled>{errors.biography}</ErrorMessageStyled>
+                              )}
+                            </FormGroup>
+
+                            <FormGroup>
+                              <FormLabel>Birth Year</FormLabel>
+                              <FormInput
+                                name="birthYear"
+                                type="number"
+                                placeholder="Enter Birth Year"
+                                value={values.birthYear}
+                                onChange={handleChange}
+                              />
+                              {touched.birthYear && errors.birthYear && (
+                                <ErrorMessageStyled>{errors.birthYear}</ErrorMessageStyled>
+                              )}
+                            </FormGroup>
+
+                            <FormGroup>
+                              <FormLabel>Nationality</FormLabel>
+                              <FormInput
+                                name="nationality"
+                                type="text"
+                                placeholder="Enter Nationality"
+                                value={values.nationality}
+                                onChange={handleChange}
+                              />
+                              {touched.nationality && errors.nationality && (
+                                <ErrorMessageStyled>{errors.nationality}</ErrorMessageStyled>
+                              )}
+                            </FormGroup>
+
+                            <FormGroup>
+                              <FormLabel>Death Year (Optional)</FormLabel>
+                              <FormInput
+                                name="deathYear"
+                                type="number"
+                                placeholder="Enter Death Year"
+                                value={values.deathYear}
+                                onChange={handleChange}
+                              />
+                              {touched.deathYear && errors.deathYear && (
+                                <ErrorMessageStyled>{errors.deathYear}</ErrorMessageStyled>
+                              )}
+                            </FormGroup>
+
+                            <FormGroup>
+                              <FormLabel>Genres</FormLabel>
+                              <div>
+                                {genres.map((genre) => (
+                                  <span
+                                    key={genre._id}
+                                    className="badge"
+                                    style={{
+                                      margin: "5px",
+                                      padding: "8px 12px",
+                                      backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
+                                      color: "#fff",
+                                      borderRadius: "15px",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() => {
+                                      const updatedGenres = values.genres.includes(genre._id)
+                                        ? values.genres.filter((id) => id !== genre._id)
+                                        : [...values.genres, genre._id]
+                                      setFieldValue("genres", updatedGenres)
+                                    }}
+                                  >
+                                    {genre.name}
+                                  </span>
+                                ))}
+                              </div>
+                              {touched.genres && errors.genres && <ErrorMessageStyled>{errors.genres}</ErrorMessageStyled>}
+                            </FormGroup>
+
+                            <FormGroup>
+                              <FormLabel>Author Image</FormLabel>
+                              <StyledInput
+                                type="file"
+                                accept="image/jpeg, image/jpg, image/png, image/gif"
+                                onChange={(event) => {
+                                  const file = event.currentTarget.files[0]
+                                  setFieldValue("image", file)
+                                }}
+                                disabled={imageUploading}
+                              />
+                              {imageUploading && (
+                                <UploadProgress>
+                                  <LoadingSpinner />
+                                  Uploading image...
+                                </UploadProgress>
+                              )}
+                              {values.image && (
+                                <ImagePreview
+                                  src={values.image instanceof File ? URL.createObjectURL(values.image) : values.image}
+                                  alt="Author preview"
+                                />
+                              )}
+                              {touched.image && errors.image && <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>}
+                            </FormGroup>
+
+                            <SubmitButton type="submit" disabled={isSubmitting || imageUploading}>
+                              {isSubmitting ? "Updating Author..." : "Update Author"}
+                            </SubmitButton>
+                          </>
+                        )}
+                      </StyledForm>
+                    </Section>
+                  )}
+                </Formik>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </FormContainer>
     </Container>
   )
@@ -599,6 +636,7 @@ const Container = styled.div`
 `
 
 const Section = styled.section`
+  position: relative;
     background-color: white;
     border-radius: 15px;
     padding: 2rem;
@@ -732,6 +770,17 @@ const ImagePreview = styled.img`
     max-height: 200px;
     margin-top: 10px;
     border-radius: 8px;
+`
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
 `
 
 export default ManageAuthors

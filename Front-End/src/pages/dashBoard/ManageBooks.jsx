@@ -12,6 +12,7 @@ const ManageBooks = () => {
     const [authors, setAuthors] = useState([]);
     const [action, setAction] = useState("");
     const [selectedBook, setSelectedBook] = useState(null);
+    // eslint-disable-next-line no-unused-vars
     const [bookGenres, setBookGenres] = useState([]);
     const [selectedGenres, setSelectedGenres] = useState([]);
     const [imageUploading, setImageUploading] = useState(false);
@@ -111,7 +112,7 @@ const ManageBooks = () => {
     //     try {
     //         setImageUploading(true);
 
-    //         const response = await fetch(`${API_URL}/upload`, {
+    //         const response = await fetch(${API_URL}/upload, {
     //             method: "POST",
     //             body: formData,
     //         });
@@ -161,10 +162,11 @@ const ManageBooks = () => {
             } else if (typeof values.image === 'string') {
                 formData.append('image', values.image);
             }
+            console.log("🚀 ~ handleAddBook ~ values:", values)
     
             const response = await fetch(`${API_URL}/books/post-book`, {
                 method: 'POST',
-                body: formData, // Don't set Content-Type header - browser will set it with boundary
+                body: formData,
             });
     
             if (!response.ok) {
@@ -236,7 +238,7 @@ const ManageBooks = () => {
         }
     };
     
-const handleDeleteBook = async () => {
+    const handleDeleteBook = async () => {
         if (!selectedBook?._id) {
             console.error("No book selected for deletion");
             return;
@@ -267,6 +269,7 @@ const handleDeleteBook = async () => {
         title: Yup.string().required("Title is required"),
         author_id: Yup.string().required("Author is required"),
         releaseDate: Yup.string().required("Release Date is required"),
+        // genres: Yup.string().required("Genres is required"),
         image: Yup.mixed()
             .test("fileFormat", "Unsupported file format", value => {
                 if (value instanceof File) {
