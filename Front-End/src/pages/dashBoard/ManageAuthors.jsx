@@ -18,8 +18,20 @@ const ManageAuthors = () => {
 
   useEffect(() => {
     fetchAuthors()
+    fetchGenres()
   }, [])
 
+  const fetchGenres = async () => {
+    try {
+        const response = await fetch(`${API_URL}/genre`);
+        const data = await response.json();
+        setGenres(data || []);
+        console.log(data);
+        
+    } catch (error) {
+        console.error("Error fetching genres:", error);
+    }
+};
   const fetchAuthors = async () => {
     try {
       const response = await fetch(`${API_URL}/authors?page=1`)
@@ -51,7 +63,7 @@ const ManageAuthors = () => {
       })
 
       setAuthors(allAuthors)
-      setGenres([...allGenres])
+      // setGenres([...allGenres])
 
       console.log("✅ Fetched Authors:", allAuthors)
       console.log("✅ Fetched Genres:", [...allGenres])
@@ -525,32 +537,33 @@ const authorSchema = Yup.object().shape({
                       </FormGroup>
 
                       <FormGroup>
-                        <FormLabel>Genres</FormLabel>
-                        <div>
-                          {genres.map((genre) => (
-                            <span
-                              key={genre._id}
-                              className="badge"
-                              style={{
-                                margin: "5px",
-                                padding: "8px 12px",
-                                backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
-                                color: values.genres.includes(genre._id) ? "#fff" : "#333",
-                                borderRadius: "15px",
-                                cursor: "pointer",
-                              }}
-                              onClick={() => {
-                                const updatedGenres = values.genres.includes(genre._id)
-                                  ? values.genres.filter((id) => id !== genre._id)
-                                  : [...values.genres, genre._id]
-                                setFieldValue("genres", updatedGenres)
-                              }}
-                            >
-                              {genre.name}
-                            </span>
-                          ))}
-                        </div>
-                      </FormGroup>
+  <FormLabel>Genres</FormLabel>
+  <div>
+    {genres.map((genre) => (
+      <span
+        key={genre._id}
+        className="badge"
+        style={{
+          margin: "5px",
+          padding: "8px 12px",
+          backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
+          color: values.genres.includes(genre._id) ? "#fff" : "#333",
+          borderRadius: "15px",
+          cursor: "pointer",
+        }}
+        onClick={() => {
+          const updatedGenres = values.genres.includes(genre._id)
+            ? values.genres.filter((id) => id !== genre._id)
+            : [...values.genres, genre._id];
+          setFieldValue("genres", updatedGenres);
+        }}
+      >
+        {genre.name}
+      </span>
+    ))}
+  </div>
+</FormGroup>
+
 
                       <FormGroup>
                         <FormLabel>Author Image (Optional)</FormLabel>
