@@ -1,4 +1,3 @@
-// routes/reviews.js
 const express = require('express');
 const Review = require('../models/reviews'); // Using the corrected model
 const router = express.Router();

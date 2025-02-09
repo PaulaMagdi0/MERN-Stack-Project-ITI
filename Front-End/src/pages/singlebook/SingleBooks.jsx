@@ -7,7 +7,7 @@ import { FaHeart } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import ReviewSection from '../../components/review';
+// import ReviewSection from '../../components/review';
 
 const SingleBook = () => {
   const { id } = useParams();
