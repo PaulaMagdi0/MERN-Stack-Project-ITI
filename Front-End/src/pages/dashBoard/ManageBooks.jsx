@@ -206,7 +206,8 @@ const ManageBooks = () => {
             
             // Append genres
             formData.append('genres', JSON.stringify(values.genres));
-    
+                console.log( "genre values",values.genres);
+                
             // Append image if it's changed
             if (values.image instanceof File) {
                 formData.append('image', values.image);
@@ -218,10 +219,11 @@ const ManageBooks = () => {
                 method: 'PUT',
                 body: formData,
             });
-    
+            
             if (!response.ok) {
                 throw new Error('Failed to update book');
             }
+            console.log("🚀 ~ handleEditBook ~ formData:", values)
     
             console.log('✅ Book updated successfully');
             await fetchBooks();
@@ -236,6 +238,8 @@ const ManageBooks = () => {
         } finally {
             setImageUploading(false);
         }
+            console.log("🚀 ~ handleEditBook ~ genres:", genres)
+            console.log("🚀 ~ handleEditBook ~ genres:", genres)
     };
     
     const handleDeleteBook = async () => {

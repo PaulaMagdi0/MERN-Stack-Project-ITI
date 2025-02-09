@@ -39,6 +39,10 @@ function Books() {
     // Defaulting to books if BooksGenre is empty or undefined
     const booksToShow = (BooksGenre && BooksGenre.books && BooksGenre.books.length > 0 && genre) ? BooksGenre.books : books;
 
+    // Check if no genre is selected and no books are available
+    const noBooksForGenre = genre && booksToShow.length === 0 && !loading && !booksGenreError;
+    const noBooksAvailable = !loading && booksToShow.length === 0;
+
     return (
         <Container sx={{ py: 4 }}>
             {selectedGenre && selectedGenre.length > 0 ? (
@@ -69,16 +73,18 @@ function Books() {
 
             {(error || booksGenreError) && (
                 <Alert severity="error" sx={{ mb: 3 }}>
-                    {error || booksGenreError}
+                    {error || booksGenreError || 'Failed to fetch books for the selected genre.'}
                 </Alert>
             )}
 
-            {booksToShow.length === 0 && !loading && (
+            {/* Show "No books available for this genre" only if a genre is selected and there are no books */}
+            {noBooksForGenre && (
                 <Typography variant="h6" sx={{ mt: 4 }}>
                     No books available for this genre.
                 </Typography>
             )}
 
+            {/* Display books */}
             <Grid2 container spacing={1}>
                 {booksToShow.map((book) => (
                     <Grid2 item key={book._id} xs={12} sm={6} md={4} lg={3}>
@@ -87,6 +93,7 @@ function Books() {
                 ))}
             </Grid2>
 
+            {/* Show pagination if books are available */}
             {booksToShow.length > 0 && !loading && (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
                     <Button
@@ -107,6 +114,13 @@ function Books() {
                         Next
                     </Button>
                 </div>
+            )}
+
+            {/* Show message when no books are available */}
+            {noBooksAvailable && (
+                <Typography variant="h6" sx={{ mt: 4 }}>
+                    No books available.
+                </Typography>
             )}
         </Container>
     );

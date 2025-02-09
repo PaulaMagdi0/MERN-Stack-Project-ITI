@@ -22,6 +22,7 @@ const ManageAuthors = () => {
   useEffect(() => {
     fetchAuthors()
     fetchGenres()
+    fetchGenres()
   }, [])
 
   const fetchGenres = async () => {
@@ -91,6 +92,7 @@ const ManageAuthors = () => {
       }
       console.log("🚀 ~ handleAddAuthor ~ values:", values)
 
+      const response = await fetch(`${API_URL}/authors/add-author`, {
       const response = await fetch(`${API_URL}/authors/add-author`, {
         method: "POST",
         body: formData,
