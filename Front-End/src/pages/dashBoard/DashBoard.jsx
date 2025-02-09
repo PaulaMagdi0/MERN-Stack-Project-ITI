@@ -16,10 +16,12 @@ import {
 } from 'chart.js';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import styled from 'styled-components';
-import { FaBook, FaUser, FaStar, FaChartBar, FaEnvelope, FaLock, FaUserShield } from 'react-icons/fa';
+import { FaBook, FaUser, FaStar, FaChartBar, FaEnvelope, FaLock, FaUserShield,FaPhone, FaCalendar,FaHome } from 'react-icons/fa';
 import PropTypes from 'prop-types';
 import ManageBooks from './ManageBooks';
 import ManageAuthors from './ManageAuthors';
+import { SignUpValidation } from "./validation"
+import SignUpForm from "./AdminRegisteration"
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 ChartJS.register(
     CategoryScale,
@@ -684,29 +686,7 @@ ChartsSection.propTypes = {
     loading: PropTypes.bool.isRequired
 };
 
-// Admin Registration Schema
-const AdminRegistrationSchema = Yup.object().shape({
-    username: Yup.string()
-        .min(3, 'Username must be at least 3 characters')
-        .max(20, 'Username must be less than 20 characters')
-        .required('Username is required'),
-    email: Yup.string()
-        .email('Invalid email address')
-        .required('Email is required'),
-    password: Yup.string()
-        .min(8, 'Password must be at least 8 characters')
-        .matches(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-            'Must contain uppercase, lowercase, number and special character'
-        )
-        .required('Password is required'),
-    confirmPassword: Yup.string()
-        .oneOf([Yup.ref('password'), null], 'Passwords must match')
-        .required('Confirm password is required'),
-    role: Yup.string()
-        .oneOf(['admin'], 'Invalid role selected')
-        .required('Role is required')
-});
+
 
 const AdminRegistrationSection = () => {
     const initialValues = {
@@ -732,105 +712,171 @@ const AdminRegistrationSection = () => {
         }
     };
 
-    return (
-        <Section>
-            <SectionTitle>Admin Registration</SectionTitle>
-            <FormContainer>
-                <Formik
-                    initialValues={initialValues}
-                    validationSchema={AdminRegistrationSchema}
-                    onSubmit={handleSubmit}
-                >
-                    {({ errors, touched, isSubmitting }) => (
-                        <StyledForm>
-                            <FormGroup>
-                                <FormLabel>
-                                    <FaUser />
-                                    Username
-                                </FormLabel>
-                                <FormInput
-                                    name="username"
-                                    type="text"
-                                    placeholder="Enter username"
-                                    error={touched.username && errors.username}
-                                />
-                                {touched.username && errors.username && (
-                                    <ErrorMessage>{errors.username}</ErrorMessage>
-                                )}
-                            </FormGroup>
+    
 
-                            <FormGroup>
-                                <FormLabel>
-                                    <FaEnvelope />
-                                    Email
-                                </FormLabel>
-                                <FormInput
-                                    name="email"
-                                    type="email"
-                                    placeholder="Enter email"
-                                    error={touched.email && errors.email}
-                                />
-                                {touched.email && errors.email && (
-                                    <ErrorMessage>{errors.email}</ErrorMessage>
-                                )}
-                            </FormGroup>
+     
+return (
+    <SignUpForm/>
+        // <Section>
+        //     <SectionTitle>Admin Registration</SectionTitle>
+        //     <FormContainer>
+        //         <Formik
+        //             initialValues={initialValues}
+        //             validationSchema={SignUpValidation}
+        //             onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
+        //                 try {
+        //                     const response = await fetch(`${API_URL}/users/sign-up`, {
+        //                         method: "POST",
+        //                         headers: {
+        //                             "Content-Type": "application/json",
+        //                         },
+        //                         body: JSON.stringify(values),
+        //                     });
 
-                            <FormGroup>
-                                <FormLabel>
-                                    <FaLock />
-                                    Password
-                                </FormLabel>
-                                <FormInput
-                                    name="password"
-                                    type="password"
-                                    placeholder="Enter password"
-                                    error={touched.password && errors.password}
-                                />
-                                {touched.password && errors.password && (
-                                    <ErrorMessage>{errors.password}</ErrorMessage>
-                                )}
-                            </FormGroup>
+        //                     const data = await response.json();
 
-                            <FormGroup>
-                                <FormLabel>
-                                    <FaLock />
-                                    Confirm Password
-                                </FormLabel>
-                                <FormInput
-                                    name="confirmPassword"
-                                    type="password"
-                                    placeholder="Confirm password"
-                                    error={touched.confirmPassword && errors.confirmPassword}
-                                />
-                                {touched.confirmPassword && errors.confirmPassword && (
-                                    <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
-                                )}
-                            </FormGroup>
+        //                     if (!response.ok) {
+        //                         if (data.errors) {
+        //                             const errorMessages = Object.values(data.errors)
+        //                                 .map(err => err.message)
+        //                                 .join("\n");
 
-                            <FormGroup>
-                                <FormLabel>
-                                    <FaUserShield />
-                                    Role
-                                </FormLabel>
-                                <FormSelect
-                                    name="role"
-                                    error={touched.role && errors.role}
-                                >
-                                    <option value="admin">Admin</option>
-                                </FormSelect>
-                                {touched.role && errors.role && (
-                                    <ErrorMessage>{errors.role}</ErrorMessage>
-                                )}
-                            </FormGroup>
+        //                             alert(errorMessages);
+        //                             setErrors(data.errors);
+        //                             return;
+        //                         }
+        //                         throw new Error(data.message || "Registration failed!");
+        //                     }
 
-                            <SubmitButton type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? 'Registering...' : 'Register Admin'}
-                            </SubmitButton>
-                        </StyledForm>
-                    )}
-                </Formik>
-            </FormContainer>
-        </Section>
+        //                     alert("Registration successful!");
+        //                     resetForm();
+        //                 } catch (error) {
+        //                     console.error("Registration error:", error);
+        //                     alert(error.message);
+        //                 } finally {
+        //                     setSubmitting(false);
+        //                 }
+        //             }}
+        //         >
+        //             {({ errors, touched, isSubmitting }) => (
+        //                 <StyledForm>
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaUser />
+        //                             Username
+        //                         </FormLabel>
+        //                         <FormInput
+        //                             name="username"
+        //                             type="text"
+        //                             placeholder="Enter username"
+        //                             error={touched.username && errors.username}
+        //                         />
+        //                         {touched.username && errors.username && (
+        //                             <ErrorMessage>{errors.username}</ErrorMessage>
+        //                         )}
+        //                     </FormGroup>
+
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaEnvelope />
+        //                             Email
+        //                         </FormLabel>
+        //                         <FormInput
+        //                             name="email"
+        //                             type="email"
+        //                             placeholder="Enter email"
+        //                             error={touched.email && errors.email}
+        //                         />
+        //                         {touched.email && errors.email && (
+        //                             <ErrorMessage>{errors.email}</ErrorMessage>
+        //                         )}
+        //                     </FormGroup>
+
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaLock />
+        //                             Password
+        //                         </FormLabel>
+        //                         <FormInput
+        //                             name="password"
+        //                             type="password"
+        //                             placeholder="Enter password"
+        //                             error={touched.password && errors.password}
+        //                         />
+        //                         {touched.password && errors.password && (
+        //                             <ErrorMessage>{errors.password}</ErrorMessage>
+        //                         )}
+        //                     </FormGroup>
+
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaHome />
+        //                             Address
+        //                         </FormLabel>
+        //                         <FormInput
+        //                             name="address"
+        //                             type="text"
+        //                             placeholder="Enter your address"
+        //                         />
+        //                     </FormGroup>
+
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaPhone />
+        //                             Phone
+        //                         </FormLabel>
+        //                         <FormInput
+        //                             name="phone"
+        //                             type="tel"
+        //                             placeholder="Enter your phone number"
+        //                             error={touched.phone && errors.phone}
+        //                         />
+        //                         {touched.phone && errors.phone && (
+        //                             <ErrorMessage>{errors.phone}</ErrorMessage>
+        //                         )}
+        //                     </FormGroup>
+
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaCalendar />
+        //                             Date of Birth
+        //                         </FormLabel>
+        //                         <FormInput
+        //                             name="dateOfBirth"
+        //                             type="date"
+        //                             error={touched.dateOfBirth && errors.dateOfBirth}
+        //                         />
+        //                         {touched.dateOfBirth && errors.dateOfBirth && (
+        //                             <ErrorMessage>{errors.dateOfBirth}</ErrorMessage>
+        //                         )}
+        //                     </FormGroup>
+
+        //                     <FormGroup>
+        //                         <FormLabel>
+        //                             <FaUserShield />
+        //                             Role
+        //                         </FormLabel>
+        //                         <FormSelect
+        //                             name="role"
+        //                             error={touched.role && errors.role}
+        //                         >
+        //                             <option value="">Select Role</option>
+        //                             <option value="user">User</option>
+        //                             <option value="admin">Admin</option>
+        //                         </FormSelect>
+        //                         {touched.role && errors.role && (
+        //                             <ErrorMessage>{errors.role}</ErrorMessage>
+        //                         )}
+        //                     </FormGroup>
+
+        //                     <SubmitButton type="submit" disabled={isSubmitting}>
+        //                         {isSubmitting ? "Registering..." : "Register"}
+        //                     </SubmitButton>
+        //                 </StyledForm>
+        //             )}
+        //         </Formik>
+        //     </FormContainer>
+        // </Section>
     );
 };
 
