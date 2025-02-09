@@ -359,33 +359,32 @@ exports.deleteAuthor = async (req, res) => {
 //         return res.status(500).json({ message: "Server error", error: error.message });
 //     }
 // }
-
 exports.updateAuthorGenre = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
         const { authorID } = req.params;
-        let { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
+        let { name, biography, birthYear, deathYear, image, nationality, genres } = req.body;
         console.log("req.file:", req.file);
 
-        // Parse genreIds if it is sent as a string instead of an array.
-        if (typeof genreIds === "string") {
+        // Parse genres if it is sent as a string instead of an array.
+        if (typeof genres === "string") {
             try {
                 // Attempt to parse it as JSON
-                const parsed = JSON.parse(genreIds);
+                const parsed = JSON.parse(genres);
                 if (Array.isArray(parsed)) {
-                    genreIds = parsed;
+                    genres = parsed;
                 } else {
                     // If the parsed value is not an array, fallback to splitting by comma
-                    genreIds = genreIds.split(",").map(s => s.trim());
+                    genres = genres.split(",").map(s => s.trim());
                 }
             } catch (err) {
                 // If JSON.parse fails, assume a comma-separated list
-                genreIds = genreIds.split(",").map(s => s.trim());
+                genres = genres.split(",").map(s => s.trim());
             }
         }
-        console.log("Parsed genreIds:", genreIds);
+        console.log("Parsed genres:", genres);
 
         // 1. Validate Author ID format
         if (!mongoose.Types.ObjectId.isValid(authorID)) {
@@ -396,10 +395,10 @@ exports.updateAuthorGenre = async (req, res) => {
         }
 
         // 2. Validate Genre IDs if provided
-        if (genreIds && !Array.isArray(genreIds)) {
+        if (genres && !Array.isArray(genres)) {
             return res.status(400).json({
                 code: "INVALID_GENRE_IDS",
-                message: "GenreIds must be an array"
+                message: "Genres must be an array"
             });
         }
 
@@ -443,14 +442,14 @@ exports.updateAuthorGenre = async (req, res) => {
         }
 
         // 5. Handle Genre Updates
-        if (typeof genreIds !== 'undefined') {
+        if (typeof genres !== 'undefined') {
             // If there are genres provided, validate that they exist in the database
-            if (genreIds.length > 0) {
+            if (genres.length > 0) {
                 const validGenresCount = await Genre.countDocuments({
-                    _id: { $in: genreIds }
+                    _id: { $in: genres }
                 }).session(session);
 
-                if (validGenresCount !== genreIds.length) {
+                if (validGenresCount !== genres.length) {
                     await session.abortTransaction();
                     return res.status(400).json({
                         code: "INVALID_GENRES",
@@ -461,10 +460,10 @@ exports.updateAuthorGenre = async (req, res) => {
 
             // Remove existing genre associations for this author
             await AuthorGenre.deleteMany({ author_id: authorID }).session(session);
-            
+
             // Insert new genre associations if any
-            if (genreIds.length > 0) {
-                const newRelations = genreIds.map(genreId => ({
+            if (genres.length > 0) {
+                const newRelations = genres.map(genreId => ({
                     author_id: authorID,
                     genre_id: genreId // Already a string; mongoose will cast it if needed.
                 }));
