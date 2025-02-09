@@ -74,63 +74,89 @@ exports.getUsers = async (req, res) => {
 //   }
 // };
 
-
 exports.signUp = async (req, res) => {
   try {
-    const { username, email, password, address, phone, dateOfBirth } = req.body;
+    // Destructure required fields, including role from the request body.
+    const { username, email, password, address, phone, dateOfBirth, role } = req.body;
 
+    // Validate required fields.
     if (!username || !email || !password || !phone) {
       return res.status(400).json({ message: "Username, email, password, and phone are required." });
     }
 
+    // Validate email format.
     if (!validator.isEmail(email)) {
       return res.status(400).json({ message: "Invalid email format." });
     }
 
+    // Validate phone number.
     if (!validator.isMobilePhone(phone, "any", { strictMode: false })) {
       return res.status(400).json({ message: "Invalid phone number." });
     }
 
+    // Validate username length.
     if (username.length < 4) {
       return res.status(400).json({ message: "Username must be at least 4 characters long." });
     }
 
+    // Check if a user with the same username or email already exists.
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
       return res.status(400).json({ message: "Username or email already exists." });
     }
 
+    // Validate password length.
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters long." });
     }
 
+    // Validate phone number length.
     if (phone.length < 10) {
       return res.status(400).json({ message: "Phone number must be at least 10 digits long." });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const role = email === "admin@gmail.com" ? "admin" : "user";
+    // Determine the user's role:
+    // - If no role is provided, default to "user".
+    // - Otherwise, convert to lowercase and validate it is either "admin" or "user".
+    let userRole = role ? role.toLowerCase() : "user";
+    if (userRole !== "admin" && userRole !== "user") {
+      return res.status(400).json({ message: "Role must be either 'admin' or 'user'." });
+    }
 
-    // Create new user
-    const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth, role });
+    // Hash the user's password.
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user with the provided role.
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      address,
+      phone,
+      dateOfBirth,
+      role: userRole,
+    });
     await newUser.save();
 
-    // Fetch a default subscription plan
-    const defaultPlan = await SubscriptionPlan.findById("679d0f8785aadfd7e3ab97d8"); // Change this to find a specific plan if needed
+    // Fetch a default subscription plan.
+    const defaultPlan = await SubscriptionPlan.findById("679d0f8785aadfd7e3ab97d8");
     if (!defaultPlan) {
       return res.status(500).json({ message: "No subscription plan found." });
     }
 
-    // Create a subscription for the user
+    // Create a subscription for the user.
     const newSubscription = new Subscription({
       userId: newUser._id,
       planId: defaultPlan._id,
       subscriptionDate: new Date(),
     });
-
     await newSubscription.save();
 
-    return res.status(201).json({ message: "Signup successful and subscription created.", userId: newUser._id, subscriptionId: newSubscription._id });
+    return res.status(201).json({
+      message: "Signup successful and subscription created.",
+      userId: newUser._id,
+      subscriptionId: newSubscription._id,
+    });
   } catch (error) {
     console.error("Error during signup:", error);
     res.status(500).json({ message: "Internal server error." });
@@ -234,14 +260,14 @@ exports.getUserInfo = async (req, res) => {
         ...user.toObject(),
         subscription: subscription
           ? {
-              subscriptionId: subscription._id,
-              planId: subscription.planId._id,
-              planName: subscription.planId.name,
-              duration: subscription.planId.Duration,
-              price: subscription.planId.price,
-              subscriptionDate: subscription.subscriptionDate,
-              renewalDate: subscription.renewalDate,
-            }
+            subscriptionId: subscription._id,
+            planId: subscription.planId._id,
+            planName: subscription.planId.name,
+            duration: subscription.planId.Duration,
+            price: subscription.planId.price,
+            subscriptionDate: subscription.subscriptionDate,
+            renewalDate: subscription.renewalDate,
+          }
           : null, // If user has no subscription, return null
       };
 
@@ -296,32 +322,32 @@ exports.UpdateUserInfo = async (req, res) => {
     const { id } = req.user;
     const updateData = {};
     const allowedFields = ["username", "email", "address", "phone", "dateOfBirth", "image"];
-    
+
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
       }
     });
-    
+
     // If no data to update and no planId provided, return error
     if (Object.keys(updateData).length === 0 && !req.body.planId) {
       return res.status(400).json({ message: "No data provided for update." });
     }
-    
+
     if (updateData.username && updateData.username.length < 4) {
       return res.status(400).json({ message: "Username must be at least 4 characters long." });
     }
-    
+
     if (updateData.email) {
       const emailExists = await User.findOne({ email: updateData.email });
       if (emailExists && emailExists._id.toString() !== id) {
         return res.status(400).json({ message: "Email already exists." });
       }
     }
-    
+
     // Update user info
     const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true }).select("-password");
-    
+
     // Check if subscription update is requested
     if (req.body.planId) {
       const planId = req.body.planId;
@@ -329,10 +355,10 @@ exports.UpdateUserInfo = async (req, res) => {
       if (!mongoose.Types.ObjectId.isValid(planId)) {
         return res.status(400).json({ message: "Invalid plan ID format." });
       }
-      
+
       // Check if the user already has a subscription
       let subscription = await Subscription.findOne({ userId: id });
-      
+
       if (subscription) {
         // Update the subscription with the new planId and reset the subscriptionDate (renewalDate will be recalculated by pre-save hook)
         subscription.planId = planId;
@@ -348,7 +374,7 @@ exports.UpdateUserInfo = async (req, res) => {
         await subscription.save();
       }
     }
-    
+
     res.status(200).json({ message: "Profile updated successfully.", updatedUser });
   } catch (error) {
     console.error("Error updating profile:", error);

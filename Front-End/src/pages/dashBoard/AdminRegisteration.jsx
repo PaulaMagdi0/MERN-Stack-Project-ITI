@@ -50,7 +50,7 @@ const SignUpForm = () => {
   return (
     <SignUpContainer>
       <SignUpSection>
-        <SignUpTitle>SIGN UP</SignUpTitle>
+        <SignUpTitle>Registeration</SignUpTitle>
         <Formik
           initialValues={initialValues}
           validationSchema={SignUpValidation}
@@ -117,106 +117,122 @@ const SignUpForm = () => {
   );
 };
 
-// Styled Components
+const BREAKPOINTS = {
+  mobile: "480px",
+  tablet: "768px",
+  laptop: "1024px",
+}
+
 const SignUpContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f7f7f7;
-`;
+  background-color: #f8f9fd;
+`
 
 const SignUpSection = styled.section`
   width: 100%;
   max-width: 800px;
   padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-`;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: ${BREAKPOINTS.tablet}) {
+    padding: 1.5rem;
+  }
+`
 
 const SignUpTitle = styled.h1`
   text-align: center;
   margin-bottom: 2rem;
-  color: #333;
-`;
+  color: #1e293b;
+  font-size: 1.75rem;
+  font-weight: 600;
+`
 
 const StyledForm = styled(Form)`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-`;
+`
 
 const FormRow = styled.div`
   display: flex;
   gap: 1rem;
-  @media (max-width: 768px) {
+  @media (max-width: ${BREAKPOINTS.tablet}) {
     flex-direction: column;
   }
-`;
+`
 
 const FormGroup = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-`;
+  gap: 0.5rem;
+`
 
 const FormLabel = styled.label`
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #555;
-`;
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  svg {
+    color: #3498db;
+  }
+`
 
 const FormInput = styled(Field)`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  &:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-`;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
 
-// const FormSelect = styled(Field)`
-//   width: 100%;
-//   padding: 0.75rem;
-//   border: 1px solid #ddd;
-//   border-radius: 4px;
-//   font-size: 1rem;
-//   appearance: none;
-//   background: white url("data:image/svg+xml;utf8,<svg fill='gray' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") no-repeat right 0.75rem center;
-//   background-size: 1rem;
-//   transition: border-color 0.2s;
-//   &:focus {
-//     border-color: #007bff;
-//     outline: none;
-//   }
-// `;
+  &:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+`
 
 const ErrorMessage = styled.small`
-  color: #dc3545;
+  color: #ef4444;
+  font-size: 0.75rem;
   margin-top: 0.25rem;
-`;
+`
 
 const SubmitButton = styled.button`
-  padding: 0.75rem 1.25rem;
-  background-color: #007bff;
-  color: #fff;
+  padding: 1rem;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
-  &:hover {
-    background-color: #0056b3;
-  }
-  &:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-  }
-`;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
 
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+`
 export default SignUpForm;
