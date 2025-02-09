@@ -228,6 +228,7 @@ exports.deleteGenre = async (req, res) => {
 // }
 
 // Search For Genre And Get All Books that Match The Genres with Pagination
+
 exports.BooksByGenre = async (req, res) => {
     try {
         // 1. Get and validate genre ID
@@ -256,9 +257,16 @@ exports.BooksByGenre = async (req, res) => {
             });
         }
 
-        // 3. Parse pagination parameters
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        // 3. Parse pagination parameters with validation
+        let page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+
+        if (page <= 0 || limit <= 0) {
+            return res.status(400).json({
+                code: "INVALID_PAGINATION",
+                message: "Page and limit must be positive integers"
+            });
+        }
 
         // 4. Calculate the skip value
         const skip = (page - 1) * limit;
@@ -305,6 +313,8 @@ exports.BooksByGenre = async (req, res) => {
         
     } catch (err) {
         console.error("Genre Books Error:", err);
+        
+        // In production, you may want to send the error to a logging service like Sentry
         res.status(500).json({
             code: "SERVER_ERROR",
             message: "Failed to retrieve genre books",
