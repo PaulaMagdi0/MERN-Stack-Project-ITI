@@ -328,7 +328,7 @@ exports.GenreForBook = async (req, res) => {
     try {
         // Get genre ID from request parameters (more RESTful than query string)
         const {bookID} = req.params;
-        console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
+        // console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
         // Genre
         // Validate genre ID format
         if (!bookID) {
