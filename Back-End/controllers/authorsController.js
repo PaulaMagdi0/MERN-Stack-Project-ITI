@@ -7,7 +7,6 @@ const AuthorGenre = require('../models/authorGenre');
 const Genre = require('../models/genre');
 
 
-
 exports.createAuthor = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -16,8 +15,23 @@ exports.createAuthor = async (req, res) => {
 
   try {
     // Destructure the form data
-    const { name, biography, birthYear, deathYear, nationality, genres } = req.body;
+    let { name, biography, birthYear, deathYear, nationality, genres } = req.body;
     console.log("Request body:", { name, biography, birthYear, deathYear, nationality, genres });
+
+    // If genres is a string, parse it into an array of strings
+    if (typeof genres === "string") {
+      try {
+        const parsed = JSON.parse(genres);
+        if (Array.isArray(parsed)) {
+          genres = parsed;
+        } else {
+          genres = genres.split(",").map(s => s.trim());
+        }
+      } catch (err) {
+        // If JSON.parse fails, assume it's comma-separated
+        genres = genres.split(",").map(s => s.trim());
+      }
+    }
 
     // Validate required fields
     if (!name || !biography || !birthYear || !nationality) {
