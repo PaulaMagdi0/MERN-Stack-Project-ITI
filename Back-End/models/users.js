@@ -1,21 +1,21 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-// Define the Wishlist Schema for storing book references and state
+// Define Wishlist Schema
 const wishlistSchema = new Schema({
   book: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Book', // Reference to the Book model
-    required: true
+    ref: "Book",
+    required: true,
   },
   state: {
     type: String,
-    enum: ["Read", "Want to read", "Currently Reading"], // Valid states for wishlist
-    default: "Want to read"
-  }
-}, { _id: false }); // Disable auto-generating _id for each wishlist item (optional)
+    enum: ["Read", "Want to read", "Currently Reading"],
+    default: "Want to read",
+  },
+}, { _id: false });
 
-// Define the User Schema
+// Define User Schema
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address'],
+    match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Please enter a valid email address"],
   },
   password: {
     type: String,
@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: String,
     required: true,
-    match: [/^(\+?\d{1,3}[- ]?)?\(?\d{2,3}\)?[- ]?\d{3}[- ]?\d{4}$/, 'Please enter a valid phone number']
+    match: [/^(\+?\d{1,3}[- ]?)?\(?\d{2,3}\)?[- ]?\d{3}[- ]?\d{4}$/, "Please enter a valid phone number"],
   },
   dateOfBirth: {
     type: Date,
@@ -53,23 +53,37 @@ const userSchema = new mongoose.Schema({
         const age = today.getFullYear() - birthDate.getFullYear();
         return age >= minAge;
       },
-      message: 'User must be at least 13 years old',
+      message: "User must be at least 13 years old",
     },
   },
   image: {
     type: String,
-    default: "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"
+    default: "https://cdn-icons-png.flaticon.com/128/3177/3177440.png",
   },
   role: {
     type: String,
     default: "user",
-    enum: ["user", "admin"]
+    enum: ["user", "admin"],
   },
-  // New wishlist field: an array of objects with book reference and state
-  wishlist: [wishlistSchema] // Array of Wishlist objects
+  wishlist: [wishlistSchema], // Wishlist array
+
+  // Subscription fields
+  subscription: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SubscriptionPlan",
+    default: null, // No plan by default
+  },
+  subscriptionStartDate: {
+    type: Date,
+    default: null,
+  },
+  subscriptionEndDate: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 module.exports = User;
 
 // // models/User.js

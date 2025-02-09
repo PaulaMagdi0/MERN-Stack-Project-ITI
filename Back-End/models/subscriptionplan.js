@@ -1,19 +1,28 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const SubscriptionPlanSchema = new Schema({
-    Plan_name: {
+    planName: {
         type: String,
-        required: true
+        required: true,
+        unique: true, // Plan names should be unique (e.g., "Default", "Premium")
     },
-    Duration: {
+    duration: {
         type: Number,
-        required: true
+        required: true,
     },
-    Price: {
+    price: {
         type: Number,
-        required: true
-    }
-})
+        required: true,
+    },
+    description: {
+        type: String,
+        default: "",
+    },
+    pageLimit: {
+        type: Number,
+        default: null, // Null means unlimited pages
+    },
+}, { timestamps: true });
 
 module.exports = mongoose.model("SubscriptionPlan", SubscriptionPlanSchema);
