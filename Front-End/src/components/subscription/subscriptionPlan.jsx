@@ -1,7 +1,7 @@
-// src/components/subscription/subscriptionPlan.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './subscription.css'; 
 
 const SubscriptionPlans = () => {
   const [plans, setPlans] = useState([]);
@@ -12,7 +12,9 @@ const SubscriptionPlans = () => {
   useEffect(() => {
     axios.get('http://localhost:5000/subscriptionsPlan')
       .then(response => {
-        setPlans(response.data);
+        // Filter out invalid plans (e.g., the default plan with Price 0)
+        const validPlans = response.data.filter(plan => plan.Price > 0);
+        setPlans(validPlans);
         setLoading(false);
       })
       .catch(err => {
@@ -23,27 +25,39 @@ const SubscriptionPlans = () => {
   }, []);
 
   const handleSelectPlan = (plan) => {
-    // Navigate to the Payment page and pass selected plan details.
-    navigate('/payment', { state: { planId: plan._id, amount: plan.amount, currency: plan.currency || 'usd' } });
+    navigate('/payment', { 
+      state: { 
+        planId: plan._id, 
+        amount: plan.Price, 
+        name: plan.Plan_name, 
+        duration: plan.Duration 
+      } 
+    });
   };
 
   if (loading) return <p>Loading subscription plans...</p>;
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
-      <h1>Select Your Subscription Plan</h1>
-      {plans.map(plan => (
-        <div key={plan._id}>
-          <h2>{plan.name}</h2>
-          <p>{plan.description}</p>
-          <p>
-            Price: <strong>${(plan.amount / 100).toFixed(2)}</strong>{' '}
-            {plan.currency ? plan.currency.toUpperCase() : 'USD'}
-          </p>
-          <button onClick={() => handleSelectPlan(plan)}>Subscribe</button>
-        </div>
-      ))}
+    <div className="subscription-container">
+      <h1 className="subscription-heading">Select Your Subscription Plan</h1>
+      <div className="subscription-grid">
+        {plans.map(plan => (
+          <div key={plan._id} className="subscription-card">
+            <h2 className="subscription-name">{plan.Plan_name}</h2>
+            <p className="subscription-duration">Duration: {plan.Duration} months</p>
+            <p className="subscription-price">
+              Price: <strong>${(plan.Price / 100).toFixed(2)}</strong> USD
+            </p>
+            <button 
+              className="subscription-button" 
+              onClick={() => handleSelectPlan(plan)}
+            >
+              Subscribe
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import footer2 from "../../assets/168d92421719112eaf957994f237a20e-removebg-prev
 import "./Footer.css";
 
 const Footer = () => {
+
   return (
     <footer className="footer-07">
       <div className="container">
@@ -16,10 +17,10 @@ const Footer = () => {
             </h2>
 
             <p className="menu my-4">
-              <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Home</Link>
-              <Link to="/subscription-plans" className={({ isActive }) => isActive ? "active-link" : ""}>Subscription</Link>
-              <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>About</Link>
-              <Link to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Contact</Link>
+            <NavLink to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Home</NavLink>
+            <NavLink to="/subscription-plans" className={({ isActive }) => isActive ? "active-link" : ""}>Subscription</NavLink>
+            <NavLink to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>About</NavLink>
+            <NavLink to="https://www.google.co.uk/?pli=1" className={({ isActive }) => isActive ? "active-link" : ""}>Contact</NavLink>
             </p>
             <ul className="ftco-footer-social p-0">
               <li className="ftco-animate">
