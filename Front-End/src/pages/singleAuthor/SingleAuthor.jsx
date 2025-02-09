@@ -21,7 +21,7 @@ const SingleAuthorPage = () => {
       console.log(state.authorRating);
       
       return state.authorRating});
-    const { user } = useSelector((state) => state.auth);
+    const { user } = useSelector((state) => state.auth || null);
     console.log(userAuthorRating);
     
     useEffect(() => {
