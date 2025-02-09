@@ -236,31 +236,33 @@ const ManageBooks = () => {
         }
     };
     
-    const handleDeleteAuthor = async () => {
-        if (!selectedAuthor?._id) {
-          console.error("❌ No author selected for deletion");
-          return;
+const handleDeleteBook = async () => {
+        if (!selectedBook?._id) {
+            console.error("No book selected for deletion");
+            return;
         }
-      
+
         try {
-          const response = await fetch(`${API_URL}/authors/delete-Author/${selectedAuthor._id}`, {
-            method: "DELETE",
-          });
-      
-          if (!response.ok) {
-            const errorMessage = await response.text();
-            throw new Error(`Failed to delete author: ${errorMessage || response.statusText}`);
-          }
-      
-          console.log("✅ Author deleted successfully");
-          fetchAuthors();
-          setSelectedAuthor(null);
-          setAction("");
+            const response = await fetch(`${API_URL}/books/delete-book/${selectedBook._id}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Error response:", errorText);
+                return;
+            }
+
+            const data = await response.json();
+            console.log("Book deleted:", data);
+
+            fetchBooks();
+            setSelectedBook(null);
         } catch (error) {
-          console.error("❌ Error deleting author:", error.message);
+            console.error("Error deleting book:", error);
         }
-      };
-      
+    };
+
     const bookSchema = Yup.object().shape({
         title: Yup.string().required("Title is required"),
         author_id: Yup.string().required("Author is required"),
