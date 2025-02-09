@@ -360,16 +360,33 @@ exports.deleteAuthor = async (req, res) => {
 //     }
 // }
 
-
 exports.updateAuthorGenre = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     
     try {
         const { authorID } = req.params;
-        const { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
+        let { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
         console.log("req.file:", req.file);
-        
+
+        // Parse genreIds if it is sent as a string instead of an array.
+        if (typeof genreIds === "string") {
+            try {
+                // Attempt to parse it as JSON
+                const parsed = JSON.parse(genreIds);
+                if (Array.isArray(parsed)) {
+                    genreIds = parsed;
+                } else {
+                    // If the parsed value is not an array, fallback to splitting by comma
+                    genreIds = genreIds.split(",").map(s => s.trim());
+                }
+            } catch (err) {
+                // If JSON.parse fails, assume a comma-separated list
+                genreIds = genreIds.split(",").map(s => s.trim());
+            }
+        }
+        console.log("Parsed genreIds:", genreIds);
+
         // 1. Validate Author ID format
         if (!mongoose.Types.ObjectId.isValid(authorID)) {
             return res.status(400).json({ 
@@ -427,7 +444,7 @@ exports.updateAuthorGenre = async (req, res) => {
 
         // 5. Handle Genre Updates
         if (typeof genreIds !== 'undefined') {
-            // If there are genres provided, validate their IDs
+            // If there are genres provided, validate that they exist in the database
             if (genreIds.length > 0) {
                 const validGenresCount = await Genre.countDocuments({ 
                     _id: { $in: genreIds } 
@@ -449,7 +466,7 @@ exports.updateAuthorGenre = async (req, res) => {
             if (genreIds.length > 0) {
                 const newRelations = genreIds.map(genreId => ({
                     author_id: authorID,
-                    genre_id: genreId
+                    genre_id: genreId // Already a string; mongoose will cast it if needed.
                 }));
                 
                 await AuthorGenre.insertMany(newRelations, { session });
