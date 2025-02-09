@@ -2,13 +2,33 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const authorSchema = new Schema({
-        name: { type: String, required: true },
-        biography: { type: String, required: true },
-        birthYear: { type: String, required: true },
-        deathYear: { type: String, required: false },
-        image: { type: Buffer, required: true },
-        nationality: { type: String, required: true },
-})
+  name: {
+    type: String,
+    required: true
+  },
+  biography: {
+    type: String,
+    required: true
+  },
+  birthYear: {
+    type: Number,
+    required: true
+  },
+  nationality: {
+    type: String,
+    required: true
+  },
+  deathYear: {
+    type: Number,
+    default: null
+  },
+  image: {
+    type: String,
+    required: false,  // Image field is no longer required
+    default: null
+  }
+});
 
-// module.exports = authorSchema
-module.exports = mongoose.model("Author", authorSchema);
+const Author = mongoose.model('Author', authorSchema);
+
+module.exports = Author;

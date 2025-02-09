@@ -1,12 +1,12 @@
+require("dotenv").config(); // Load environment variables
+const mongoose = require('mongoose');
+const fs = require('fs');
+const cloudinary = require('../config/cloudinaryConfig'); // Cloudinary config
 const Book = require("../models/books");
 const BookGenre = require("../models/bookgenre");
 const Genre = require("../models/genre");
-const mongoose = require('mongoose');
 // const { Book, Genre, BookGenre } = require('../models'); // Import your models
 // const cloudinary = require('../config/cloudinaryConfig'); // Cloudinary configuration
-require("dotenv").config(); // Load environment variables
-const fs = require('fs');
-const cloudinary = require('../config/cloudinaryConfig'); // Cloudinary config
 
 
 // cloudinary.config({

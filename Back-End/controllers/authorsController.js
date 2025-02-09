@@ -1,12 +1,12 @@
 require("dotenv").config(); // Load environment variables
 const mongoose = require('mongoose');
+const fs = require('fs');
+const cloudinary = require('../config/cloudinaryConfig'); // Cloudinary config
 const Author = require('../models/authors');
 const AuthorGenre = require('../models/authorGenre');
 const Genre = require('../models/genre');
-const fs = require('fs');
-const cloudinary = require('../config/cloudinaryConfig'); // Cloudinary config
 
-// Post Author With Image And At least 1 genre
+
 exports.createAuthor = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -14,97 +14,113 @@ exports.createAuthor = async (req, res) => {
     let imageUrl = null;
 
     try {
-        const { name, biography, birthYear, deathYear, nationality, genreIds } = req.body;
+        // Destructure the form data
+        let { name, biography, birthYear, deathYear, nationality, genres } = req.body;
 
-        console.log('Received data:', { name, biography, birthYear, deathYear, nationality, genreIds });
+        console.log('Request body:', { name, biography, birthYear, deathYear, nationality, genres });
 
-        // Ensure at least one genre is provided
-        if (!genreIds || !Array.isArray(genreIds) || genreIds.length === 0) {
-            return res.status(400).json({ message: "At least one genre must be added" });
+        // Validate required fields
+        if (!name || !biography || !birthYear || !nationality) {
+            return res.status(400).json({
+                message: "Missing required fields"
+            });
+        }
+
+        // Ensure genres is an array and at least one genre is provided
+        if (!genres || !Array.isArray(genres) || genres.length === 0) {
+            return res.status(400).json({
+                message: "At least one genre must be added"
+            });
         }
 
         // Validate that all genre IDs are valid ObjectId strings
-        const isValidGenreIds = genreIds.every(genreId => mongoose.Types.ObjectId.isValid(genreId));
+        const isValidGenreIds = genres.every(genreId => mongoose.Types.ObjectId.isValid(genreId));
         if (!isValidGenreIds) {
-            return res.status(400).json({ message: "One or more genre IDs are invalid" });
+            return res.status(400).json({
+                message: "One or more genre IDs are invalid"
+            });
         }
 
-        // Create the author document without the image initially
+        // Create the author document
         const newAuthor = new Author({
             name,
             biography,
             birthYear,
-            deathYear,
-            image: imageUrl,  // Initially no image
+            deathYear: deathYear || null,
+            image: imageUrl,
             nationality,
         });
 
-        // Save the author in the database first
+        // Save the author
         await newAuthor.save({ session });
-
-        // Handle image upload if there's a file
-        if (req.file) {
-            // Upload the image to Cloudinary
-            const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
-                folder: "goodreads-images",
-                public_id: `author-${Date.now()}-${req.file.originalname}`,
-            });
-
-            // Get the URL of the uploaded image
-            imageUrl = cloudinaryResponse.secure_url;
-
-            // Update the author with the image URL
-            newAuthor.image = imageUrl;
-            await newAuthor.save({ session });
-
-            // Delete the local image file after uploading to Cloudinary
-            fs.unlink(req.file.path, (err) => {
-                if (err) {
-                    console.error("Error deleting local file:", err);
-                } else {
-                    console.log("Local image file deleted successfully");
-                }
-            });
-        }
-
         console.log('New author ID:', newAuthor._id);
 
-        // Validate and associate genres
-        // Ensure the genres exist in the database
-        const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
+        // Handle image upload if provided
+        if (req.file) {
+            try {
+                const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
+                    folder: "goodreads-images",
+                    public_id: `author-${Date.now()}-${req.file.originalname}`,
+                });
 
-        console.log('Found genres:', validGenres);
+                imageUrl = cloudinaryResponse.secure_url;
+                newAuthor.image = imageUrl;
+                await newAuthor.save({ session });
 
-        // Check if all provided genres are valid
-        if (validGenres.length !== genreIds.length) {
-            await session.abortTransaction();
-            return res.status(400).json({ message: "One or more genres are invalid" });
+                // Clean up local file
+                fs.unlink(req.file.path, (err) => {
+                    if (err) console.error("Error deleting local file:", err);
+                });
+            } catch (uploadError) {
+                console.error("Error uploading to Cloudinary:", uploadError);
+                await session.abortTransaction();  // Rollback transaction if image upload fails
+                return res.status(500).json({
+                    message: "Failed to upload image",
+                    error: process.env.NODE_ENV === "development" ? uploadError.message : undefined,
+                });
+            }
         }
 
-        // Add the author-genre relationships in the AuthorGenre collection
-        const newRelations = genreIds.map(genreId => ({
-            author_id: newAuthor._id, // Ensure this is an ObjectId
-            genre_id: new mongoose.Types.ObjectId(genreId), // Convert string to ObjectId
+        // Validate genres exist in database
+        const validGenres = await Genre.find({
+            _id: { $in: genres }
+        }).session(session);
+
+        const invalidGenres = genres.filter(genreId => !validGenres.some(genre => genre._id.toString() === genreId));
+        if (invalidGenres.length > 0) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: `Invalid genres: ${invalidGenres.join(", ")}`
+            });
+        }
+
+        // Create author-genre relationships
+        const newRelations = genres.map(genreId => ({
+            author_id: newAuthor._id,
+            genre_id: new mongoose.Types.ObjectId(genreId),
         }));
 
-        console.log('New genre relations:', newRelations);
-
-        // Insert the author-genre relationships
         await AuthorGenre.insertMany(newRelations, { session });
 
-        // Commit the transaction if everything is successful
+        // Commit the transaction
         await session.commitTransaction();
 
+        // Get complete author details with genres populated
         const authorWithDetails = await Author.findById(newAuthor._id);
-        const authorGenresPopulated = await AuthorGenre.find({ author_id: newAuthor._id }).populate("genre_id");
+        const authorGenresPopulated = await AuthorGenre.find({
+            author_id: newAuthor._id
+        }).populate("genre_id");
 
-        res.status(201).json({ author: authorWithDetails, message: "Author added successfully", authorGenresPopulated });
+        res.status(201).json({
+            author: authorWithDetails,
+            message: "Author added successfully",
+            authorGenresPopulated,
+        });
 
     } catch (error) {
-        // If any error occurs, abort the transaction
         await session.abortTransaction();
 
-        // If the image was uploaded, delete the local image
+        // Clean up uploaded file if exists
         if (req.file) {
             fs.unlink(req.file.path, (err) => {
                 if (err) console.error("Error deleting local file:", err);
@@ -114,12 +130,14 @@ exports.createAuthor = async (req, res) => {
         console.error("Error adding author:", error);
         res.status(500).json({
             message: "Error adding author",
-            error: process.env.NODE_ENV === "development" ? error.message : undefined,
+            error: process.env.NODE_ENV === "development" ? error.stack : "Internal server error",
         });
     } finally {
         session.endSession();
     }
 };
+
+
 
 
 
@@ -144,19 +162,19 @@ exports.getAuthors = async (req, res) => {
     }
 };
 
-// Get Author by ID
-exports.getAuthorsByID = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const author = await Author.findById(id).exec();
-        if (!author) {
-            return res.status(404).json({ message: "Author not found" });
-        }
-        res.json(author);
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
+// // Get Author by ID
+// exports.getAuthorsByID = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const author = await Author.findById(id).exec();
+//         if (!author) {
+//             return res.status(404).json({ message: "Author not found" });
+//         }
+//         res.json(author);
+//     } catch (error) {
+//         res.status(500).json({ message: "Server error" });
+//     }
+// };
 
 // Get Author by Name
 exports.getAuthorsByName = async (req, res) => {

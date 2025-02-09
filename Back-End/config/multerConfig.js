@@ -1,7 +1,7 @@
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const cloudinary = require('../config/cloudinaryConfig'); // Assuming Cloudinary is correctly configured
+const cloudinary = require('./cloudinaryConfig'); // Assuming Cloudinary is correctly configured
 
 // Ensure "uploads" directory exists
 const uploadDir = path.join(__dirname, "../uploads");
@@ -21,4 +21,5 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Middleware for handling file uploads
 module.exports = upload;

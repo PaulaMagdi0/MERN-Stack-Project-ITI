@@ -42,8 +42,9 @@ app.use(cors(corsOptions));
 
 // Your other routes and middleware here
 
-app.use(express.json()); // Built-in body parser
-
+// Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 
