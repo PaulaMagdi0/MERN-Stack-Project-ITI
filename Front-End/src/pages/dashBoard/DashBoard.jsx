@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { Formik, Form } from "formik"
-import * as Yup from "yup"
+import { Form } from "formik"
+// import * as Yup from "yup"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,10 +16,11 @@ import {
 } from "chart.js"
 import { Bar, Pie, Line } from "react-chartjs-2"
 import styled, { keyframes } from "styled-components"
-import { FaBook, FaUser, FaStar, FaChartBar, FaEnvelope, FaLock, FaUserShield } from "react-icons/fa"
+import { FaBook, FaUser, FaStar, FaChartBar, FaUserShield } from "react-icons/fa"
 import PropTypes from "prop-types"
 import ManageBooks from "./ManageBooks"
 import ManageAuthors from "./ManageAuthors"
+import SignUpForm from "./AdminRegisteration";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
 
 ChartJS.register(
@@ -706,128 +707,131 @@ ChartsSection.propTypes = {
 }
 
 // Admin Registration Schema
-const AdminRegistrationSchema = Yup.object().shape({
-  username: Yup.string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be less than 20 characters")
-    .required("Username is required"),
-  email: Yup.string().email("Invalid email address").required("Email is required"),
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      "Must contain uppercase, lowercase, number and special character",
-    )
-    .required("Password is required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Passwords must match")
-    .required("Confirm password is required"),
-  role: Yup.string().oneOf(["admin"], "Invalid role selected").required("Role is required"),
-})
+// const AdminRegistrationSchema = Yup.object().shape({
+//   username: Yup.string()
+//     .min(3, "Username must be at least 3 characters")
+//     .max(20, "Username must be less than 20 characters")
+//     .required("Username is required"),
+//   email: Yup.string().email("Invalid email address").required("Email is required"),
+//   password: Yup.string()
+//     .min(8, "Password must be at least 8 characters")
+//     .matches(
+//       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+//       "Must contain uppercase, lowercase, number and special character",
+//     )
+//     .required("Password is required"),
+//   confirmPassword: Yup.string()
+//     .oneOf([Yup.ref("password"), null], "Passwords must match")
+//     .required("Confirm password is required"),
+//   role: Yup.string().oneOf(["admin"], "Invalid role selected").required("Role is required"),
+// })
+
 
 const AdminRegistrationSection = () => {
-  const initialValues = {
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "admin",
-  }
+//   const initialValues = {
+//     username: "",
+//     email: "",
+//     password: "",
+//     confirmPassword: "",
+//     role: "admin",
+//   }
 
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Form submitted:", values)
-      resetForm()
-      alert("Registration successful!")
-    } catch (error) {
-      console.error("Registration error:", error)
-      alert("Registration failed!")
-    } finally {
-      setSubmitting(false)
-    }
-  }
+//   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+//     try {
+//       // Simulate API call
+//       await new Promise((resolve) => setTimeout(resolve, 1000))
+//       console.log("Form submitted:", values)
+//       resetForm()
+//       alert("Registration successful!")
+//     } catch (error) {
+//       console.error("Registration error:", error)
+//       alert("Registration failed!")
+//     } finally {
+//       setSubmitting(false)
+//     }
+//   }
 
   return (
-    <Section>
-      <SectionTitle>Admin Registration</SectionTitle>
-      <FormContainer>
-        <Formik initialValues={initialValues} validationSchema={AdminRegistrationSchema} onSubmit={handleSubmit}>
-          {({ errors, touched, isSubmitting }) => (
-            <StyledForm>
-              <FormGroup>
-                <FormLabel>
-                  <FaUser />
-                  Username
-                </FormLabel>
-                <FormInput
-                  name="username"
-                  type="text"
-                  placeholder="Enter username"
-                  error={touched.username && errors.username}
-                />
-                {touched.username && errors.username && <ErrorMessage>{errors.username}</ErrorMessage>}
-              </FormGroup>
+//     <Section>
+//       <SectionTitle>Admin Registration</SectionTitle>
+//       <FormContainer>
+//         <Formik initialValues={initialValues} validationSchema={AdminRegistrationSchema} onSubmit={handleSubmit}>
+//           {({ errors, touched, isSubmitting }) => (
+//             <StyledForm>
+//               <FormGroup>
+//                 <FormLabel>
+//                   <FaUser />
+//                   Username
+//                 </FormLabel>
+//                 <FormInput
+//                   name="username"
+//                   type="text"
+//                   placeholder="Enter username"
+//                   error={touched.username && errors.username}
+//                 />
+//                 {touched.username && errors.username && <ErrorMessage>{errors.username}</ErrorMessage>}
+//               </FormGroup>
 
-              <FormGroup>
-                <FormLabel>
-                  <FaEnvelope />
-                  Email
-                </FormLabel>
-                <FormInput name="email" type="email" placeholder="Enter email" error={touched.email && errors.email} />
-                {touched.email && errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
-              </FormGroup>
+//               <FormGroup>
+//                 <FormLabel>
+//                   <FaEnvelope />
+//                   Email
+//                 </FormLabel>
+//                 <FormInput name="email" type="email" placeholder="Enter email" error={touched.email && errors.email} />
+//                 {touched.email && errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+//               </FormGroup>
 
-              <FormGroup>
-                <FormLabel>
-                  <FaLock />
-                  Password
-                </FormLabel>
-                <FormInput
-                  name="password"
-                  type="password"
-                  placeholder="Enter password"
-                  error={touched.password && errors.password}
-                />
-                {touched.password && errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
-              </FormGroup>
+//               <FormGroup>
+//                 <FormLabel>
+//                   <FaLock />
+//                   Password
+//                 </FormLabel>
+//                 <FormInput
+//                   name="password"
+//                   type="password"
+//                   placeholder="Enter password"
+//                   error={touched.password && errors.password}
+//                 />
+//                 {touched.password && errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+//               </FormGroup>
 
-              <FormGroup>
-                <FormLabel>
-                  <FaLock />
-                  Confirm Password
-                </FormLabel>
-                <FormInput
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Confirm password"
-                  error={touched.confirmPassword && errors.confirmPassword}
-                />
-                {touched.confirmPassword && errors.confirmPassword && (
-                  <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
-                )}
-              </FormGroup>
+//               <FormGroup>
+//                 <FormLabel>
+//                   <FaLock />
+//                   Confirm Password
+//                 </FormLabel>
+//                 <FormInput
+//                   name="confirmPassword"
+//                   type="password"
+//                   placeholder="Confirm password"
+//                   error={touched.confirmPassword && errors.confirmPassword}
+//                 />
+//                 {touched.confirmPassword && errors.confirmPassword && (
+//                   <ErrorMessage>{errors.confirmPassword}</ErrorMessage>
+//                 )}
+//               </FormGroup>
 
-              <FormGroup>
-                <FormLabel>
-                  <FaUserShield />
-                  Role
-                </FormLabel>
-                <FormSelect name="role" error={touched.role && errors.role}>
-                  <option value="admin">Admin</option>
-                </FormSelect>
-                {touched.role && errors.role && <ErrorMessage>{errors.role}</ErrorMessage>}
-              </FormGroup>
+//               <FormGroup>
+//                 <FormLabel>
+//                   <FaUserShield />
+//                   Role
+//                 </FormLabel>
+//                 <FormSelect name="role" error={touched.role && errors.role}>
+//                   <option value="admin">Admin</option>
+//                 </FormSelect>
+//                 {touched.role && errors.role && <ErrorMessage>{errors.role}</ErrorMessage>}
+//               </FormGroup>
 
-              <SubmitButton type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Registering..." : "Register Admin"}
-              </SubmitButton>
-            </StyledForm>
-          )}
-        </Formik>
-      </FormContainer>
-    </Section>
+//               <SubmitButton type="submit" disabled={isSubmitting}>
+//                 {isSubmitting ? "Registering..." : "Register Admin"}
+//               </SubmitButton>
+//             </StyledForm>
+//           )}
+//         </Formik>
+//       </FormContainer>
+//     </Section>
+<SignUpForm />
+
   )
 }
 
@@ -1153,27 +1157,6 @@ const FormInput = styled.input`
         border-color: ${(props) => (props.error ? "#ef4444" : "#3498db")};
         box-shadow: 0 0 0 3px ${(props) => (props.error ? "rgba(239, 68, 68, 0.1)" : "rgba(52, 152, 219, 0.1)")};
     }
-`
-
-const FormSelect = styled.select`
-    padding: 0.75rem 1rem;
-    border: 1px solid ${(props) => (props.error ? "#ef4444" : "#e2e8f0")};
-    border-radius: 8px;
-    font-size: 0.875rem;
-    transition: all 0.3s ease;
-    background-color: white;
-
-    &:focus {
-        outline: none;
-        border-color: ${(props) => (props.error ? "#ef4444" : "#3498db")};
-        box-shadow: 0 0 0 3px ${(props) => (props.error ? "rgba(239, 68, 68, 0.1)" : "rgba(52, 152, 219, 0.1)")};
-    }
-`
-
-const ErrorMessage = styled.div`
-    color: #ef4444;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
 `
 
 const SubmitButton = styled.button`
