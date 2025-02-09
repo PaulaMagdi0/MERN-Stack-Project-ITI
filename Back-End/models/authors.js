@@ -22,13 +22,9 @@ const authorSchema = new Schema({
     type: Number,
     default: null
   },
-  image: {
-    type: String,
-    required: false,  // Image field is no longer required
-    default: null
-  }
+  image: { type: String, required: false },
+
 });
 
-const Author = mongoose.model('Author', authorSchema);
 
-module.exports = Author;
+module.exports = mongoose.model("Author", authorSchema);
