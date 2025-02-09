@@ -151,18 +151,18 @@ exports.getAuthors = async (req, res) => {
         const perPage = 10;
         let totalItems;
         const [authors, count] = await Promise.all([
-                    Author.find()
-                        .skip((currentPage - 1) * perPage)
-                        .limit(perPage),
-                        Author.countDocuments()
-                ]);
-            
-                res.status(200).json({
-                    totalItems: count,
-                    currentPage: currentPage,
-                    totalPages: Math.ceil(count / perPage),
-                    authors: authors
-                });
+            Author.find()
+                .skip((currentPage - 1) * perPage)
+                .limit(perPage),
+            Author.countDocuments()
+        ]);
+
+        res.status(200).json({
+            totalItems: count,
+            currentPage: currentPage,
+            totalPages: Math.ceil(count / perPage),
+            authors: authors
+        });
     } catch (error) {
         res.status(500).json({ message: "Error fetching books" });
     }
@@ -187,7 +187,7 @@ exports.getAuthorsByName = async (req, res) => {
     try {
         const { name } = req.params;
         console.log(name);
-        
+
 
         if (!name) {
             return res.status(400).json({ message: "Title is required" });
@@ -218,7 +218,7 @@ exports.getAuthorsByName = async (req, res) => {
 //         res.status(500).json({ message: "Error adding book" });
 //     }
 // };
-        // Adjust path if needed
+// Adjust path if needed
 
 // exports.createAuthor = async (req, res) => {
 //   try {
@@ -255,7 +255,7 @@ exports.getAuthorsByName = async (req, res) => {
 //     try {
 //         const { authorID } = req.params;
 //         const deletedAuthor = await Book.findByIdAndDelete(authorID);
-        
+
 //         console.log(deletedAuthor);
 
 //         if (!deletedAuthor) {
@@ -272,15 +272,15 @@ exports.getAuthorsByName = async (req, res) => {
 exports.deleteAuthor = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const { authorID } = req.params;
 
         // 1. Validate ID format
         if (!mongoose.Types.ObjectId.isValid(authorID)) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "INVALID_ID",
-                message: "Invalid author ID format" 
+                message: "Invalid author ID format"
             });
         }
 
@@ -291,9 +291,9 @@ exports.deleteAuthor = async (req, res) => {
 
         if (!deletedAuthor) {
             await session.abortTransaction();
-            return res.status(404).json({ 
+            return res.status(404).json({
                 code: "AUTHOR_NOT_FOUND",
-                message: "Author not found" 
+                message: "Author not found"
             });
         }
 
@@ -318,7 +318,7 @@ exports.deleteAuthor = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error("Delete Author Error:", error);
-        
+
         if (error.name === 'CastError') {
             return res.status(400).json({
                 code: "INVALID_ID",
@@ -363,7 +363,7 @@ exports.deleteAuthor = async (req, res) => {
 exports.updateAuthorGenre = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const { authorID } = req.params;
         let { name, biography, birthYear, deathYear, image, nationality, genreIds } = req.body;
@@ -389,9 +389,9 @@ exports.updateAuthorGenre = async (req, res) => {
 
         // 1. Validate Author ID format
         if (!mongoose.Types.ObjectId.isValid(authorID)) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "INVALID_AUTHOR_ID",
-                message: "Invalid author ID format" 
+                message: "Invalid author ID format"
             });
         }
 
@@ -426,19 +426,19 @@ exports.updateAuthorGenre = async (req, res) => {
         const updatedAuthor = await Author.findByIdAndUpdate(
             authorID,
             { $set: updatePayload },
-            { 
+            {
                 new: true,
                 runValidators: true,
                 session,
                 context: 'query' // For proper handling of array validations
             }
         ).select('-__v'); // Exclude version key
-        
+
         if (!updatedAuthor) {
             await session.abortTransaction();
-            return res.status(404).json({ 
+            return res.status(404).json({
                 code: "AUTHOR_NOT_FOUND",
-                message: "Author not found" 
+                message: "Author not found"
             });
         }
 
@@ -446,10 +446,10 @@ exports.updateAuthorGenre = async (req, res) => {
         if (typeof genreIds !== 'undefined') {
             // If there are genres provided, validate that they exist in the database
             if (genreIds.length > 0) {
-                const validGenresCount = await Genre.countDocuments({ 
-                    _id: { $in: genreIds } 
+                const validGenresCount = await Genre.countDocuments({
+                    _id: { $in: genreIds }
                 }).session(session);
-                
+
                 if (validGenresCount !== genreIds.length) {
                     await session.abortTransaction();
                     return res.status(400).json({
@@ -468,7 +468,7 @@ exports.updateAuthorGenre = async (req, res) => {
                     author_id: authorID,
                     genre_id: genreId // Already a string; mongoose will cast it if needed.
                 }));
-                
+
                 await AuthorGenre.insertMany(newRelations, { session });
             }
         }
@@ -500,7 +500,7 @@ exports.updateAuthorGenre = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error("Author Update Error:", error);
-        
+
         // Handle duplicate key errors
         if (error.code === 11000) {
             return res.status(409).json({
@@ -515,7 +515,7 @@ exports.updateAuthorGenre = async (req, res) => {
                 field: err.path,
                 message: err.message
             }));
-            
+
             return res.status(400).json({
                 code: "VALIDATION_ERROR",
                 message: "Data validation failed",
