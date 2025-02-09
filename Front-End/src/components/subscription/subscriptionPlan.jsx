@@ -47,7 +47,7 @@ const SubscriptionPlans = () => {
             <h2 className="subscription-name">{plan.Plan_name}</h2>
             <p className="subscription-duration">Duration: {plan.Duration} months</p>
             <p className="subscription-price">
-              Price: <strong>${(plan.Price / 100).toFixed(2)}</strong> USD
+              Price: <strong>${(plan.Price ).toFixed(2)}</strong> USD
             </p>
             <button 
               className="subscription-button" 
