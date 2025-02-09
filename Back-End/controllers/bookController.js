@@ -393,19 +393,42 @@ exports.updateBook = async (req, res) => {
         const { title, content, description, author_id, releaseDate, genres } = req.body;
         let imageUrl = null;
 
-        // Validate Book ID
+        // Parse genres into an array of strings if necessary.
+        let genreIds;
+        if (typeof genres === "string") {
+            try {
+                // Attempt to parse as JSON
+                genreIds = JSON.parse(genres);
+                if (!Array.isArray(genreIds)) {
+                    // If parsed result is not an array, assume comma-separated list.
+                    genreIds = genres.split(",").map(s => s.trim());
+                }
+            } catch (err) {
+                // If JSON parsing fails, fallback to comma-separated string splitting.
+                genreIds = genres.split(",").map(s => s.trim());
+            }
+        } else if (Array.isArray(genres)) {
+            genreIds = genres;
+        } else {
+            genreIds = [];
+        }
+
+        console.log("Parsed genre IDs:", genreIds);
+        console.log("Type of genres:", typeof genres);
+
+        // 1. Validate Book ID format
         if (!mongoose.Types.ObjectId.isValid(bookID)) {
             return res.status(400).json({ message: "Invalid book ID format" });
         }
 
-        // Find existing book
+        // 2. Find existing book
         const existingBook = await Book.findById(bookID).session(session);
         if (!existingBook) {
             await session.abortTransaction();
             return res.status(404).json({ message: "Book not found" });
         }
 
-        // Upload new image if provided
+        // 3. Upload new image if provided, otherwise use existing image
         if (req.file) {
             const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
                 folder: "goodreads-images",
@@ -416,18 +439,30 @@ exports.updateBook = async (req, res) => {
             imageUrl = existingBook.image;
         }
 
-        // Update book details
+        // 4. Update book details
+        const updatePayload = {
+            title,
+            content,
+            description,
+            image: imageUrl,
+            author_id,
+            releaseDate
+        };
+
         const updatedBook = await Book.findByIdAndUpdate(
             bookID,
-            { title, content, description, image: imageUrl, author_id, releaseDate },
+            { $set: updatePayload },
             { new: true, runValidators: true, session }
         ).populate('author_id', 'name nationality');
 
-        // Handle Genre Updates
-        if (genres && Array.isArray(genres)) {
-            const genreIds = genres.map(g => (typeof g === "object" && g._id ? g._id : g));
+        if (!updatedBook) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Book not found after update" });
+        }
 
-            // Validate genre IDs
+        // 5. Handle Genre Updates if genres are provided
+        if (genreIds && Array.isArray(genreIds)) {
+            // Validate that all genre IDs exist
             const validGenres = await Genre.find({ _id: { $in: genreIds } }).session(session);
             if (validGenres.length !== genreIds.length) {
                 await session.abortTransaction();
@@ -437,21 +472,26 @@ exports.updateBook = async (req, res) => {
             // Remove existing genre associations
             await BookGenre.deleteMany({ book_id: bookID }).session(session);
 
-            // Add new genre associations
-            const newRelations = genreIds.map(genreId => ({
-                book_id: bookID,
-                genre_id: genreId
-            }));
-            await BookGenre.insertMany(newRelations, { session });
+            // Insert new genre associations if any
+            if (genreIds.length > 0) {
+                const newRelations = genreIds.map(genreId => ({
+                    book_id: bookID,
+                    genre_id: genreId
+                }));
+                await BookGenre.insertMany(newRelations, { session });
+            }
         }
 
+        // 6. Commit transaction
         await session.commitTransaction();
 
-        // Fetch updated genre data
+        // 7. Fetch updated genre data
         const updatedGenres = await BookGenre.find({ book_id: bookID })
             .populate("genre_id", "name")
-            .select("genre_id");
+            .select("genre_id")
+            .lean();
 
+        // 8. Send final response
         res.json({
             message: "Book updated successfully",
             book: updatedBook,
@@ -461,7 +501,6 @@ exports.updateBook = async (req, res) => {
     } catch (error) {
         await session.abortTransaction();
         console.error("Update Error:", error);
-
         res.status(500).json({
             message: "Server error during update",
             error: process.env.NODE_ENV === "development" ? error.message : undefined
