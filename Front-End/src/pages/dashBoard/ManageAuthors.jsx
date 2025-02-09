@@ -38,7 +38,7 @@ const ManageAuthors = () => {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch(`${API_URL}/authors?page=1`)
+      const response = await fetch(`${API_URL}/authorgenre?page=1`)
       const data = await response.json()
 
       if (!data || !data.authors || !Array.isArray(data.authors)) {
@@ -50,7 +50,7 @@ const ManageAuthors = () => {
       let currentPage = 2
 
       while (currentPage <= totalPages) {
-        const pageResponse = await fetch(`${API_URL}/authors?page=${currentPage}`)
+        const pageResponse = await fetch(`${API_URL}/authorgenre?page=${currentPage}`)
         const pageData = await pageResponse.json()
 
         if (pageData && Array.isArray(pageData.authors)) {
@@ -93,7 +93,7 @@ const ManageAuthors = () => {
       console.log("🚀 ~ handleAddAuthor ~ values:", values)
 
       const response = await fetch(`${API_URL}/authors/add-author`, {
-      const response = await fetch(`${API_URL}/authors/add-author`, {
+      // const response = await fetch(`${API_URL}/authors/add-author`, {
         method: "POST",
         body: formData,
       })
@@ -137,6 +137,7 @@ const ManageAuthors = () => {
       if (values.image instanceof File) {
         formData.append("image", values.image)
       }
+      console.log("🚀 ~ handleEditAuthor ~ values:", values)
 
       const response = await fetch(`${API_URL}/authors/edit-author/${selectedAuthor._id}`, {
         method: "PUT",
@@ -461,7 +462,7 @@ const ManageAuthors = () => {
                     nationality: selectedAuthor?.nationality || "",
                     deathYear: selectedAuthor?.deathYear || "",
                     image: selectedAuthor?.image || null,
-                    genres: selectedAuthor?.genres?.map((g) => g._id) || [],
+                    genres: selectedAuthor?.genres.map((g) => g._id) || [],
                   }}
                   enableReinitialize
                   validationSchema={authorSchema}
@@ -581,6 +582,7 @@ const ManageAuthors = () => {
                                       setFieldValue("genres", updatedGenres)
                                     }}
                                   >
+                                    {console.log("genres = ", selectedAuthor, "genreID = ", values.genres)}
                                     {genre.name}
                                   </span>
                                 ))}
@@ -758,21 +760,27 @@ const spinAnimation = keyframes`
 `
 
 const LoadingSpinner = styled(FaSpinner)`
-    animation: ${spinAnimation} 1s linear infinite;
-`
-
-const UploadProgress = styled.div`
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
+  animation: ${spinAnimation} 1s linear infinite;
+  margin-right: 8px;
 `
 
 const ImagePreview = styled.img`
-    max-width: 200px;
-    max-height: 200px;
-    margin-top: 10px;
-    border-radius: 8px;
-`
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  align-self: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const UploadProgress = styled.div`
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  color: #3498db;
+  font-size: 0.875rem;
+`;
 
 const CloseButton = styled.button`
   position: absolute;

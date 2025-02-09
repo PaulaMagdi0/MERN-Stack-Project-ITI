@@ -524,7 +524,7 @@ const ManageBooks = () => {
                                                                 margin: "5px",
                                                                 padding: "8px 12px",
                                                                 backgroundColor: values.genres.includes(genre._id) ? "#007bff" : "#ddf",
-                                                                color: values.genres.includes(genre._id) ? "#fff" : "#333",
+                                                                color: "#fff",
                                                                 borderRadius: "15px",
                                                                 cursor: "pointer",
                                                             }}
