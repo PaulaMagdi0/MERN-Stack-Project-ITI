@@ -5,13 +5,8 @@ const Book = require("../models/books");
 const BookRating = require('../models/bookRating');  // Your bookRating model
 const mongoose = require('mongoose');
 
-// const GenreForBook = require('./bookGenraController')
-// // const BookRating = require('../models/bookRating');
-// const mongoose = require('mongoose');
-// const Book = require('../models/book');  // Your book model
-// const BookGenre = require('../models/bookGenre');  // Your bookGenre model
 
-exports.GetBooksWithGenresAndRatings = async (req, res) => {
+exports.GetBooksWithGenresAndTotalRating = async (req, res) => {
   try {
     const { page = 1, perPage = 10 } = req.query;
     const currentPage = Math.max(1, parseInt(page, 10));
@@ -63,18 +58,19 @@ exports.GetBooksWithGenresAndRatings = async (req, res) => {
         }
       },
 
-      // Add the average rating to the output
+      // Add the total rating (sum of all ratings) and count of ratings
       {
         $addFields: {
-          averageRating: {
+          totalRating: {
             $cond: {
               if: { $gt: [{ $size: "$ratings" }, 0] },
               then: {
-                $avg: { $map: { input: "$ratings", as: "rating", in: "$$rating.rating" } }
+                $sum: { $map: { input: "$ratings", as: "rating", in: "$$rating.rating" } }
               },
-              else: 0
+              else: 0  // 0 if no ratings
             }
-          }
+          },
+          ratingsCount: { $size: "$ratings" }  // Count of ratings for each book
         }
       },
 
@@ -85,7 +81,8 @@ exports.GetBooksWithGenresAndRatings = async (req, res) => {
           book: { $first: "$book" },
           author: { $first: "$author" },
           genres: { $push: "$genre" },
-          averageRating: { $first: "$averageRating" }
+          totalRating: { $first: "$totalRating" },
+          ratingsCount: { $first: "$ratingsCount" }
         }
       },
 
@@ -98,14 +95,14 @@ exports.GetBooksWithGenresAndRatings = async (req, res) => {
     ]);
 
     // Get the total count of books with genres
-    const countAgg = await BookGenre.aggregate([
+    const totalCountAgg = await BookGenre.aggregate([
       { $group: { _id: "$book_id" } },
       { $count: "total" }
     ]);
-    const totalCount = countAgg[0] ? countAgg[0].total : 0;
+    const totalCount = totalCountAgg[0] ? totalCountAgg[0].total : 0;
 
     // Format the aggregated results
-    const formattedResults = results.map(({ _id, book, author, genres, averageRating }) => ({
+    const formattedResults = results.map(({ _id, book, author, genres, totalRating, ratingsCount }) => ({
       _id: _id,
       title: book.title,
       releaseDate: book.releaseDate,
@@ -125,7 +122,8 @@ exports.GetBooksWithGenresAndRatings = async (req, res) => {
         _id: g._id,
         name: g.name
       })),
-      averageRating: averageRating
+      totalRating: totalRating,
+      ratingsCount: ratingsCount
     }));
 
     // Send the formatted results as a response
@@ -141,6 +139,7 @@ exports.GetBooksWithGenresAndRatings = async (req, res) => {
     res.status(500).json({ message: "Error fetching books with genres and ratings" });
   }
 };
+
 
 
     
