@@ -84,7 +84,7 @@ const ManageAuthors = () => {
         formData.append("image", values.image)
       }
 
-      const response = await fetch(`${API_URL}/authors/post-author`, {
+      const response = await fetch(`${API_URL}/authors/add-author`, {
         method: "POST",
         body: formData,
       })
