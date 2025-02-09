@@ -8,7 +8,7 @@ import { Card, Container, Row, Col, Button, Alert, Spinner } from "react-bootstr
 import { FaHeart } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-
+import "./SingleBook.css"
 const SingleBook = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
@@ -53,8 +53,9 @@ const SingleBook = () => {
   };
 
   return (
-    <Container className="d-flex justify-content-center mt-5 mb-5">
-      <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}>
+    <div className="single-book-page">
+    <Container className="d-flex justify-content-center mt-5 mb-5 ">
+      <Card className="shadow-lg p-4 bg-white rounded single-book-card" style={{ width: "75rem" }}>
         <Row>
           <Col md={5} className="d-flex align-items-center">
             {loading ? (
@@ -84,9 +85,7 @@ const SingleBook = () => {
                     <FaHeart size={28} color={isInWishlist ? "red" : "gray"} />
                   </Button>
                   {/* Read Now button */}
-                  <Button variant="primary" style={{ backgroundColor: "#2c3e50", color: "#ffffff" }}>
-                    Read Now
-                  </Button>
+                 
                 </div>
               </div>
               <Row className="align-items-center mt-3">
@@ -110,7 +109,7 @@ const SingleBook = () => {
                     ) : (
                       <Link
                         to={`/author/${currentBook?.book?.author_id?._id}`}
-                        style={{ textDecoration: "none", color: "#007bff" }}
+                        // style={{ textDecoration: "none", color: "#007bff" }}
                       >
                         {currentBook?.book?.author_id?.name || "Unknown"}
                       </Link>
@@ -135,11 +134,15 @@ const SingleBook = () => {
               <p className="text-muted" style={{ fontSize: "1.2rem" }}>
                 {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
               </p>
+              <Button variant="primary" className="read-now-btn">
+                    Read Now
+                  </Button>
             </Card.Body>
           </Col>
         </Row>
       </Card>
     </Container>
+    </div>
   );
 };
 

@@ -7,6 +7,17 @@
     flex-wrap: wrap;
     position: relative;
 }
+.pla{
+    background-color: #F5F5DC; 
+
+}
+.pla .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 1200px;
+}
 .watch{
     position: absolute;
     width: 150px;
@@ -40,15 +51,16 @@
     height: auto;
     border-radius: 10px; 
 }
-.backg{
+.About .backg{
      position: absolute;
-    bottom: -130%;    
+     top:67%;
+     right: 90%;
     width: 270px;     
     opacity: 0.8;
     transform: rotate(40deg);
 
 }
-.image2{
+.About .image2{
     position: absolute;
     top: 50%;
     width: 400px;
@@ -58,7 +70,7 @@
     border-radius: 10px;
     transition: transform 0.3s ease-in-out;
 }
-.image_container:hover .image2 {
+.About .image_container:hover .image2 {
     transform: translate(50%, -50%) rotate(0deg) scale(1);
 }
 

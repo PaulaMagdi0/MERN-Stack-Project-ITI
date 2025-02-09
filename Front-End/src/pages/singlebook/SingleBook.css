@@ -1,0 +1,105 @@
+/* .single-book-page {
+    background-image:  url("../../assets/2616e9d6cd7a599cee6024451bef1b8b-removebg-preview.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+} */
+.single-book-page {
+    background-image:  url("../../assets/2616e9d6cd7a599cee6024451bef1b8b-removebg-preview.png");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+
+}
+
+/* الكارد بتاع كل كتاب */
+.single-book-card {
+    background: rgba(255, 248, 235, 0.95) !important; 
+    color: #4b3f34 !important; 
+    animation: fadeInDown 0.8s ease-in-out forwards;
+
+}
+
+.read-now-btn {
+    background-color: #2c3e50 ;
+    color: #ffffff;
+    padding: 12px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .read-now-btn:hover {
+    background-color: #1a252f;
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+/* عنوان الكتاب */
+.single-book-card .display-5 {
+    font-size: 2.5rem; 
+    font-weight: bold; 
+    color: #3c2a21 !important; 
+    text-transform: capitalize; 
+    letter-spacing: 1px; 
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); 
+    transition: all 0.3s ease-in-out; 
+
+}
+.single-book-card .display-5:hover {
+    color: #a67c52; 
+    transform: scale(1.05);
+  }
+
+
+/* الأيقونة القلبية (wishlist) */
+.single-book-card .btn-light {
+    background-color: transparent !important;
+    border: none;
+}
+
+.single-book-card .btn-light:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* نصوص التفاصيل */
+.single-book-card p, 
+.single-book-card .text-muted, 
+.single-book-card h4 {
+    color: #5a4638 !important; 
+}
+
+/* اسم الكاتب مع لينك */
+.single-book-card a {
+    color: #b76e79 !important; 
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.single-book-card a:hover {
+    color: #8b5e57 !important; 
+}
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,15 +1,15 @@
+
+
 import React from "react";
 import "./Categories.css";
-import book1 from "../../assets/73a24e15cbe0c7a17b5d9a82837c82ec.jpg";
-import Fiction from "../../assets/Fiction.jpg"
-import Mystery from "../../assets/Mystery.jpg"
-import Sci_Fi from "../../assets/Sci-Fi.jpg"
-import Self_Development from "../../assets/Self-Development.jpg"
-import History from "../../assets/History.jpg"
-import Horror from "../../assets/Horror.jpg"
+import Fiction from "../../assets/Fiction.jpg";
+import Mystery from "../../assets/Mystery.jpg";
+import Sci_Fi from "../../assets/Sci-Fi.jpg";
+import Self_Development from "../../assets/Self-Development.jpg";
+import History from "../../assets/History.jpg";
+import Horror from "../../assets/Horror.jpg";
+import backgroundImage from "../../assets/62d8173d370eed03f53bf8a914bbc63b-removebg-preview.png";
 
-
-// قائمة التصنيفات مع الصور
 const categories = [
   { id: 1, name: "Fiction", img: Fiction },
   { id: 2, name: "Mystery", img: Mystery },
@@ -20,21 +20,28 @@ const categories = [
 ];
 
 function Categories() {
-  return (<>
-    <section className="categories">
-      <h1 className="section-title">Popular Categories</h1>
-      <div className="category-grid">
-        {categories.map((category) => (
-          <div key={category.id} className="category-card">
-            <img src={category.img} alt={category.name} />
-            <h3>{category.name}</h3>
-          </div>
-        ))}
+  return (
+    <section
+      className="categories"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "contain",
+        backgroundPosition: "right",
+      }}
+    >
+      <div className="container">
+        <h1 className="section-title">Popular Categories</h1>
+        <div className="category-grid">
+          {categories.map((category) => (
+            <div key={category.id} className="category-card">
+              <img src={category.img} alt={category.name} />
+              <h3>{category.name}</h3>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
-
-
-  </>
   );
 }
 

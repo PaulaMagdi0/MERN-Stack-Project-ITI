@@ -3,6 +3,7 @@ import "./Main.css"
 function Main() {
     return (<>
         <section className="main-section">
+        <div className="container"> 
             <div className="content-container">
             <h1 className="section-title">About Us</h1>
             <p className="section-text">
@@ -14,6 +15,7 @@ function Main() {
                         we provide a platform to discover new books, connect with fellow readers, and exchange reviews and recommendations.
                     </p>
                 <button className="cta-button">Join Us Now</button>
+            </div>
             </div>
         </section>
 

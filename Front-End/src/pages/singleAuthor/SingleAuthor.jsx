@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { fetchAuthorById } from "../../store/authorSlice";
 import { Card, Spinner, Alert, Container, Row, Col } from "react-bootstrap";
+import "./SingleAuthor.css";
 
 const SingleAuthorPage = () => {
   const { id } = useParams();
@@ -56,15 +57,15 @@ const SingleAuthorPage = () => {
   }
 
   return (
-    <Container className="py-5">
+    <Container className="py-5 single-author-container">
       {/* Author Details Card */}
-      <Card className="shadow-lg mb-5">
+      <Card className="shadow-lg mb-5 author-card ">
         <Row className="g-0">
           <Col md={4}>
             <Card.Img
               src={author?.author?.image}
               alt={author?.author?.name}
-              className="rounded-start"
+              className="rounded-start author-img"
               style={{
                 height: "100%",
                 objectFit: "cover",
@@ -74,7 +75,7 @@ const SingleAuthorPage = () => {
           </Col>
           <Col md={8}>
             <Card.Body className="p-4">
-              <Card.Title className="fw-bold display-6 mb-4">
+              <Card.Title className="fw-bold display-6 mb-4 author-name">
                 {author?.author?.name}
               </Card.Title>
               
@@ -94,27 +95,27 @@ const SingleAuthorPage = () => {
                   : ' No genres available'}
               </Card.Text>
 
-              <Card.Text className="lead">{author?.author?.biography}</Card.Text>
+              <Card.Text className="lead text-muted biography-text">{author?.author?.biography}</Card.Text>
             </Card.Body>
           </Col>
         </Row>
       </Card>
 
       {/* Author's Books Section */}
-      <h2 className="mb-4">Published Works</h2>
+      <h2 className="mb-4 section-title">Published Works</h2>
       {authorsBooks?.length > 0 ? (
         <Row xs={1} md={2} lg={3} className="g-4">
           {authorsBooks.map((book) => (
             <Col key={book._id}>
-              <Card className="h-100 shadow-sm">
+              <Card className=" book-card h-100 shadow-sm">
                 <Card.Img
                   variant="top"
                   src={book.image}
                   style={{ height: "200px", objectFit: "cover" }}
                 />
                 <Card.Body>
-                  <Card.Title>{book.title}</Card.Title>
-                  <Card.Text className="text-muted">
+                  <Card.Title className="book-title">{book.title}</Card.Title>
+                  <Card.Text className="text-muted book-date">
                     Published: {new Date(book.releaseDate).toLocaleDateString()}
                   </Card.Text>
                 </Card.Body>
@@ -130,3 +131,4 @@ const SingleAuthorPage = () => {
 };
 
 export default SingleAuthorPage;
+

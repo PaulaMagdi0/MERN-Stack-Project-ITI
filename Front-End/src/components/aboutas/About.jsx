@@ -7,7 +7,8 @@ import watch from "../../assets/watch-removebg-preview.png";
 function AboutAs(params) {
     return ( 
         <>
-            <search className="About">
+        <section className="pla">
+            <section className="About container">
 
                 <div className="content-container">
                 {/* <img src={watch} classNameName="watch" /> */}
@@ -26,11 +27,12 @@ function AboutAs(params) {
                     <img src={back} className="image_back"/>
                     <img src={book} className="image2"/>
                 </div>
+                <img src={background} className="backg"/>
 
-            </search>
 
-            <img src={background} className="backg"/>
+            </section>
 
+            </section>
         </>
     );
 
