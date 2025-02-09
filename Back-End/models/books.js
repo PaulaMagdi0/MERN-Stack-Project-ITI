@@ -7,6 +7,7 @@ const bookSchema = new Schema({
     content: { type: String, required: true },
     description: { type: String, required: true },
     image: { type: String, required: false },
+    pdf: { type: String, required: false },
     author_id: { type: Schema.Types.ObjectId, ref: 'Author', required: true }
 });
 

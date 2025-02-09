@@ -37,3 +37,4 @@ package-lock.json
 
 # Local files
 *.local
+uploads/

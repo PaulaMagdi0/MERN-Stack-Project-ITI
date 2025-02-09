@@ -1,35 +1,42 @@
 const express = require("express");
 const router = express.Router();
-const { 
-    getBooks, 
-    getBookDetailsByID, 
-    getBooksByTitle, 
-    createBook, 
-    searchBook, 
-    deleteBook, 
-    updateBook 
+const {
+    getBooks,
+    getBookDetailsByID,
+    getBooksByTitle,
+    createBook,
+    searchBook,
+    deleteBook,
+    updateBook
 } = require("../controllers/bookController");
-const upload = require("../config/multerConfig"); // Import Multer configuration
+const upload = require("../config/multerConfig"); // Multer config for file uploads
 
-// Get all books
+// ✅ Get all books
 router.get("/", getBooks);
 
-// Get a single book by ID
+// ✅ Get a book by ID
 router.get("/id/:id", getBookDetailsByID);
 
-// Get books by title
+// ✅ Get books by title
 router.get("/title/:title", getBooksByTitle);
 
-// Create a new book (supports image upload)
-router.post("/post-book", upload.single("image"), createBook);
+// ✅ Create a new book (supports image & PDF upload)
+router.post(
+    "/post-book",
+    upload.fields([
+        { name: "image", maxCount: 1 },
+        { name: "pdf", maxCount: 1 }
+    ]),
+    createBook
+);
 
-// Delete a book by ID
-router.delete("/delete-book/:bookID", deleteBook);
-
-// Update a book by ID (supports optional image upload)
+// ✅ Update a book by ID (supports optional image upload)
 router.put("/edit-book/:bookID", upload.single("image"), updateBook);
 
-// Search books
-router.get('/search', searchBook);
+// ✅ Delete a book by ID
+router.delete("/delete-book/:bookID", deleteBook);
 
-module.exports = router; // Ensure this appears only once
+// ✅ Search books
+router.get("/search", searchBook);
+
+module.exports = router;

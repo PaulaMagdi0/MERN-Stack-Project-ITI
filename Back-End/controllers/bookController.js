@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const cloudinary = require('../config/cloudinaryConfig'); // Cloudinary config
 const Book = require("../models/books");
+const path = require("path");
 const BookGenre = require("../models/bookgenre");
 const Genre = require("../models/genre");
 // const { Book, Genre, BookGenre } = require('../models'); // Import your models
@@ -64,8 +65,8 @@ exports.getBookDetailsByID = async (req, res) => {
     try {
         const book = await Book.findById(id)
             .populate({
-                path: 'author_id',
-                select: 'name biography birthYear deathYear image nationality'
+                path: "author_id",
+                select: "name biography birthYear deathYear image nationality"
             });
 
         if (!book) return res.status(404).json({ message: "Book not found" });
@@ -156,118 +157,109 @@ exports.getBooksByTitle = async (req, res) => {
 //   };
 
 
-
 exports.createBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     let imageUrl = null;
+    let pdfPath = null;
 
     try {
-        const { title, releaseDate, content, description, author_id, genres } = req.body;
+        const { title, releaseDate, content, description, author_id } = req.body;
+        let { genres } = req.body;
 
-        console.log('Received data:', { title, releaseDate, content, description, author_id, genres });
+        console.log("Received form data:", req.body); // Debugging
 
-        // Ensure at least one genre is provided
-        if (!genres || !Array.isArray(genres) || genres.length === 0) {
-            return res.status(400).json({ message: "At least one genre must be added" });
+        // Ensure genres is an array (sometimes it's sent as a string)
+        if (typeof genres === "string") {
+            try {
+                genres = JSON.parse(genres);
+            } catch (error) {
+                return res.status(400).json({ message: "Invalid genres format. Expected JSON array." });
+            }
         }
 
-        // Validate that all genre IDs are valid ObjectId strings
-        const isValidGenreIds = genres.every(genreId => mongoose.Types.ObjectId.isValid(genreId));
-        if (!isValidGenreIds) {
-            return res.status(400).json({ message: "One or more genre IDs are invalid" });
+        if (!Array.isArray(genres) || genres.length === 0) {
+            return res.status(400).json({ message: "Genres must be a non-empty array." });
         }
 
-        // Create the book document without the image initially
+        // Handle image upload to Cloudinary
+        if (req.files?.image?.[0]) {
+            try {
+                const cloudinaryResponse = await cloudinary.uploader.upload(req.files.image[0].path);
+                imageUrl = cloudinaryResponse.secure_url;
+
+                // Remove the temporary file after upload
+                fs.unlink(req.files.image[0].path, (err) => {
+                    if (err) console.error("Error removing temporary image:", err);
+                });
+            } catch (uploadError) {
+                console.error("Cloudinary upload error:", uploadError);
+
+                // Clean up temp file if upload fails
+                fs.unlink(req.files.image[0].path, (err) => {
+                    if (err) console.error("Error removing temporary image:", err);
+                });
+
+                throw new Error("Failed to upload image to Cloudinary");
+            }
+        }
+
+        // Handle PDF upload (saving to local storage)
+        if (req.files?.pdf?.[0]) {
+            const pdfFile = req.files.pdf[0];
+            pdfPath = `uploads/pdfs/${pdfFile.filename}`;
+            console.log("PDF uploaded to:", pdfPath);
+        }
+
+        // Create new book
         const newBook = new Book({
             title,
             releaseDate,
             content,
             description,
-            image: imageUrl,  // Initially no image
             author_id,
+            image: imageUrl, // Cloudinary URL
+            pdf: pdfPath // Local path
         });
 
-        // Save the book in the database first
         await newBook.save({ session });
 
-        // Handle image upload if there's a file
-        if (req.file) {
-            // Upload the image to Cloudinary
-            const cloudinaryResponse = await cloudinary.uploader.upload(req.file.path, {
-                folder: "goodreads-images",
-                public_id: `book-${Date.now()}-${req.file.originalname}`,
-            });
-
-            // Get the URL of the uploaded image
-            imageUrl = cloudinaryResponse.secure_url;
-
-            // Update the book with the image URL
-            newBook.image = imageUrl;
-            await newBook.save({ session });
-
-            // Delete the local image file after uploading to Cloudinary
-            fs.unlink(req.file.path, (err) => {
-                if (err) {
-                    console.error("Error deleting local file:", err);
-                } else {
-                    console.log("Local image file deleted successfully");
-                }
-            });
-        }
-
-        console.log('New book ID:', newBook._id);
-
         // Validate and associate genres
-        // Ensure the genres exist in the database
-        const validGenres = await Genre.find({ _id: { $in: genres } }).session(session);
+        const validGenres = await Genre.find({
+            _id: { $in: genres }
+        }).session(session);
 
-        console.log('Found genres:', validGenres);
-
-        // Check if all provided genres are valid
         if (validGenres.length !== genres.length) {
-            await session.abortTransaction();
-            return res.status(400).json({ message: "One or more genres are invalid" });
+            throw new Error("One or more genres are invalid");
         }
 
-        // Add the book-genre relationships in the BookGenre collection
         const newRelations = genres.map(genreId => ({
-            book_id: newBook._id, // Ensure this is an ObjectId
-            genre_id: new mongoose.Types.ObjectId(genreId), // Convert string to ObjectId
+            book_id: newBook._id,
+            genre_id: new mongoose.Types.ObjectId(genreId)
         }));
 
-        console.log('New genre relations:', newRelations);
-
-        // Insert the book-genre relationships
         await BookGenre.insertMany(newRelations, { session });
 
-        // Commit the transaction if everything is successful
         await session.commitTransaction();
 
-        res.status(201).json({ book: newBook, message: "Book added successfully" });
+        res.status(201).json({
+            book: newBook,
+            message: "Book added successfully"
+        });
 
     } catch (error) {
-        // If any error occurs, abort the transaction
         await session.abortTransaction();
-
-        // If the image was uploaded, delete the local image
-        if (req.file) {
-            fs.unlink(req.file.path, (err) => {
-                if (err) console.error("Error deleting local file:", err);
-            });
-        }
-
         console.error("Error adding book:", error);
+
         res.status(500).json({
             message: "Error adding book",
-            error: process.env.NODE_ENV === "development" ? error.message : undefined,
+            error: process.env.NODE_ENV === "development" ? error.message : undefined
         });
     } finally {
         session.endSession();
     }
 };
-
 
 
 // Search Books by Title, Author, or Description (Search bar)

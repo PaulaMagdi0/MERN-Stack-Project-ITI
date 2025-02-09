@@ -137,57 +137,65 @@ const ManageBooks = () => {
     // };
 
     const handleAddBook = async (values, formikHelpers) => {
-        const { resetForm, setSubmitting } = formikHelpers;
-        setSubmitting(true);
-        setImageUploading(true);
-    
-        try {
-            const formData = new FormData();
-            
-            // Append all book data
-            formData.append('title', values.title);
-            formData.append('author_id', values.author_id);
-            formData.append('releaseDate', values.releaseDate);
-            formData.append('content', values.content);
-            formData.append('description', values.description);
-            
-            // Append each genre separately
-            selectedGenres.forEach((genre, index) => {
-                formData.append(`genres[${index}]`, genre);
-            });
-    
-            // Append image if it exists
-            if (values.image instanceof File) {
-                formData.append('image', values.image);
-            } else if (typeof values.image === 'string') {
-                formData.append('image', values.image);
-            }
-            console.log("🚀 ~ handleAddBook ~ values:", values)
-    
-            const response = await fetch(`${API_URL}/books/post-book`, {
-                method: 'POST',
-                body: formData,
-            });
-    
-            if (!response.ok) {
-                throw new Error('Failed to add book');
-            }
-            
-            console.log('✅ Book added successfully!');
-            setSelectedGenres([]);
-            fetchBooks();
-            resetForm();
-            setAction('');
-    
-        } catch (error) {
-            console.error('❌ Error adding book:', error);
-            formikHelpers.setFieldError('submit', 'Failed to add book');
-        } finally {
-            setSubmitting(false);
-            setImageUploading(false);
+    const { resetForm, setSubmitting } = formikHelpers;
+    setSubmitting(true);
+    setImageUploading(true);
+
+    try {
+        const formData = new FormData();
+
+        // Append book details
+        formData.append("title", values.title);
+        formData.append("author_id", values.author_id);
+        formData.append("releaseDate", values.releaseDate);
+        formData.append("content", values.content);
+        formData.append("description", values.description);
+
+        // Append genres
+        selectedGenres.forEach((genre, index) => {
+            formData.append(`genres[${index}]`, genre);
+        });
+
+        // Append image if it exists
+        if (values.image instanceof File) {
+            formData.append("image", values.image);
+        } else if (typeof values.image === "string") {
+            formData.append("image", values.image);
         }
-    };
-    
+        console.log("🚀 ~ handleAddBook ~ values:", values)
+
+        // Append PDF file if provided
+        if (values.pdf instanceof File) {
+            formData.append("pdf", values.pdf);
+        }
+
+        console.log("🚀 ~ handleAddBook ~ Uploaded Data:", Object.fromEntries(formData));
+
+        // Send request
+        const response = await fetch(`${API_URL}/books/post-book`, {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to add book");
+        }
+
+        console.log("✅ Book added successfully!");
+        setSelectedGenres([]);
+        fetchBooks();
+        resetForm();
+        setAction("");
+
+    } catch (error) {
+        console.error("❌ Error adding book:", error);
+        formikHelpers.setFieldError("submit", "Failed to add book");
+    } finally {
+        setSubmitting(false);
+        setImageUploading(false);
+    }
+};
+
     const handleEditBook = async (values, formikHelpers) => {
         if (!selectedBook) return;
         
@@ -307,7 +315,7 @@ const ManageBooks = () => {
                     <Formik
                         initialValues={{
                             title: "", author_id: "", releaseDate: "", content: "", description: "",
-                            genres: []
+                            genres: [], pdf: null, image: null
                         }}
                         validationSchema={bookSchema}
                         onSubmit={handleAddBook}
@@ -395,6 +403,24 @@ const ManageBooks = () => {
                                         )}
                                         {touched.image && errors.image && (
                                             <ErrorMessageStyled>{errors.image}</ErrorMessageStyled>
+                                        )}
+                                    </FormGroup><FormGroup>
+                                        <FormLabel>Upload PDF</FormLabel>
+                                        <StyledInput
+                                            type="file"
+                                            accept="application/pdf"
+                                            onChange={(event) => {
+                                                const file = event.currentTarget.files[0];
+                                                setFieldValue("pdf", file);
+                                            }}
+                                        />
+                                        {values.pdf && (
+                                            <p style={{ marginTop: "5px", color: "green" }}>
+                                                {values.pdf.name} selected
+                                            </p>
+                                        )}
+                                        {touched.pdf && errors.pdf && (
+                                            <ErrorMessageStyled>{errors.pdf}</ErrorMessageStyled>
                                         )}
                                     </FormGroup>
                                     <SubmitButton 
