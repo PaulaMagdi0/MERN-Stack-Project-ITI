@@ -2,10 +2,147 @@ const BookGenre = require("../models/bookgenre");
 const Genre = require("../models/genre");
 const Author = require("../models/authors");
 const Book = require("../models/books");
-
+const BookRating = require('../models/bookRating');  // Your bookRating model
 const mongoose = require('mongoose');
-const GenreForBook = require('./bookGenraController')
 
+
+exports.GetBooksWithGenresAndTotalRating = async (req, res) => {
+  try {
+    const { page = 1, perPage = 10 } = req.query;
+    const currentPage = Math.max(1, parseInt(page, 10));
+    const itemsPerPage = Math.max(1, parseInt(perPage, 10));
+    const skip = (currentPage - 1) * itemsPerPage;
+
+    // Aggregation pipeline to lookup books, authors, genres, and ratings
+    const results = await BookGenre.aggregate([
+      // Lookup the related book
+      {
+        $lookup: {
+          from: "books", // Books collection
+          localField: "book_id",
+          foreignField: "_id",
+          as: "book"
+        }
+      },
+      { $unwind: "$book" },
+
+      // Lookup the related author
+      {
+        $lookup: {
+          from: "authors", // Authors collection
+          localField: "book.author_id",
+          foreignField: "_id",
+          as: "author"
+        }
+      },
+      { $unwind: "$author" },
+
+      // Lookup the related genres
+      {
+        $lookup: {
+          from: "genres", // Genres collection
+          localField: "genre_id",
+          foreignField: "_id",
+          as: "genre"
+        }
+      },
+      { $unwind: "$genre" },
+
+      // Lookup the related book ratings
+      {
+        $lookup: {
+          from: "bookratings", // BookRatings collection
+          localField: "book._id",
+          foreignField: "book_id",
+          as: "ratings"
+        }
+      },
+
+      // Add the total rating (sum of all ratings) and count of ratings
+      {
+        $addFields: {
+          totalRating: {
+            $cond: {
+              if: { $gt: [{ $size: "$ratings" }, 0] },
+              then: {
+                $sum: { $map: { input: "$ratings", as: "rating", in: "$$rating.rating" } }
+              },
+              else: 0  // 0 if no ratings
+            }
+          },
+          ratingsCount: { $size: "$ratings" }  // Count of ratings for each book
+        }
+      },
+
+      // Group the results by book and include the relevant details
+      {
+        $group: {
+          _id: "$book._id",
+          book: { $first: "$book" },
+          author: { $first: "$author" },
+          genres: { $push: "$genre" },
+          totalRating: { $first: "$totalRating" },
+          ratingsCount: { $first: "$ratingsCount" }
+        }
+      },
+
+      // Sort by book title
+      { $sort: { "book.title": 1 } },
+
+      // Paginate results
+      { $skip: skip },
+      { $limit: itemsPerPage }
+    ]);
+
+    // Get the total count of books with genres
+    const totalCountAgg = await BookGenre.aggregate([
+      { $group: { _id: "$book_id" } },
+      { $count: "total" }
+    ]);
+    const totalCount = totalCountAgg[0] ? totalCountAgg[0].total : 0;
+
+    // Format the aggregated results
+    const formattedResults = results.map(({ _id, book, author, genres, totalRating, ratingsCount }) => ({
+      _id: _id,
+      title: book.title,
+      releaseDate: book.releaseDate,
+      content: book.content,
+      description: book.description,
+      image: book.image,
+      author: {
+        _id: author._id,
+        name: author.name,
+        biography: author.biography,
+        birthYear: author.birthYear,
+        deathYear: author.deathYear,
+        image: author.image,
+        nationality: author.nationality
+      },
+      genres: genres.map(g => ({
+        _id: g._id,
+        name: g.name
+      })),
+      totalRating: totalRating,
+      ratingsCount: ratingsCount
+    }));
+
+    // Send the formatted results as a response
+    res.status(200).json({
+      totalItems: totalCount,
+      currentPage,
+      itemsPerPage,
+      totalPages: Math.ceil(totalCount / itemsPerPage),
+      books: formattedResults
+    });
+  } catch (error) {
+    console.error("Error fetching books with genres and ratings:", error);
+    res.status(500).json({ message: "Error fetching books with genres and ratings" });
+  }
+};
+
+
+
+    
 exports.GetBooksWithGenres = async (req, res) => {
     try {
         const { page = 1, perPage = 10 } = req.query;
@@ -191,6 +328,8 @@ exports.deleteGenre = async (req, res) => {
     try {
         const { bookGenraID } = req.params;
         const deletedBookGenra = await BookGenre.findByIdAndDelete(bookGenraID);
+        
+        // console.log(deletedBookGenra);
 
         console.log(deletedBookGenra);
 
@@ -326,7 +465,7 @@ exports.BooksByGenre = async (req, res) => {
 //Get Books Genre By id 
 exports.GenreForBook = async (req, res) => {
     try {
-        // Get genre ID from request parameters (more RESTful than query string)
+        // console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
         const { bookID } = req.params;
         console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
         // Genre

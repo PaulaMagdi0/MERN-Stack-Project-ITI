@@ -1,38 +1,85 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchBookRating, fetchUserBookRating, updateBookRating, addUserRate } from "../../store/ratingSlice";
+import { addComment, getCommentsByBook } from "../../store/bookReviewSlice";
 import { fetchBookById, fetchGenreByBookId } from "../../store/bookSlice";
 import { getUserInfo } from "../../store/authSlice";
 import { addToWishlist, removeWishlistItem } from "../../store/wishListSlice";
-import { Card, Container, Row, Col, Button, Modal } from "react-bootstrap";
+import { Card, Container, Row, Col, Button, Form, Modal } from "react-bootstrap";
 import { FaHeart } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import Box from "@mui/material/Box";
+import Rating from "@mui/material/Rating";
+import Typography from "@mui/material/Typography";
+import "./SingleBooks.css";  // CSS file
 
 const SingleBook = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const [value, setValue] = useState(null); // State for current user's rating
+  const [comment, setComment] = useState(""); // State for the comment input
   const navigate = useNavigate();
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
-  // Get book details & genres from bookSlice
-  const { currentBook, loading, GenereByBookID } = useSelector((state) => state.book);
-  // Get current user from authSlice
-  const { user } = useSelector((state) => state.auth);
+  // Get book details & genres from Redux
+  const { currentBook, loading } = useSelector((state) => state.book);
+  const { user } = useSelector((state) => state.auth || {});
+ 
   // Get wishlist from wishListSlice
   const { items: wishlist } = useSelector((state) => state.wishlist);
+  const { bookRating, userRating } = useSelector((state) => state?.rating || {}); // Get book & user rating
+  const { comments, error, loading: commentsLoading } = useSelector((state) => {return state.bookReview});
+console.log(comments);
 
+  // Fetch book and genre details on component mount
   useEffect(() => {
     dispatch(fetchBookById(id));
     dispatch(fetchGenreByBookId(id));
     dispatch(getUserInfo());
+    dispatch(getCommentsByBook(id)); // Fetch comments when the component mounts
+    dispatch(getUserInfo());
   }, [dispatch, id]);
+
+  // Fetch book ratings (avg & user rating)
+  useEffect(() => {
+    if (currentBook?.book?._id) {
+      dispatch(fetchBookRating(currentBook.book._id)); // Fetch book's average rating
+      if (user?._id) {
+        dispatch(fetchUserBookRating({ bookId: currentBook.book._id, userID: user._id })); // Fetch user's rating
+      }
+    }
+  }, [dispatch, currentBook, user]);
+
+  // Update the user's rating state when it's fetched
+  useEffect(() => {
+    if (userRating !== null) {
+      setValue(userRating); // Set the user's rating
+    }
+  }, [userRating]);
+
+  // Handle user rating change
+  const handleRatingChange = (newRating) => {
+    setValue(newRating); // Update local state
+
+    if (user && currentBook?.book?._id) {
+      if (userRating !== null) {
+        // If the user has already rated the book, update their rating with PUT
+        dispatch(updateBookRating({ bookId: currentBook.book._id, rating: newRating, userID: user._id, isUpdate: true }));
+      } else {
+        // If the user has not rated the book, post a new rating with POST
+        dispatch(addUserRate({ bookId: currentBook.book._id, rating: newRating, userID: user._id }));
+      }
+    }
+  };
 
   // Check if book is in wishlist
   const isInWishlist = wishlist?.some((item) =>
     item.book?._id?.toString() === currentBook?.book?._id?.toString() || item.book === currentBook?.book?._id
   );
 
+  // Toggle wishlist
   const handleWishlistToggle = (e) => {
     e.stopPropagation();
     if (!user || !currentBook) return;
@@ -41,6 +88,15 @@ const SingleBook = () => {
       dispatch(removeWishlistItem({ userId: user._id, bookId: currentBook?.book?._id }));
     } else {
       dispatch(addToWishlist({ userId: user._id, bookId: currentBook?.book?._id, state: "Want to read" }));
+    }
+  };
+
+  // Handle adding a comment
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    if (user && comment.trim()) {
+      dispatch(addComment({ bookId: currentBook.book._id, commentData: { comment, userId: user._id }}));
+      setComment(""); // Reset comment input after submission
     }
   };
 
@@ -107,6 +163,7 @@ const SingleBook = () => {
   );
 
   return (
+    <>
     <Container className="d-flex justify-content-center mt-5 mb-5">
       <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}>
         <Row>
@@ -127,13 +184,28 @@ const SingleBook = () => {
             )}
           </Col>
           <Col md={7}>
+            {/* Rating Section */}
+            <Box sx={{ "& > legend": { mt: 2 } }}>
+              <Typography component="legend">Your Rating</Typography>
+              <Rating
+                name="user-rating"
+                value={value || 0} // Use user's rating or default to 0
+                onChange={(_, newValue) => handleRatingChange(newValue)}
+              />
+              <Typography variant="body2" color="textSecondary">
+                {bookRating?.avgRating ? `Avg Rating: ${bookRating.avgRating}` : "No ratings yet"}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {bookRating?.ratingCount ? `Rate Count: ${bookRating.ratingCount}` : "No ratings yet"}
+              </Typography>
+            </Box>
+
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
                 <Card.Title className="display-5">
                   {loading ? <Skeleton width={200} /> : currentBook?.book?.title}
                 </Card.Title>
                 <div>
-                  {/* Heart button toggles wishlist */}
                   <Button variant="light" className="border-0 me-2" onClick={handleWishlistToggle}>
                     <FaHeart size={28} color={isInWishlist ? "red" : "gray"} />
                   </Button>
@@ -147,6 +219,7 @@ const SingleBook = () => {
                   </Button>
                 </div>
               </div>
+
               <Row className="align-items-center mt-3">
                 <Col xs="3" className="text-center">
                   {loading ? (
@@ -180,25 +253,75 @@ const SingleBook = () => {
                 <strong>Release Date:</strong>{" "}
                 {loading ? <Skeleton width={100} /> : new Date(currentBook?.book?.releaseDate).toLocaleDateString()}
               </p>
-              <Card.Text className="mb-3">
-                <strong>Genres:</strong>{" "}
-                {loading ? (
-                  <Skeleton width={150} />
-                ) : GenereByBookID?.length > 0 ? (
-                  GenereByBookID.map((genre) => genre.name).join(", ")
-                ) : (
-                  "No genres available"
-                )}
-              </Card.Text>
               <p className="text-muted" style={{ fontSize: "1.2rem" }}>
                 {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
               </p>
+
+              {/* Comment Section */}
+              <div className="mt-5">
+                <h5>Comments</h5>
+                <Form onSubmit={handleCommentSubmit}>
+                  <Form.Group controlId="commentText">
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Add a comment..."
+                    />
+                  </Form.Group>
+                  <Button variant="primary" type="submit" className="mt-3" disabled={!comment.trim()}>
+                    Post Comment
+                  </Button>
+                </Form>
+
+                {error && <p className="text-danger">{error}</p>}
+              </div>
             </Card.Body>
           </Col>
         </Row>
+        
         <SubscriptionModal />
       </Card>
+      
     </Container>
+    <Container className="mt-4">
+  {commentsLoading ? (
+    <Skeleton count={3} height={100} className="mb-3" />
+  ) : (
+    comments?.map((comment) => (
+      <Card key={comment._id} className="mb-3 shadow-sm" style={{ borderRadius: "10px" }}>
+        <Card.Body>
+          <div className="d-flex align-items-center mb-2">
+            <img
+              src={comment.user?.profileImage || "https://via.placeholder.com/40"}
+              alt={comment.user?.username}
+              className="rounded-circle me-3"
+              style={{ width: "40px", height: "40px", objectFit: "cover" }}
+            />
+            <div>
+              <strong className="me-2">{comment.user?.username || "Anonymous"}</strong>
+              <span className="text-muted" style={{ fontSize: "0.9rem" }}>
+                {new Date(comment.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
+          <p className="mb-0" style={{ fontSize: "1rem", lineHeight: "1.5" }}>
+            {comment.comment}
+          </p>
+        </Card.Body>
+      </Card>
+    ))
+  )}
+</Container>
+
+    </>
   );
 };
 

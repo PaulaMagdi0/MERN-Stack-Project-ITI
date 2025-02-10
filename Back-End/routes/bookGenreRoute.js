@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const {GetBookGenre,GetBookGenreByID,addBookGenre,BooksByGenre,GenreForBook,BooksByAuthor,BookByID,GetBooksWithGenres} = require("../controllers/bookGenraController")
+const {GetBookGenre,GetBookGenreByID,addBookGenre,BooksByGenre,GenreForBook,BooksByAuthor,BookByID,GetBooksWithGenresAndTotalRating} = require("../controllers/bookGenraController")
 
 // Get all books
-router.get("/",GetBooksWithGenres);
+router.get("/",GetBooksWithGenresAndTotalRating);
 // Get All Book By Title
 // router.get("/title/:title",GetBookGenre);
 

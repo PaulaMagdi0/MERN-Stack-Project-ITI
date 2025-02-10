@@ -1,0 +1,21 @@
+.comment-container {
+    background-color: #f9f9f9;
+    border-left: 4px solid #007bff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .comment-container strong {
+    color: #007bff;
+  }
+  
+  .comment-container p {
+    margin: 10px 0;
+    color: #333;
+  }
+  
+  .comment-time {
+    font-size: 0.85rem;
+    color: #777;
+  }

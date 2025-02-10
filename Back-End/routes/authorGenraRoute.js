@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { getAuthorGenre, getAuthorGenreByID ,AuthorByID,GetAuthorsWithGenresAndBooks} = require("../controllers/authorGenraController");
+const { getAuthorGenre, getAuthorGenreByID ,AuthorByID,GetAuthorsWithBooksGenresAndTotalRating} = require("../controllers/authorGenraController");
 
 // Get all author genres (with pagination)
-router.get("/", GetAuthorsWithGenresAndBooks);
+router.get("/", GetAuthorsWithBooksGenresAndTotalRating);
 
 // Get a specific author genre by ID
 router.get("/:authorID", getAuthorGenreByID);
