@@ -11,7 +11,7 @@ export const signIn = createAsyncThunk(
       const { password, username, RememberMe } = values;
       const response = await fetch(`${API_URL}/users/sign-in`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -27,7 +27,7 @@ export const signIn = createAsyncThunk(
       // Ensure the response contains both user data and token
       return {
         user: data.user,
-        token: data.token
+        token: data.token,
       };
     } catch (error) {
       return rejectWithValue(error.message || "Something went wrong.");
@@ -43,16 +43,34 @@ export const getUserInfo = createAsyncThunk(
       const response = await axios.get(`${API_URL}/users/get-user-info`, {
         withCredentials: true,
       });
-      
-      console.log('User Info Response:', response.data);
+
+      console.log("User Info Response:", response.data);
       return response.data.user || response.data;
     } catch (error) {
-      console.error('Error fetching user info:', error.response?.data || error.message);
+      console.error(
+        "Error fetching user info:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
-        error.response?.data?.message || 
-        error.response?.data?.error || 
-        error.message || 
-        "Failed to fetch user info."
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch user info."
+      );
+    }
+  }
+);
+
+// Async thunk for logging out the user (including server request)
+export const logoutUser = createAsyncThunk(
+  "auth/logoutUser",
+  async (_, thunkAPI) => {
+    try {
+      await axios.post(`${API_URL}/users/logout`, {}, { withCredentials: true });
+      return true; // Indicate successful logout
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || error.message || "Logout failed"
       );
     }
   }
@@ -92,14 +110,14 @@ const authSlice = createSlice({
     error: null,
   },
   reducers: {
-    logout: (state) => {
+    clearUser: (state) => {
       state.user = null;
       state.error = null;
-      // axios.post(`${API_URL}/users/logout`, {}, { withCredentials: true });
     },
   },
   extraReducers: (builder) => {
     builder
+      // Handle the signIn case
       .addCase(signIn.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -112,6 +130,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Handle the getUserInfo case
       .addCase(getUserInfo.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -124,22 +143,34 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Update profile extra reducers
+      // Handle updateUserProfile
       .addCase(updateUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        // Update the user object with the updated data.
         state.user = action.payload;
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Handle logoutUser
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null; // Clear user data after logout
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { clearUser } = authSlice.actions;
+
 export default authSlice.reducer;
