@@ -5,20 +5,27 @@
     background-repeat: no-repeat;
      background-size:cover; 
 }
-.book-card {
+.Books .book-card {
     background: rgba(255, 255, 255, 0.9);
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
     text-align: center;
     position: relative;
+    height: 400px; /* تحديد ارتفاع موحد لكل كارت */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    justify-content: flex-start; /* تخلي الصورة فوق والعنوان تحت */
+
   }
-  .book-list {
+ .Books  .book-list {
    width: 90%; 
     margin: auto;
   }
 
-.book-card .book {
+.Books .book-card .book {
     width: 180px;
     height: 230px;
     object-fit: cover;
@@ -30,26 +37,28 @@
     transform: translate(-50%, -70%);
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 
-}.book-card .book:hover{
+}.Books .book-card .book:hover{
     transform: scale(1.01) translate(-50%, -60%);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
     animation: bounce 0.5s ease-in-out;
 }
-.book-card .fantage-img {
+.Books .book-card .fantage-img {
     width: 200px;
     height: 250px;
 }
 
-.book-card h3 {
+.Books .book-card h3 {
+    margin-top: auto; /* يخلي العنوان دايمًا في الأسفل */
+
     color: #2c3e50;
     margin-top: 60px;
     font-size: 16px;
 }
-.section-header{
+.Books .section-header{
     padding-top: 70px;
     padding-left: 50px;
 }
-.section-header h1{
+.Books .section-header h1{
     color: #F8E4A1;
     margin-bottom: 80px;
 }

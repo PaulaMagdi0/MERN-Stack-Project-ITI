@@ -32,7 +32,7 @@ const SingleAuthorPage = () => {
     useEffect(() => {
         if (author?.author?._id) {
             dispatch(fetchAuthorRating(author.author._id)); // Fetch author rating
-            dispatch(fetchUserAuthorRating({ authorId: author.author._id, userID: user._id })); // Fetch user rating
+            dispatch(fetchUserAuthorRating({ authorId: author.author._id, userID: user?._id })); // Fetch user rating
         }
     }, [dispatch, author, user]);
 

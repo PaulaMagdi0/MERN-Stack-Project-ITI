@@ -11,3 +11,7 @@ router.get("/:authorID", getAuthorGenreByID);
 
 router.get("/search-author/:authorID",AuthorByID)
 module.exports = router;
+
+// http://localhost:5000/authorgenre
+// http://localhost:5000/bookgenre
+
