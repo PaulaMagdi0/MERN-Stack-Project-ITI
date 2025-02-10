@@ -14,7 +14,7 @@
     transform: translateY(-5px);
 }
 
-.book-card {
+.card-container  .book-card {
     border-radius: 15px !important;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -30,11 +30,11 @@
     padding-bottom: 1rem;
 }
 
-.book-card:hover {
+.card-container  .book-card:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.book-cover {
+.card-container  .book-cover {
     width: 100%;
     height: auto;
     max-height: 230px;
@@ -42,14 +42,14 @@
     border-bottom: 3px solid #444;
 }
 
-.author-image-container {
+.card-container  .author-image-container {
     margin-top: -40px;
     margin-bottom: 0.3rem; /* Reduced space under author name */
     display: flex;
     justify-content: center;
 }
 
-.author-image {
+.card-container  .author-image {
     width: 70px;
     height: 70px;
     border: 3px solid white;
@@ -57,7 +57,7 @@
     border-radius: 50%;
 }
 
-.card-content {
+.card-container .card-content {
     padding: 0.8rem 1rem 0.5rem; /* Adjusted bottom padding */
     text-align: center;
     display: flex;
@@ -66,7 +66,7 @@
     justify-content: space-between;
 }
 
-.book-title {
+.card-container  .book-title {
     font-size: 1.2rem;
     margin-top: 20px;
     font-weight: 600;
@@ -74,13 +74,13 @@
     color: #f0f0f0;
 }
 
-.release-date {
+.card-container  .release-date {
     color: #b0b0b0;
     font-size: 0.9rem;
     margin-bottom: 0.8rem;
 }
 
-.book-description {
+.card-container  .book-description {
     color: #ccc;
     font-size: 0.95rem;
     line-height: 1.5;
@@ -94,7 +94,7 @@
     min-height: 60px;
 }
 
-.details-button {
+.card-container  .details-button {
     background-color: #3498db !important;
     color: white !important;
     padding: 0.75rem 1.5rem !important;
@@ -104,7 +104,7 @@
     margin-top: auto;
 }
 
-.details-button:hover {
+.card-container .details-button:hover {
     background-color: #2980b9 !important;
 }
 
