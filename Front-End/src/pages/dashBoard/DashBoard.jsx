@@ -298,6 +298,16 @@ const Dashboard = () => {
   const currentAuthors = dashboardStats.popularAuthors.slice(indexOfFirstAuthor, indexOfLastAuthor)
   const totalPagesAuthors = Math.ceil(dashboardStats.popularAuthors.length / itemsPerPage)
 
+  if (loading) {
+    return (
+      <div>
+        <DashboardSkeletonLoader lines={5} height="40px" marginBottom="10px" />
+        <DashboardSkeletonLoader lines={5} height="40px" marginBottom="10px" />
+        <DashboardSkeletonLoader lines={5} height="40px" marginBottom="10px" />
+      </div>
+    );
+  }
+
   return (
     <DashboardContainer>
       <Sidebar>
@@ -1277,6 +1287,47 @@ SkeletonLoader.propTypes = {
   marginBottom: PropTypes.string,
 }
 
+const dashboardShimmer = keyframes`
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+  `;
+
+const DashboardSkeletonPulse = styled.div`
+display: inline-block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+  background-size: 800px 104px;
+  animation: ${dashboardShimmer} 1.2s ease-in-out infinite;
+`;
+
+const DashboardSkeletonLine = styled(DashboardSkeletonPulse)`
+  width: 100%;
+  height: ${(props) => props.height || "15px"};
+  margin-bottom: ${(props) => props.marginBottom || "10px"};
+  border-radius: 4px;
+  `;
+
+  
+  const DashboardSkeletonLoader = ({ lines = 1, height, marginBottom }) => (
+    <DashboardSkeletonPulse>
+      {Array(lines)
+        .fill()
+        .map((_, i) => (
+          <DashboardSkeletonLine key={i} height={height} marginBottom={marginBottom} />
+        ))}
+    </DashboardSkeletonPulse>
+  );
+  
+  DashboardSkeletonLoader.propTypes = {
+    lines: PropTypes.number,
+    height: PropTypes.string,
+    marginBottom: PropTypes.string,
+  };
 // Exporting Styled Components
 export {
   DashboardContainer,
