@@ -19,6 +19,8 @@
     width: 50%;
     margin-top: 50px;
     margin-bottom: 50px;
+    animation: fadeIn 0.5s ease-in-out;
+
 }
 .signin .containerrr h1 {
     color: #F8E4A1;
@@ -68,3 +70,15 @@
     transform: scale(1.05);
     box-shadow: 0 4px 15px #F8E4A1;
 }
+
+
+@keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

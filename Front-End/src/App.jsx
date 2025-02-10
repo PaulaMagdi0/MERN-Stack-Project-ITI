@@ -10,17 +10,62 @@ import AboutAs from "./components/aboutas/About";
 import NotFound from "./pages/notFound/NotFound";
 import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
+import { useEffect , useState } from "react";
+import ResetPassword from "./pages/restartpassword/ResetPassword";
+import ForgetPassword from "./pages/forgetpassword/ForgetPassword";
 import  Dashboard from "./pages/dashBoard/DashBoard"
 import  Wishlist from "./pages/wishlist/WishList"
 import RequireAuth from "./utils/WithGuard"
 import ProfilePage from "./pages/Profile/Profile"
+import axios from "axios";
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  
+
+  useEffect(() => {
+      const checkToken = async () => {
+          const token = localStorage.getItem("token");
+          if (!token) {
+              setIsAuthenticated(false);
+              return;
+          }
+
+          try {
+              const response = await axios.post("http://localhost:5000/auth/validate-token", {}, {
+                  headers: { Authorization: `Bearer ${token}` }
+              });
+
+              if (response.data.valid) {
+                  setIsAuthenticated(true);
+              } else {
+                  setIsAuthenticated(false);
+                  localStorage.removeItem("token"); 
+              }
+          } catch (error) {
+              console.error("there is error when check on token", error);
+              setIsAuthenticated(false);
+              localStorage.removeItem("token");
+          }
+      };
+
+      checkToken();
+  }, []);
+
+  if (isAuthenticated === null) {
+      return <h2>check token .....</h2>;
+  }
+
+
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/signup" element={< SignUp/>} />
+        <Route path="/signin" element={<SignIn/>}/>
+        <Route path="reset-password" element={<ResetPassword/>}/>
+        <Route path="forget-password" element={<ForgetPassword/>}/>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="*" element={<NotFound />} />

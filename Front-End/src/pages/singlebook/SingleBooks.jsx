@@ -163,10 +163,10 @@ console.log(comments);
   );
 
   return (
-    <div className="single-book-page">
-    <Container className="d-flex justify-content-center mt-5 mb-5 ">
+    <div className="single-book-page ">
+    <Container className="d-flex justify-content-center my-5">
       <Card className="shadow-lg p-4 bg-white rounded single-book-card" style={{ width: "75rem" }}>
-        <Row>
+        <Row className="py-5">
           <Col md={5} className="d-flex align-items-center">
             {loading ? (
               <Skeleton height={400} width={300} />
@@ -185,24 +185,28 @@ console.log(comments);
           </Col>
           <Col md={7}>
             {/* Rating Section */}
-            <Box sx={{ "& > legend": { mt: 2 } }}>
-              <Typography component="legend">Your Rating</Typography>
-              <Rating
-                name="user-rating"
-                value={value || 0} // Use user's rating or default to 0
-                onChange={(_, newValue) => handleRatingChange(newValue)}
-              />
-              <Typography variant="body2" color="textSecondary">
-                {bookRating?.avgRating ? `Avg Rating: ${bookRating.avgRating}` : "No ratings yet"}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {bookRating?.ratingCount ? `Rate Count: ${bookRating.ratingCount}` : "No ratings yet"}
-              </Typography>
+            <Box sx={{ "& > legend": { mt: 2 } }} className="d-flex justify-content-between">
+              <div className="p-3">
+                <Typography component="legend" className="mb-2">Your Rating</Typography>
+                <Rating
+                  name="user-rating"
+                  value={value || 0} // Use user's rating or default to 0
+                  onChange={(_, newValue) => handleRatingChange(newValue)}
+                />
+              </div>
+              <div className="gap-3 p-3">
+                <Typography variant="body2" color="textSecondary" className="mb-2">
+                  {bookRating?.avgRating ? `Avg Rating: ${bookRating.avgRating}` : "No ratings yet"}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {bookRating?.ratingCount ? `Rate Count: ${bookRating.ratingCount}` : "No ratings yet"}
+                </Typography>
+              </div>
             </Box>
 
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center">
-                <Card.Title className="display-5">
+                <Card.Title className="fs-1">
                   {loading ? <Skeleton width={200} /> : currentBook?.book?.title}
                 </Card.Title>
                 <div>
@@ -210,17 +214,11 @@ console.log(comments);
                     <FaHeart size={28} color={isInWishlist ? "red" : "gray"} />
                   </Button>
                   {/* Read Now button */}
-                  <Button
-                    variant="primary"
-                    style={{ backgroundColor: "#2c3e50", color: "#ffffff" }}
-                    onClick={handleReadNow}
-                  >
-                    Read Now
-                  </Button>
+                  
                 </div>
               </div>
 
-              <Row className="align-items-center mt-3">
+              <Row className="align-items-center mt-3 ">
                 <Col xs="3" className="text-center">
                   {loading ? (
                     <Skeleton circle height={80} width={80} />
@@ -240,6 +238,7 @@ console.log(comments);
                       <Skeleton width={150} />
                     ) : (
                       <Link
+                        className="link-secondary link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover"
                         to={`/author/${currentBook?.book?.author_id?._id}`}
                         // style={{ textDecoration: "none", color: "#007bff" }}
                       >
@@ -256,7 +255,10 @@ console.log(comments);
               <p className="text-muted" style={{ fontSize: "1.2rem" }}>
                 {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
               </p>
-              <Button variant="primary" className="read-now-btn">
+              <Button
+                    variant="primary"
+                    onClick={handleReadNow}
+                  >
                     Read Now
                   </Button>
 
