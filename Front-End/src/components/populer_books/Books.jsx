@@ -79,7 +79,7 @@ function Books() {
   return (
     <section className="Books">
     <section className="container">
-      <div className="section-header">
+      <div className="section-header text-center">
         <h1>Popular Books</h1>
       </div>
 
@@ -95,7 +95,7 @@ function Books() {
             <SwiperSlide key={book.id}>
               <div className="book-card">
                 <img src={ventagbagk} alt="Fantage" className="fantage-img" />
-                <img src={book.img} alt={book.title} className="book" />
+                <img src={book.image} alt={book.title} className="book" />
                 <h3>{book.title}</h3>
               </div>
             </SwiperSlide>

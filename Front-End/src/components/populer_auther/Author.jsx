@@ -61,13 +61,13 @@ import "./Author.css";
 
 function AuthorsCarousel() {
   const [authors, setAuthors] = useState([]);
-  
+
   useEffect(() => {
     fetch("http://localhost:5000/authorgenre")
       .then((res) => res.json())
       .then((data) => {
         const filteredAuthors = data.authors.filter((author) =>
-          author.books.some((book) => book.totalRating > 2)
+          author.books.some((book) => book._id)
         );
         setAuthors(filteredAuthors);
       })
@@ -75,13 +75,17 @@ function AuthorsCarousel() {
   }, []);
 
   return (
-    <section className="authors">
+    <section className="authors py-5">
       <h2 className="section-title">Popular Authors</h2>
       <div className="author-grid">
         {authors.length > 0 ? (
           authors.map((author) => (
-            <div className="author-card" key={author._id}>
-              <img src={author.image} alt={author.name} />
+            <div key={author._id}>
+              <div className="author-card my-3">
+                <img src={author.image} alt={author.name} className="author-image" />
+              </div>
+                <h5>{author.name}</h5>
+                {console.log(author.name)}
             </div>
           ))
         ) : (
@@ -91,6 +95,5 @@ function AuthorsCarousel() {
     </section>
   );
 }
-
 
 export default AuthorsCarousel;

@@ -17,6 +17,8 @@ const wishListRoutes = require("./routes/wishListRoutes");
 const ratingRoute = require("./routes//RatingRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
+const paymentRoutes = require("./routes/paymentRoutes");
+
 const cookieParser = require("cookie-parser");
 
 const app = express();
@@ -75,6 +77,9 @@ app.use("/authorgenre", authorsGenreRoutes);
 app.use("/wishlist",wishListRoutes)
 app.use("/rate",ratingRoute)
 app.use("/review",reviewRoute)
+app.use("/api/payments", paymentRoutes);
+
+
 // ✅ Connect to MongoDB and Start Server
 
 mongoose
@@ -87,9 +92,6 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB Connection Error:", err);
   });
-
-
-
 
 
 // Database Connection

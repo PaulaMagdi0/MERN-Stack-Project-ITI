@@ -13,7 +13,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 import Typography from "@mui/material/Typography";
-import "./SingleBooks.css";  // CSS file
+import "./SingleBooks.css";  
 
 const SingleBook = () => {
   const { id } = useParams();
@@ -284,6 +284,7 @@ console.log(comments);
               </div>
             </Card.Body>
           </Col>
+          {/* <ReviewSection bookId={book._id} userId={currentUser?._id} /> */}
         </Row>
         
         <SubscriptionModal />
