@@ -29,15 +29,20 @@ export const updateComment = createAsyncThunk(
 
 export const deleteComment = createAsyncThunk(
   "comments/deleteComment",
-  async (commentId, { rejectWithValue }) => {
+  async ({ commentId, userId }, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`/review/${commentId}`);
-      return commentId;
+      // Send the userId as part of the body in the DELETE request
+      await axiosInstance.delete(`/review/${commentId}`, {
+        data: { userID: userId },  // Send userId in the request body
+      });
+      return commentId;  // Return the commentId for success handling
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "An error occurred");
     }
   }
 );
+
+
 
 export const getCommentsByBook = createAsyncThunk(
   "comments/getCommentsByBook",

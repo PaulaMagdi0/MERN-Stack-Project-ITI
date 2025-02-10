@@ -23,45 +23,46 @@ import  Wishlist from "./pages/wishlist/WishList"
 import RequireAuth from "./utils/WithGuard"
 import ProfilePage from "./pages/Profile/Profile"
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const stripePromise = loadStripe('pk_test_51QoOUWJabCknvdkPxNb7EyCRhTCMJsEZYxKY96rQN7pLfxQykWbk1dHhZCPmSfKLUUmfcZgUPeLWXyrItwpwwc6k00v1YWuxir');
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+//   const [isAuthenticated, setIsAuthenticated] = useState(null);
   
 
-  useEffect(() => {
-      const checkToken = async () => {
-          const token = localStorage.getItem("token");
-          if (!token) {
-              setIsAuthenticated(false);
-              return;
-          }
+//   useEffect(() => {
+//       const checkToken = async () => {
+//           const token = localStorage.getItem("token");
+//           if (!token) {
+//               setIsAuthenticated(false);
+//               return;
+//           }
 
-          try {
-              const response = await axios.post("http://localhost:5000/auth/validate-token", {}, {
-                  headers: { Authorization: `Bearer ${token}` }
-              });
+//           try {
+//               const response = await axios.post(`${API_URL }/auth/validate-token`, {}, {
+//                   headers: { Authorization: `Bearer ${token}` }
+//               });
 
-              if (response.data.valid) {
-                  setIsAuthenticated(true);
-              } else {
-                  setIsAuthenticated(false);
-                  localStorage.removeItem("token"); 
-              }
-          } catch (error) {
-              console.error("there is error when check on token", error);
-              setIsAuthenticated(false);
-              localStorage.removeItem("token");
-          }
-      };
+//               if (response.data.valid) {
+//                   setIsAuthenticated(true);
+//               } else {
+//                   setIsAuthenticated(false);
+//                   localStorage.removeItem("token"); 
+//               }
+//           } catch (error) {
+//               console.error("there is error when check on token", error);
+//               setIsAuthenticated(false);
+//               localStorage.removeItem("token");
+//           }
+//       };
 
-      checkToken();
-  }, []);
+//       checkToken();
+//   }, []);
 
-  if (isAuthenticated === null) {
-      return <h2>check token .....</h2>;
-  }
+//   if (isAuthenticated === null) {
+//       return <h2>check token .....</h2>;
+//   }
 
 
   return (

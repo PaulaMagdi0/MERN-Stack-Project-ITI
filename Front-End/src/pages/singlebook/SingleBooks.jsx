@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBookRating, fetchUserBookRating, updateBookRating, addUserRate } from "../../store/ratingSlice";
-import { addComment, getCommentsByBook } from "../../store/bookReviewSlice";
+import { addComment, getCommentsByBook,deleteComment,updateComment } from "../../store/bookReviewSlice"; //review Slice
 import { fetchBookById, fetchGenreByBookId } from "../../store/bookSlice";
 import { getUserInfo } from "../../store/authSlice";
 import { addToWishlist, removeWishlistItem } from "../../store/wishListSlice";
@@ -14,6 +14,11 @@ import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 import Typography from "@mui/material/Typography";
 import "./SingleBooks.css";  
+// import { BsPencilSquare, BsTrash } from "react-icons/bs";
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SingleBook = () => {
   const { id } = useParams();
@@ -100,6 +105,41 @@ console.log(comments);
     }
   };
 
+  const handleEdit = (comment) => {
+    const updatedText = prompt("Edit your comment:", comment.comment);
+    
+    if (updatedText && updatedText.trim() !== "") {
+      dispatch(updateComment({ commentId: comment._id, commentData: { comment: updatedText ,userId: user?._id} }))
+        .unwrap()
+        .then(() => {
+          toast.success("Comment updated successfully!");
+        })
+        .catch((error) => {
+          toast.error(error || "Failed to update comment.");
+        });
+    }
+  };
+// review deletion
+const handleDelete = (commentId) => {
+  if (window.confirm("Are you sure you want to delete this comment?")) {
+    const userId = user?._id; // Get the userID from the current user data
+
+    if (userId) {
+      // Dispatching the action with both commentId and userId
+      dispatch(deleteComment({ commentId, userId }))
+        .unwrap()
+        .then(() => {
+          toast.success("Comment deleted successfully!");
+        })
+        .catch((error) => {
+          toast.error(error || "Failed to delete comment.");
+        });
+    } else {
+      toast.error("User not authenticated");
+    }
+  }
+};
+
   const handleReadNow = async () => {
   if (!user) {
     navigate("/login");
@@ -161,6 +201,7 @@ console.log(comments);
       </Modal.Footer>
     </Modal>
   );
+    // review Edit
 
   return (
     <div className="single-book-page ">
@@ -292,15 +333,19 @@ console.log(comments);
       
     </Container>
     <Container className="mt-4">
-  {commentsLoading ? (
-    <Skeleton count={3} height={100} className="mb-3" />
-  ) : (
-    comments?.map((comment) => (
-      <Card key={comment._id} className="mb-3 shadow-sm" style={{ borderRadius: "10px" }}>
-        <Card.Body>
-          <div className="d-flex align-items-center mb-2">
+
+{commentsLoading ? (
+  <Skeleton count={3} height={100} className="mb-3" />
+) : (
+  comments?.map((comment) => (
+    <Card key={comment._id} className="mb-3 shadow-sm" style={{ borderRadius: "10px" }}>
+      <Card.Body>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          
+          {/* User Info */}
+          <div className="d-flex align-items-center">
             <img
-              src={comment.user?.profileImage || "https://via.placeholder.com/40"}
+              src={comment.user?.image || "https://via.placeholder.com/40"}
               alt={comment.user?.username}
               className="rounded-circle me-3"
               style={{ width: "40px", height: "40px", objectFit: "cover" }}
@@ -318,13 +363,35 @@ console.log(comments);
               </span>
             </div>
           </div>
-          <p className="mb-0" style={{ fontSize: "1rem", lineHeight: "1.5" }}>
-            {comment.comment}
-          </p>
-        </Card.Body>
-      </Card>
-    ))
-  )}
+
+          {/* Edit & Delete Buttons (Only for the owner of the comment) */}
+          {user?._id === comment.user?._id && (
+            <div className="d-flex gap-2">
+              <EditIcon
+                className="text-primary cursor-pointer"
+                style={{ fontSize: "1.2rem", cursor: "pointer" }}
+                onClick={() => handleEdit(comment)}
+                title="Edit Comment"
+              />
+              <DeleteIcon
+                className="text-danger cursor-pointer"
+                style={{ fontSize: "1.2rem", cursor: "pointer" }}
+                onClick={() => handleDelete(comment._id)}
+                title="Delete Comment"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Comment Content */}
+        <p className="mb-0" style={{ fontSize: "1rem", lineHeight: "1.5" }}>
+          {comment.comment}
+        </p>
+      </Card.Body>
+    </Card>
+  ))
+)}
+
 </Container>
 
     </div>
