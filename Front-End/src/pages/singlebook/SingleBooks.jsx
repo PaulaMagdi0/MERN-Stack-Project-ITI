@@ -1,10 +1,10 @@
-import { useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBookById, fetchGenreByBookId } from "../../store/bookSlice";
 import { getUserInfo } from "../../store/authSlice";
 import { addToWishlist, removeWishlistItem } from "../../store/wishListSlice";
-import { Card, Container, Row, Col, Button, Alert, Spinner } from "react-bootstrap";
+import { Card, Container, Row, Col, Button, Modal } from "react-bootstrap";
 import { FaHeart } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -12,45 +12,99 @@ import "react-loading-skeleton/dist/skeleton.css";
 const SingleBook = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
   // Get book details & genres from bookSlice
-  const { currentBook, loading, error, GenereByBookID } = useSelector((state) => state.book);
+  const { currentBook, loading, GenereByBookID } = useSelector((state) => state.book);
   // Get current user from authSlice
   const { user } = useSelector((state) => state.auth);
-  // Get wishlist from wishListSlice (an array of wishlist objects)
+  // Get wishlist from wishListSlice
   const { items: wishlist } = useSelector((state) => state.wishlist);
 
   useEffect(() => {
     dispatch(fetchBookById(id));
     dispatch(fetchGenreByBookId(id));
+    dispatch(getUserInfo());
   }, [dispatch, id]);
 
-  useEffect(() => {
-    dispatch(getUserInfo());
-  }, [dispatch]);
-
-  // Determine if currentBook is in wishlist (robust check)
-  const isInWishlist = wishlist?.some(item => {
-    if (item.book && typeof item.book === "object" && item.book._id) {
-      return item.book._id.toString() === currentBook?.book?._id?.toString();
-    } else if (typeof item.book === "string") {
-      return item.book === currentBook?.book?._id?.toString();
-    }
-    return false;
-  });
+  // Check if book is in wishlist
+  const isInWishlist = wishlist?.some((item) =>
+    item.book?._id?.toString() === currentBook?.book?._id?.toString() || item.book === currentBook?.book?._id
+  );
 
   const handleWishlistToggle = (e) => {
     e.stopPropagation();
     if (!user || !currentBook) return;
+
     if (isInWishlist) {
-      console.log(user._id, currentBook?.book?._id);
       dispatch(removeWishlistItem({ userId: user._id, bookId: currentBook?.book?._id }));
     } else {
-      console.log("userID=",user._id," bookID =",currentBook?.book?._id);
-
       dispatch(addToWishlist({ userId: user._id, bookId: currentBook?.book?._id, state: "Want to read" }));
     }
   };
+
+  const handleReadNow = async () => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/users/get-user-info", {
+      method: "GET",
+      credentials: "include", // Ensure cookies/session are included
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch user data");
+
+    const userData = await response.json();
+    console.log("🚀 Fetched User Data:", userData);
+
+    // Extract subscription details
+    const subscription = userData.subscription;
+    if (!subscription || new Date(subscription.renewalDate) <= new Date()) {
+      console.warn("No active subscription found!");
+      setShowSubscribeModal(true);
+      return;
+    }
+
+    // Check if the user is on the default plan
+    if (subscription.planId === "679d0f8785aadfd7e3ab97d8") {
+      console.warn("User is on the default plan, upgrade required.");
+      setShowSubscribeModal(true);
+    } else {
+        window.open(currentBook?.book?.pdf, "_blank");
+    }
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    setShowSubscribeModal(true);
+  }
+};
+
+  // Subscription Modal Component
+  const SubscriptionModal = () => (
+    <Modal show={showSubscribeModal} onHide={() => setShowSubscribeModal(false)} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Subscription Required</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>To access this book, you need to upgrade your subscription plan.</p>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button 
+          variant="primary" 
+          onClick={() => {
+            setShowSubscribeModal(false);
+            navigate('/subscription-plans');
+          }}
+        >
+          View Subscription Plans
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 
   return (
     <Container className="d-flex justify-content-center mt-5 mb-5">
@@ -84,7 +138,11 @@ const SingleBook = () => {
                     <FaHeart size={28} color={isInWishlist ? "red" : "gray"} />
                   </Button>
                   {/* Read Now button */}
-                  <Button variant="primary" style={{ backgroundColor: "#2c3e50", color: "#ffffff" }}>
+                  <Button
+                    variant="primary"
+                    style={{ backgroundColor: "#2c3e50", color: "#ffffff" }}
+                    onClick={handleReadNow}
+                  >
                     Read Now
                   </Button>
                 </div>
@@ -138,6 +196,7 @@ const SingleBook = () => {
             </Card.Body>
           </Col>
         </Row>
+        <SubscriptionModal />
       </Card>
     </Container>
   );

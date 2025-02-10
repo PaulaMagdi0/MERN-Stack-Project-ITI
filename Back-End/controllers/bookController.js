@@ -156,13 +156,12 @@ exports.getBooksByTitle = async (req, res) => {
 //     }
 //   };
 
-
 exports.createBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     let imageUrl = null;
-    let pdfPath = null;
+    let pdfUrl = null;
 
     try {
         const { title, releaseDate, content, description, author_id } = req.body;
@@ -186,7 +185,10 @@ exports.createBook = async (req, res) => {
         // Handle image upload to Cloudinary
         if (req.files?.image?.[0]) {
             try {
-                const cloudinaryResponse = await cloudinary.uploader.upload(req.files.image[0].path);
+                const cloudinaryResponse = await cloudinary.uploader.upload(req.files.image[0].path, {
+                    folder: "books/images", // Store in a specific folder
+                    resource_type: "image",
+                });
                 imageUrl = cloudinaryResponse.secure_url;
 
                 // Remove the temporary file after upload
@@ -194,7 +196,7 @@ exports.createBook = async (req, res) => {
                     if (err) console.error("Error removing temporary image:", err);
                 });
             } catch (uploadError) {
-                console.error("Cloudinary upload error:", uploadError);
+                console.error("Cloudinary image upload error:", uploadError);
 
                 // Clean up temp file if upload fails
                 fs.unlink(req.files.image[0].path, (err) => {
@@ -205,11 +207,29 @@ exports.createBook = async (req, res) => {
             }
         }
 
-        // Handle PDF upload (saving to local storage)
+        // Handle PDF upload to Cloudinary
         if (req.files?.pdf?.[0]) {
-            const pdfFile = req.files.pdf[0];
-            pdfPath = `uploads/pdfs/${pdfFile.filename}`;
-            console.log("PDF uploaded to:", pdfPath);
+            try {
+                const cloudinaryResponse = await cloudinary.uploader.upload(req.files.pdf[0].path, {
+                    folder: "books/pdfs", // Store in a specific folder
+                    resource_type: "raw", // PDFs are "raw" type in Cloudinary
+                });
+                pdfUrl = cloudinaryResponse.secure_url;
+
+                // Remove the temporary file after upload
+                fs.unlink(req.files.pdf[0].path, (err) => {
+                    if (err) console.error("Error removing temporary PDF:", err);
+                });
+            } catch (uploadError) {
+                console.error("Cloudinary PDF upload error:", uploadError);
+
+                // Clean up temp file if upload fails
+                fs.unlink(req.files.pdf[0].path, (err) => {
+                    if (err) console.error("Error removing temporary PDF:", err);
+                });
+
+                throw new Error("Failed to upload PDF to Cloudinary");
+            }
         }
 
         // Create new book
@@ -219,8 +239,8 @@ exports.createBook = async (req, res) => {
             content,
             description,
             author_id,
-            image: imageUrl, // Cloudinary URL
-            pdf: pdfPath // Local path
+            image: imageUrl, // Cloudinary URL for image
+            pdf: pdfUrl, // Cloudinary URL for PDF
         });
 
         await newBook.save({ session });
@@ -260,7 +280,6 @@ exports.createBook = async (req, res) => {
         session.endSession();
     }
 };
-
 
 // Search Books by Title, Author, or Description (Search bar)
 exports.searchBook = async (req, res) => {

@@ -8,113 +8,113 @@ const GenreForBook = require('./bookGenraController')
 
 exports.GetBooksWithGenres = async (req, res) => {
     try {
-      const { page = 1, perPage = 10 } = req.query;
-      const currentPage = Math.max(1, parseInt(page, 10));
-      const itemsPerPage = Math.max(1, parseInt(perPage, 10));
-      const skip = (currentPage - 1) * itemsPerPage;
-  
-      // Aggregation pipeline: lookup books, populate author, and lookup genres
-      const results = await BookGenre.aggregate([
-        // Lookup and unwind the related book document
-        {
-          $lookup: {
-            from: "books", // Books collection
-            localField: "book_id",
-            foreignField: "_id",
-            as: "book"
-          }
-        },
-        { $unwind: "$book" },
-  
-        // Lookup and unwind the author document referenced in book.author_id
-        {
-          $lookup: {
-            from: "authors", // Authors collection
-            localField: "book.author_id",
-            foreignField: "_id",
-            as: "author"
-          }
-        },
-        { $unwind: "$author" },
-  
-        // Lookup and unwind the genre document
-        {
-          $lookup: {
-            from: "genres", // Genres collection
-            localField: "genre_id",
-            foreignField: "_id",
-            as: "genre"
-          }
-        },
-        { $unwind: "$genre" },
-  
-        // Group the documents by book and accumulate the genres.
-        // Also include the author document.
-        {
-          $group: {
-            _id: "$book._id",
-            book: { $first: "$book" },
-            author: { $first: "$author" },
-            genres: { $push: "$genre" }
-          }
-        },
-        { $sort: { "book.title": 1 } },
-        { $skip: skip },
-        { $limit: itemsPerPage }
-      ]);
-  
-      // Get total distinct book count from BookGenre collection
-      const countAgg = await BookGenre.aggregate([
-        { $group: { _id: "$book_id" } },
-        { $count: "total" }
-      ]);
-      const totalCount = countAgg[0] ? countAgg[0].total : 0;
-  
-      // Format the aggregated results into a cleaner output,
-      // mapping each genre to include both _id and name.
-      const formattedResults = results.map(({ _id, book, author, genres }) => ({
-        _id: _id,
-        title: book.title,
-        releaseDate: book.releaseDate,
-        content: book.content,
-        description: book.description,
-        image: book.image,
-        // Include the populated author details
-        author: {
-          _id: author._id,
-          name: author.name,
-          biography: author.biography,
-          birthYear: author.birthYear,
-          deathYear: author.deathYear,
-          image: author.image,
-          nationality: author.nationality
-        },
-        // Return genre objects with both _id and name
-        genres: genres.map(g => ({
-          _id: g._id,
-          name: g.name
-        }))
-      }));
-  
-      res.status(200).json({
-        totalItems: totalCount,
-        currentPage,
-        itemsPerPage,
-        totalPages: Math.ceil(totalCount / itemsPerPage),
-        books: formattedResults
-      });
+        const { page = 1, perPage = 10 } = req.query;
+        const currentPage = Math.max(1, parseInt(page, 10));
+        const itemsPerPage = Math.max(1, parseInt(perPage, 10));
+        const skip = (currentPage - 1) * itemsPerPage;
+
+        // Aggregation pipeline: lookup books, populate author, and lookup genres
+        const results = await BookGenre.aggregate([
+            // Lookup and unwind the related book document
+            {
+                $lookup: {
+                    from: "books", // Books collection
+                    localField: "book_id",
+                    foreignField: "_id",
+                    as: "book"
+                }
+            },
+            { $unwind: "$book" },
+
+            // Lookup and unwind the author document referenced in book.author_id
+            {
+                $lookup: {
+                    from: "authors", // Authors collection
+                    localField: "book.author_id",
+                    foreignField: "_id",
+                    as: "author"
+                }
+            },
+            { $unwind: "$author" },
+
+            // Lookup and unwind the genre document
+            {
+                $lookup: {
+                    from: "genres", // Genres collection
+                    localField: "genre_id",
+                    foreignField: "_id",
+                    as: "genre"
+                }
+            },
+            { $unwind: "$genre" },
+
+            // Group the documents by book and accumulate the genres.
+            // Also include the author document.
+            {
+                $group: {
+                    _id: "$book._id",
+                    book: { $first: "$book" },
+                    author: { $first: "$author" },
+                    genres: { $push: "$genre" }
+                }
+            },
+            { $sort: { "book.title": 1 } },
+            { $skip: skip },
+            { $limit: itemsPerPage }
+        ]);
+
+        // Get total distinct book count from BookGenre collection
+        const countAgg = await BookGenre.aggregate([
+            { $group: { _id: "$book_id" } },
+            { $count: "total" }
+        ]);
+        const totalCount = countAgg[0] ? countAgg[0].total : 0;
+
+        // Format the aggregated results into a cleaner output,
+        // mapping each genre to include both _id and name.
+        const formattedResults = results.map(({ _id, book, author, genres }) => ({
+            _id: _id,
+            title: book.title,
+            releaseDate: book.releaseDate,
+            content: book.content,
+            description: book.description,
+            image: book.image,
+            // Include the populated author details
+            author: {
+                _id: author._id,
+                name: author.name,
+                biography: author.biography,
+                birthYear: author.birthYear,
+                deathYear: author.deathYear,
+                image: author.image,
+                nationality: author.nationality
+            },
+            // Return genre objects with both _id and name
+            genres: genres.map(g => ({
+                _id: g._id,
+                name: g.name
+            }))
+        }));
+
+        res.status(200).json({
+            totalItems: totalCount,
+            currentPage,
+            itemsPerPage,
+            totalPages: Math.ceil(totalCount / itemsPerPage),
+            books: formattedResults
+        });
     } catch (error) {
-      console.error("Error fetching books with genres:", error);
-      res.status(500).json({ message: "Error fetching books with genres" });
+        console.error("Error fetching books with genres:", error);
+        res.status(500).json({ message: "Error fetching books with genres" });
     }
-  };
-    
+};
+
 // exports.GetBookGenre = async (req, res) => {
 //             try {
 //                 const { page = 1, perPage = 10 } = req.query;
 //                 const currentPage = Math.max(1, parseInt(page));
 //                 const itemsPerPage = Math.max(1, parseInt(perPage));
-        
+
 //                 // Get paginated results
 //                 const results = await BookGenre.find()
 //                     .populate({
@@ -133,10 +133,10 @@ exports.GetBooksWithGenres = async (req, res) => {
 //                     .skip((currentPage - 1) * itemsPerPage)
 //                     .limit(itemsPerPage)
 //                     .lean();
-        
+
 //                 // Get total count
 //                 const totalCount = await BookGenre.countDocuments();
-        
+
 //                 res.json({
 //                     pagination: {
 //                         totalItems: totalCount,
@@ -145,9 +145,9 @@ exports.GetBooksWithGenres = async (req, res) => {
 //                         totalPages: Math.ceil(totalCount / itemsPerPage)
 //                     },
 //                     data: results,
-                  
+
 //                 });
-        
+
 //     } catch (error) {
 //         res.status(500).json({ message: "Error fetching Books" });
 //     }
@@ -158,18 +158,18 @@ exports.GetBookGenreByID = async (req, res) => {
     try {
         const { id } = req.params;
         const BooksGenre = await BookGenre.findById(id).populate({
-                    path:'genre_id',
-                    select: 'name',
-                }).populate({
-                    path: 'book_id',
-                    select: 'title releaseDate content description image author_id -_id',
-                    populate: { // Add nested population for author
-                        path: 'author_id',
-                        select: 'name biography birthYear deathYear image nationality -_id',
-                        model: 'Author'
-                    }
-                })
-                .lean(); ;
+            path: 'genre_id',
+            select: 'name',
+        }).populate({
+            path: 'book_id',
+            select: 'title releaseDate content description image author_id -_id',
+            populate: { // Add nested population for author
+                path: 'author_id',
+                select: 'name biography birthYear deathYear image nationality -_id',
+                model: 'Author'
+            }
+        })
+            .lean();;
         res.status(200).json(BooksGenre);
     } catch (error) {
         res.status(500).json({ message: "Error fetching Books" });
@@ -180,7 +180,7 @@ exports.GetBookGenreByID = async (req, res) => {
 exports.addBookGenre = async (req, res) => {
     try {
         const newBookGenre = new BookGenre(req.body);
-        await newBookGenre.save( );
+        await newBookGenre.save();
         res.status(201).json(newBookGenre);
     } catch (error) {
         res.status(500).json({ message: "Error adding book" });
@@ -191,7 +191,7 @@ exports.deleteGenre = async (req, res) => {
     try {
         const { bookGenraID } = req.params;
         const deletedBookGenra = await BookGenre.findByIdAndDelete(bookGenraID);
-        
+
         console.log(deletedBookGenra);
 
         if (!deletedBookGenra) {
@@ -235,9 +235,9 @@ exports.BooksByGenre = async (req, res) => {
         const { genreID } = req.params;
 
         if (!genreID) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "MISSING_GENRE_ID",
-                message: "Genre ID parameter is required" 
+                message: "Genre ID parameter is required"
             });
         }
 
@@ -310,10 +310,10 @@ exports.BooksByGenre = async (req, res) => {
             totalBooks: totalBooks,
             books: validBooks
         });
-        
+
     } catch (err) {
         console.error("Genre Books Error:", err);
-        
+
         // In production, you may want to send the error to a logging service like Sentry
         res.status(500).json({
             code: "SERVER_ERROR",
@@ -327,7 +327,7 @@ exports.BooksByGenre = async (req, res) => {
 exports.GenreForBook = async (req, res) => {
     try {
         // Get genre ID from request parameters (more RESTful than query string)
-        const {bookID} = req.params;
+        const { bookID } = req.params;
         console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
         // Genre
         // Validate genre ID format
@@ -340,7 +340,7 @@ exports.GenreForBook = async (req, res) => {
             .populate({
                 path: 'genre_id',
                 select: 'name',
-              
+
             })
             .limit(10);
 
@@ -352,7 +352,7 @@ exports.GenreForBook = async (req, res) => {
         }
 
         res.json(books);
-        
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Server error while searching books" });
@@ -364,11 +364,11 @@ exports.BooksByAuthor = async (req, res) => {
     try {
         // 1. Get and validate author ID
         const { authorID } = req.params;
-        
+
         if (!authorID) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "MISSING_AUTHOR_ID",
-                message: "Author ID parameter is required" 
+                message: "Author ID parameter is required"
             });
         }
 
@@ -403,7 +403,7 @@ exports.BooksByAuthor = async (req, res) => {
                 const genres = await BookGenre.find({ book_id: book._id })
                     .populate('genre_id', 'name')
                     .then(results => results.map(r => r.genre_id));
-                
+
                 return {
                     ...book,
                     author: book.author_id,
@@ -423,7 +423,7 @@ exports.BooksByAuthor = async (req, res) => {
             count: booksWithGenres.length,
             books: booksWithGenres
         });
-        
+
     } catch (err) {
         console.error("Author Books Error:", err);
         res.status(500).json({
@@ -440,11 +440,11 @@ exports.BookByID = async (req, res) => {
     try {
         // 1. Get and validate book ID
         const { bookID } = req.params;
-        
+
         if (!bookID) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 code: "MISSING_BOOK_ID",
-                message: "Book ID parameter is required" 
+                message: "Book ID parameter is required"
             });
         }
 
@@ -455,11 +455,11 @@ exports.BookByID = async (req, res) => {
             });
         }
 
-        // 2. Find the book and populate author details
+        // 2. Find the book and populate author details, including the pdf field
         const book = await Book.findById(bookID)
-            .select('title releaseDate content description image author_id')
+            .select('title releaseDate content description image pdf author_id')  // Added pdf to the select statement
             .populate({
-                path: 'author_id', 
+                path: 'author_id',
                 select: 'name biography birthYear deathYear image nationality'
             })
             .lean();
@@ -476,14 +476,14 @@ exports.BookByID = async (req, res) => {
             .populate('genre_id', 'name')
             .then(results => results.map(r => r.genre_id));
 
-        // Return the book and author details as a combined response
+        // Return the book, author details, and genres as a combined response
         res.json({
             book: {
                 ...book,
                 genres
             }
         });
-        
+
     } catch (err) {
         console.error("Book Retrieval Error:", err);
         res.status(500).json({
