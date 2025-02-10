@@ -1,9 +1,18 @@
 const express = require("express");
-const { addComment, getCommentsByBook } = require("../controllers/reviewController");
+const { 
+  addComment, 
+  getCommentsByBook, 
+  updateComment, 
+  deleteComment 
+} = require("../controllers/reviewController");
 const { verifyToken } = require("../middleware/authMiddleware"); // Ensure user is logged in
+
 const router = express.Router();
 
-router.post("/:bookId", addComment);
-router.get("/:bookId" ,getCommentsByBook);
+// Routes
+router.post("/:bookId", addComment);       // Add a new comment
+router.get("/:bookId", getCommentsByBook);              // Get all comments for a book
+router.put("/:commentId", updateComment);  // Edit an existing comment
+router.delete("/:commentId", deleteComment); // Delete a comment
 
 module.exports = router;

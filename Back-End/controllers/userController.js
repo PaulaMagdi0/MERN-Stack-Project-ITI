@@ -163,38 +163,39 @@ exports.signUp = async (req, res) => {
   }
 };
 
-// User Signin
 exports.signIn = async (req, res) => {
   try {
     const { username, password, RememberMe } = req.body;
 
-    // Validate input (you can add more detailed validation if needed)
+    // Validate user credentials
     const user = await User.findOne({ username });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Generate a token with the constant JWT_SECRET
+    // Generate JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "30d" }
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }  // Set token expiration to 30 days
     );
 
-    // Set a persistent cookie if RememberMe is true; otherwise, a session cookie
+    // Set cookie options
     const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      httpOnly: true,  // Prevents access to the cookie via JavaScript
+      secure: process.env.NODE_ENV === "production",  // Ensure this is set to true in production (HTTPS only)
+      sameSite: "strict",  // Protects from CSRF attacks
     };
 
+    // If RememberMe is checked, set maxAge for 7 days
     if (RememberMe) {
-      cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+      cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000;  // 7 days
     }
 
+    // Send token as a cookie
     res.cookie("token", token, cookieOptions);
 
-    // Optionally, also send back token details (without the password)
+    // Respond with success message and user info (without the password)
     res.status(200).json({
       id: user._id,
       role: user.role,
@@ -205,6 +206,13 @@ exports.signIn = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// exports.logout = (req, res) => {
+//   res.clearCookie("token"); // Clear the cookie
+//   res.status(200).json({ message: "Logged out successfully" });
+// };
+
+// Other user-related functions (signup, getUserInfo, etc.) can be defined here.
 
 exports.logout = (req, res) => {
   res.clearCookie("token"); // حذف الكوكيز

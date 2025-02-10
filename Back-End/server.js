@@ -54,15 +54,6 @@ app.use(express.urlencoded({ extended: true }));
 // Use cookie-parser middleware before your custom CORS middleware
 app.use(cookieParser());
 
-// Without Middleware to set CORS headers
-// app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
-//   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow cookies
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   next();
-// });
-
 
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
@@ -83,8 +74,8 @@ app.use("/api/payments", paymentRoutes);
 // ✅ Connect to MongoDB and Start Server
 
 mongoose
-  .connect(MONGO_URI)
-  .then(() => {
+.connect(MONGO_URI)
+.then(() => {
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
     });
@@ -92,39 +83,48 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB Connection Error:", err);
   });
-
-
-// Database Connection
-// mongoose.connect(url, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-// }).then(() => console.log("MongoDB Connected"))
+  
+  // Without Middleware to set CORS headers
+  // app.use((req, res, next) => {
+  //   res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
+  //   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow cookies
+  //   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  //   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  //   next();
+  // });
+  
+  
+  // Database Connection
+  // mongoose.connect(url, {
+    //     useNewUrlParser: true,
+    //     useUnifiedTopology: true,
+    // }).then(() => console.log("MongoDB Connected"))
 //     .catch(err => console.error(err));
 
 // Sample route
 // app.get('/', (req, res) => {
-//     res.send('Backend is running!');
-// });
-
-// Use the routes
-// require('dotenv').config();
-// const express = require('express');
-// const cors = require('cors');
-// const mongoose = require('mongoose');
-// const url = process.execArgv.MONGO_URI ||"mongodb+srv://mongoDBServer:EXzM1v5ifzCbH3ut@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
-
-// const app = express();
-// const PORT = process.env.PORT || 5000;
-
+  //     res.send('Backend is running!');
+  // });
+  
+  // Use the routes
+  // require('dotenv').config();
+  // const express = require('express');
+  // const cors = require('cors');
+  // const mongoose = require('mongoose');
+  // const url = process.execArgv.MONGO_URI ||"mongodb+srv://mongoDBServer:EXzM1v5ifzCbH3ut@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
+  
+  // const app = express();
+  // const PORT = process.env.PORT || 5000;
+  
 // // Middleware
 // app.use(cors());
 // app.use(express.json()); // Built-in body parser
 
 // // Sample route
 // app.get('/', (req, res) => {
-//     res.send('Backend is running!');
-// });
-
+  //     res.send('Backend is running!');
+  // });
+  
 // // Start the server
 // mongoose.connect(url).then(result=>{app.listen(PORT, () => {
 //     console.log(`Server running on port ${PORT}`);
@@ -168,12 +168,12 @@ mongoose
 // const Genres = mongoose.model("genres", genres);
 // // ======== ROUTES ==========
 // app.get("/", (req, res) => {
-//   res.send("Backend is running!");
+  //   res.send("Backend is running!");
 // });
 
 // // Connect and seed data
 // async function startServer() {
-//   try {
+  //   try {
 //     await mongoose.connect(url);
 //     console.log("Connected to MongoDB");
 
@@ -183,31 +183,31 @@ mongoose
 //       console.log(`Server running on port ${PORT}`);
 //     });
 //   } catch (err) {
-//     console.error("Startup error:", err);
+  //     console.error("Startup error:", err);
 //     process.exit(1);
 //   }
 // }
 
 // ✅ **Fixed Seed Function**
 // async function seedData() {
-//   try {
+  //   try {
 //     const authorCount = await Author.countDocuments();
 //     const booksCount = await Book.countDocuments();
 //     const subscriptionpalncount = await Subplan.countDocuments();
 
     // if (authorCount > 0 && booksCount > 0) {
-    //   console.log('Data already exists - skipping seeding');
-    //   return;
-    // }
+      //   console.log('Data already exists - skipping seeding');
+      //   return;
+      // }
 
-//     // 🔹 Insert authors if missing
-//     if (authorCount === 0) {
+      //     // 🔹 Insert authors if missing
+      //     if (authorCount === 0) {
 //       const insertedAuthors = await Author.insertMany([
-//         { name: "Author 1" },
-//         { name: "Author 2" },
-//         { name: "Author 3" },
-//       ]);
-//       console.log("Inserted authors:", insertedAuthors);
+  //         { name: "Author 1" },
+  //         { name: "Author 2" },
+  //         { name: "Author 3" },
+  //       ]);
+  //       console.log("Inserted authors:", insertedAuthors);
 //     }
 
 //     // 🔹 Fetch authors again to ensure they exist
@@ -218,10 +218,10 @@ mongoose
 //     // console.log(books)
 //     // 🔹 Check if we have enough authors
 //     // if (authors.length < 3) {
-//     //   console.log("Not enough authors found, seeding skipped.");
-//     //   return;
-//     // }
-
+  //     //   console.log("Not enough authors found, seeding skipped.");
+  //     //   return;
+  //     // }
+  
 //     // 🔹 Insert books
 //     await Authorgenre.insertMany([
 //         {

@@ -331,7 +331,7 @@ exports.deleteGenre = async (req, res) => {
         
         // console.log(deletedBookGenra);
 
-        console.log(deletedBookGenra);
+        // console.log(deletedBookGenra);
 
         if (!deletedBookGenra) {
             return res.status(404).json({ message: "Book not found" });
@@ -467,7 +467,7 @@ exports.GenreForBook = async (req, res) => {
     try {
         // console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
         const { bookID } = req.params;
-        console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
+        // console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
         // Genre
         // Validate genre ID format
         if (!bookID) {
