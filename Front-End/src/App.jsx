@@ -23,7 +23,7 @@ import RequireAuth from "./utils/WithGuard"
 import ProfilePage from "./pages/Profile/Profile"
 
 const stripePromise = loadStripe('pk_test_51QoOUWJabCknvdkPxNb7EyCRhTCMJsEZYxKY96rQN7pLfxQykWbk1dHhZCPmSfKLUUmfcZgUPeLWXyrItwpwwc6k00v1YWuxir');
-
+// App
 function App() {
 //   const [isAuthenticated, setIsAuthenticated] = useState(null);
   
