@@ -1,0 +1,21 @@
+.radius_1 {
+    border-radius: 1rem;
+}
+
+.CDBCard {
+    width: 15rem;
+    overflow: hidden;
+}
+
+.authImg {
+    position: relative;
+    top: -2rem;
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.text-justify {
+    text-align: justify;
+}

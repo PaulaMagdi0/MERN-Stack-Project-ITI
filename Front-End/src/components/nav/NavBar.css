@@ -1,0 +1,21 @@
+.search-style {
+    margin-bottom: 0;
+    padding: 1rem;
+    border: 0;
+}
+.active{
+    text-decoration: none;
+    color: red;
+
+}
+.AppBar {
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.notActive{
+    text-decoration: none;
+    color: white;
+    
+}
