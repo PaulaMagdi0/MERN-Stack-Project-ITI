@@ -52,7 +52,7 @@ function SignUp() {
                 <Formik
                     initialValues={initialValues}
                     validationSchema={SignUpValidation}
-                    onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
+                    onSubmit={async (values, { setSubmitting, setErrors }) => {
                         try {
                             console.log(values);
 

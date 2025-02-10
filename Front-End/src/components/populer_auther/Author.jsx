@@ -85,7 +85,6 @@ function AuthorsCarousel() {
                 <img src={author.image} alt={author.name} className="author-image" />
               </div>
                 <h5>{author.name}</h5>
-                {console.log(author.name)}
             </div>
           ))
         ) : (
