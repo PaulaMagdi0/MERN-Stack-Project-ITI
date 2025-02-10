@@ -5,6 +5,7 @@ import authReducer from "./authSlice";
 import wishlistSlice from "./wishListSlice";
 import bookRateSlice from "./ratingSlice";
 import authorRatingSlice from "./authorRatingSlice";
+import commentsSlice from "./bookReviewSlice";
 
 
 const store = configureStore({
@@ -14,7 +15,8 @@ const store = configureStore({
     auth: authReducer,
     wishlist: wishlistSlice,
     rating: bookRateSlice,
-    authorRating: authorRatingSlice
+    authorRating: authorRatingSlice,
+    bookReview: commentsSlice,
     
   },
 });

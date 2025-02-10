@@ -44,9 +44,9 @@ exports.getBookAverageRating = async (req, res) => {
     try {
       const { bookId } = req.params; // Extract bookId from URL params
       const allRatings = await BookRating.find({ book_id: bookId }); // Consistent field name with schema
-        console.log("🚀 ~ exports.getBookAverageRating= ~ bookId:", bookId)
+      //   console.log("🚀 ~ exports.getBookAverageRating= ~ bookId:", bookId)
         
-      console.log("🚀 ~ exports.getBookAverageRating= ~ allRatings:", allRatings)
+      // console.log("🚀 ~ exports.getBookAverageRating= ~ allRatings:", allRatings)
       // If no ratings are found, return 0 average and rating count
       if (allRatings.length === 0) {
         return res.json({ avgRating: 0, ratingCount: 0 });

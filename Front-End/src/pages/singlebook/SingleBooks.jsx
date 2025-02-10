@@ -3,36 +3,37 @@ import { useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBookById, fetchGenreByBookId } from "../../store/bookSlice";
 import { fetchBookRating, fetchUserBookRating, updateBookRating, addUserRate } from "../../store/ratingSlice";
+import { addComment, updateComment, deleteComment, getCommentsByBook } from "../../store/bookReviewSlice";
 import { getUserInfo } from "../../store/authSlice";
 import { addToWishlist, removeWishlistItem } from "../../store/wishListSlice";
-import { Card, Container, Row, Col, Button } from "react-bootstrap";
+import { Card, Container, Row, Col, Button, Form } from "react-bootstrap";
 import { FaHeart } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 import Typography from "@mui/material/Typography";
-
+import "./SingleBooks.css"
 const SingleBook = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [value, setValue] = useState(null); // State for current user's rating
+  const [comment, setComment] = useState(""); // State for the comment input
 
   // Get book details & genres from Redux
   const { currentBook, loading, GenereByBookID } = useSelector((state) => state.book);
   const { user } = useSelector((state) => state.auth || {});
   const { items: wishlist } = useSelector((state) => state.wishlist);
-  const { bookRating, userRating } = useSelector((state) => {
-    console.log(state);
-    
-    return state?.rating || {}}); // Get book & user rating
-  console.log(bookRating,userRating);
-  
+  const { bookRating, userRating } = useSelector((state) => state?.rating || {}); // Get book & user rating
+  const { comments, error, loading: commentsLoading } = useSelector((state) => {return state.bookReview});
+console.log(comments);
+
   // Fetch book and genre details on component mount
   useEffect(() => {
     dispatch(fetchBookById(id));
     dispatch(fetchGenreByBookId(id));
     dispatch(getUserInfo());
+    dispatch(getCommentsByBook(id)); // Fetch comments when the component mounts
   }, [dispatch, id]);
 
   // Fetch book ratings (avg & user rating)
@@ -83,7 +84,17 @@ const SingleBook = () => {
     }
   };
 
+  // Handle adding a comment
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    if (user && comment.trim()) {
+      dispatch(addComment({ bookId: currentBook.book._id, commentData: { comment, userId: user._id }}));
+      setComment(""); // Reset comment input after submission
+    }
+  };
+
   return (
+    <>
     <Container className="d-flex justify-content-center mt-5 mb-5">
       <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}>
         <Row>
@@ -171,11 +182,71 @@ const SingleBook = () => {
               <p className="text-muted" style={{ fontSize: "1.2rem" }}>
                 {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
               </p>
+
+              {/* Comment Section */}
+              <div className="mt-5">
+                <h5>Comments</h5>
+                <Form onSubmit={handleCommentSubmit}>
+                  <Form.Group controlId="commentText">
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Add a comment..."
+                    />
+                  </Form.Group>
+                  <Button variant="primary" type="submit" className="mt-3" disabled={!comment.trim()}>
+                    Post Comment
+                  </Button>
+                </Form>
+
+                {error && <p className="text-danger">{error}</p>}
+              </div>
             </Card.Body>
           </Col>
         </Row>
+        
       </Card>
+      
     </Container>
+    <Container className="mt-4">
+  {commentsLoading ? (
+    <Skeleton count={3} height={100} className="mb-3" />
+  ) : (
+    comments?.map((comment) => (
+      <Card key={comment._id} className="mb-3 shadow-sm" style={{ borderRadius: "10px" }}>
+        <Card.Body>
+          <div className="d-flex align-items-center mb-2">
+            <img
+              src={comment.user?.profileImage || "https://via.placeholder.com/40"}
+              alt={comment.user?.username}
+              className="rounded-circle me-3"
+              style={{ width: "40px", height: "40px", objectFit: "cover" }}
+            />
+            <div>
+              <strong className="me-2">{comment.user?.username || "Anonymous"}</strong>
+              <span className="text-muted" style={{ fontSize: "0.9rem" }}>
+                {new Date(comment.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
+          <p className="mb-0" style={{ fontSize: "1rem", lineHeight: "1.5" }}>
+            {comment.comment}
+          </p>
+        </Card.Body>
+      </Card>
+    ))
+  )}
+</Container>
+
+    </>
   );
 };
 

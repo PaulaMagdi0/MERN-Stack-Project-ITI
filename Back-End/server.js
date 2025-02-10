@@ -15,7 +15,7 @@ const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
 const wishListRoutes = require("./routes/wishListRoutes");
 const ratingRoute = require("./routes//RatingRoute");
-
+const reviewRoute = require("./routes/reviewRoute");
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
 const cookieParser = require("cookie-parser");
 
@@ -74,7 +74,7 @@ app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
 app.use("/wishlist",wishListRoutes)
 app.use("/rate",ratingRoute)
-
+app.use("/review",reviewRoute)
 // ✅ Connect to MongoDB and Start Server
 
 mongoose
