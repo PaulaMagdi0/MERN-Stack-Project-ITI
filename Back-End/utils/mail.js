@@ -12,18 +12,19 @@ exports.generateOtp = () => {
     return otp;
 }
 
-exports.mailTransport =() =>
-    nodemailer.createTransport({
-        host: process.env.MAIL_HOST,
-        port: 587,
-        auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD
-        },
-        tls: {
-            rejectUnauthorized: false 
-        }
-      });
+// const nodemailer = require("nodemailer");
+
+exports.mailTransport = () =>
+  nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USERNAME,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false, // Prevents issues with self-signed certificates
+    },
+  });
 
 
       exports.GeneratePasswordResetTemplate = (url) => {

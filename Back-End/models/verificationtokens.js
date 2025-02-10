@@ -14,7 +14,7 @@ const verfocationTokensSchema = new mongoose.Schema({
    },
    createdAt:{
     type:Date,
-    expires:3600,
+    // expires:3600,
     default:Date.now()
    }
 }, { timestamps: true });
@@ -34,5 +34,4 @@ verfocationTokensSchema.methods.compareToken = async function (enteredToken) {
 
 const VerifyToken = mongoose.model('VerifyToken', verfocationTokensSchema);
 module.exports = VerifyToken;
-
 

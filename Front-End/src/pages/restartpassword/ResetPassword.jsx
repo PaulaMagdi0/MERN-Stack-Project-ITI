@@ -5,140 +5,159 @@ import queryString from "query-string";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ResetPassword = () => {
-  const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState(
-    {
-      password:'',
-      confirmpassword:''
-    }
-  );
-  const location = useLocation();
-  console.log(location);
-  const[inValiduser , setinValiduser]=useState('')
-  const[busy , setBusy]=useState(true);
-  const[error , setError]=useState('');
-  const [success , setSuccess]=useState(false);
-  const navigate = useNavigate();
-
-
+  const [newPassword, setNewPassword] = useState({
+    password: '',
+    confirmpassword: ''
+  });
+  const [invalidUser, setInvalidUser] = useState('');
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   
-  const {token , id}=queryString.parse(location.search);
-
-  const verfyToken= async()=>{
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Parse token and id from the query parameters
+  const { token, id } = queryString.parse(location.search);
+  
+  // Verify the reset token
+  const verifyToken = async () => {
     try {
-      const {data}= await axios(`http://localhost:5000/users/verify-token?token=${token}&id=${id}`);
-      console.log(data);
+      const { data } = await axios.get(`${API_URL}/users/verify-token?token=${token}&id=${id}`);
+      console.log("Verify token response:", data);
       setBusy(false);
-      
     } catch (error) {
-      if(error?.response?.data){
-        const {data}=error.response
-        if(!data.success) return setinValiduser(data.error);
-
-        return console.log(error.response.data);
-        
+      if (error?.response?.data) {
+        const { data } = error.response;
+        if (!data.success) {
+          setInvalidUser(data.error);
+          setBusy(false);
+          return;
+        }
       }
-      console.log(error);
-      
+      console.error("Error verifying token:", error);
+      setBusy(false);
     }
   };
-  useEffect(()=>{
-    verfyToken();
-  },[]);
-
-
-  if (success) 
-    return <div className="reset-container">
-      <div className="reset-box success-message message-box">
-        <h1>password reset successfully !</h1>
+  
+  useEffect(() => {
+    verifyToken();
+  }, []);
+  
+  // If reset is successful, show success message and navigate to signin
+  if (success) {
+    return (
+      <div className="reset-container">
+        <div className="reset-box success-message message-box">
+          <h1>Password reset successfully!</h1>
+        </div>
       </div>
-    </div>;
-
-if (inValiduser) 
-  return <div className="reset-container">
-    <div className="reset-box error-message message-box">
-      <h1>{inValiduser}</h1>
-    </div>
-  </div>;
-
-if (busy) 
-  return <div className="reset-container">
-    <div className="reset-box loading-message message-box">
-      <h1>Wait for a moment verfiying reset token...</h1>
-    </div>
-  </div>;
-  const handleOnChang = ({target}) => {
-    const {name , value}=target;
-    setNewPassword({...newPassword, [name]:value})
-
+    );
+  }
+  
+  // Show error if the token or user is invalid
+  if (invalidUser) {
+    return (
+      <div className="reset-container">
+        <div className="reset-box error-message message-box">
+          <h1>{invalidUser}</h1>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show loading indicator while busy verifying token or processing request
+  if (busy) {
+    return (
+      <div className="reset-container">
+        <div className="reset-box loading-message message-box">
+          <h1>Please wait, verifying reset token...</h1>
+        </div>
+      </div>
+    );
+  }
+  
+  // Handle input changes for password fields
+  const handleOnChange = ({ target }) => {
+    const { name, value } = target;
+    setNewPassword((prev) => ({ ...prev, [name]: value }));
   };
-  const handleReset =async e => {
+  
+  // Handle form submission to reset password
+  const handleReset = async (e) => {
     e.preventDefault();
-    const {password , confirmpassword}=newPassword;
-    if(password.trim().length <8 || password.trim().length  > 20){
-      return setError('Password must be 8 to 20 chars')
-
+    const { password, confirmpassword } = newPassword;
+    
+    if (password.trim().length < 8 || password.trim().length > 20) {
+      return setError("Password must be 8 to 20 characters");
     }
-    if(password !==confirmpassword){
-      return setError('Password does not match')
+    
+    if (password !== confirmpassword) {
+      return setError("Passwords do not match");
     }
+    
     try {
       setBusy(true);
-      const {data}= await axios.post(`http://localhost:5000/users/reset-password?token=${token}&id=${id}` , {password});
-      console.log(data);
-      setBusy(false);
-      if(data.success) {
-        navigate('/reset-password');
+      const { data } = await axios.post(
+        `${API_URL}/users/reset-password?token=${token}&id=${id}`,
+        { password: password.trim() }
+      );
+      console.log("Reset response:", data);
+      if (data.success) {
         setSuccess(true);
+        navigate('/signin');
+      } else {
+        setError(data.message || "Password reset failed");
       }
-      
     } catch (error) {
-      if(error?.response?.data){
-        const {data}=error.response
-        if(!data.success) return setinValiduser(data.error);
-
-        return console.log(error.response.data);
-        
+      if (error?.response?.data) {
+        const { data } = error.response;
+        if (!data.success) {
+          return setInvalidUser(data.error);
+        }
+        console.error("Error response:", data);
+      } else {
+        console.error("Error during password reset:", error);
       }
-      console.log(error);
-      
+    } finally {
+      setBusy(false);
     }
-
   };
-
+  
   return (
     <div className="reset-container">
       <div className="reset-box">
         <h2 className="reset-title">Reset Password</h2>
-<form onSubmit={handleReset}>
-        <div>
-          <label className="reset-label">New Password</label>
-          <input
-            type="password"
-            className="reset-input"
-            name="password"
-            value={newPassword.password}
-            onChange={handleOnChang}
-          />
-         {error && <p>{error}</p>}
-        </div>
-
-        <div>
-          <label className="reset-label">Confirm New Password</label>
-          <input
-            type="password"
-            className="reset-input"
-            value={newPassword.confirmpassword}
-            name="confirmpassword"
-            onChange={handleOnChang}
-          />
-        </div>
-
-        <button className="reset-button" onClick={handleReset} type="submit">
-          Reset
-        </button>
+        <form onSubmit={handleReset}>
+          <div>
+            <label className="reset-label">New Password</label>
+            <input
+              type="password"
+              className="reset-input"
+              name="password"
+              value={newPassword.password}
+              onChange={handleOnChange}
+            />
+            {error && <p className="reset-error">{error}</p>}
+          </div>
+  
+          <div>
+            <label className="reset-label">Confirm New Password</label>
+            <input
+              type="password"
+              className="reset-input"
+              name="confirmpassword"
+              value={newPassword.confirmpassword}
+              onChange={handleOnChange}
+            />
+          </div>
+  
+          <button className="reset-button" type="submit">
+            Reset
+          </button>
         </form>
       </div>
     </div>

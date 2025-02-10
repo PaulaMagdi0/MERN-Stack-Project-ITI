@@ -162,7 +162,7 @@ const Contact = () => {
         <h1 className="text-center mb-4">Come visit</h1>
         <div className="map container">
           <iframe
-            src="https://www.google.com/maps/embed?..."
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d18372.993071306413!2d31.681248787466494!3d30.027542746675454!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1457f5172d0a0a8f%3A0x54b12d0e2e15ef55!2sITI%20-%20Information%20Technology%20Institute!5e0!3m2!1sen!2seg!4v1735738254309!5m2!1sen!2seg"
             width="100%"
             height="500"
             style={{ border: "5px solid #fff" }}
