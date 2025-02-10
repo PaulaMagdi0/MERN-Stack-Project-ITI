@@ -163,9 +163,9 @@ console.log(comments);
   );
 
   return (
-    <>
-    <Container className="d-flex justify-content-center mt-5 mb-5">
-      <Card className="shadow-lg p-4 bg-white rounded" style={{ width: "75rem" }}>
+    <div className="single-book-page">
+    <Container className="d-flex justify-content-center mt-5 mb-5 ">
+      <Card className="shadow-lg p-4 bg-white rounded single-book-card" style={{ width: "75rem" }}>
         <Row>
           <Col md={5} className="d-flex align-items-center">
             {loading ? (
@@ -241,7 +241,7 @@ console.log(comments);
                     ) : (
                       <Link
                         to={`/author/${currentBook?.book?.author_id?._id}`}
-                        style={{ textDecoration: "none", color: "#007bff" }}
+                        // style={{ textDecoration: "none", color: "#007bff" }}
                       >
                         {currentBook?.book?.author_id?.name || "Unknown"}
                       </Link>
@@ -256,6 +256,9 @@ console.log(comments);
               <p className="text-muted" style={{ fontSize: "1.2rem" }}>
                 {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
               </p>
+              <Button variant="primary" className="read-now-btn">
+                    Read Now
+                  </Button>
 
               {/* Comment Section */}
               <div className="mt-5">
@@ -321,7 +324,7 @@ console.log(comments);
   )}
 </Container>
 
-    </>
+    </div>
   );
 };
 

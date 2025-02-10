@@ -411,7 +411,7 @@ const authorSchema = Yup.object().shape({
                   ))}
                 </StyledSelect>
               </FormGroup>
-              <SubmitButton type="submit" disabled={!selectedAuthor}>
+              <SubmitButton className="m-auto d-flex" type="submit" disabled={!selectedAuthor}>
                 Delete Author
               </SubmitButton>
             </form>

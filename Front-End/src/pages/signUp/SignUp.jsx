@@ -60,7 +60,7 @@ function SignUp() {
                 >
                     {({ errors }) =>
                     (
-                        <Form className="row g-3">
+                        <Form className="row g-3 px-5">
                             <h1>SIGN UP</h1>
 
                             <div className="col-md-6 form-group">

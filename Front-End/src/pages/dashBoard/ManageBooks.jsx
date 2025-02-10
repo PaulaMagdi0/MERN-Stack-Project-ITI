@@ -460,7 +460,7 @@ const ManageBooks = () => {
                     </option>
                                 ))}
                             </StyledSelect>
-                            <SubmitButton type="submit" disabled={!selectedBook}>
+                            <SubmitButton className="m-auto d-flex" type="submit" disabled={!selectedBook}>
                                 Delete Book
                             </SubmitButton>
                         </form>
@@ -678,6 +678,7 @@ const SubmitButton = styled.button`
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin:auto;
 
     &:hover {
         transform:scale(1.05);

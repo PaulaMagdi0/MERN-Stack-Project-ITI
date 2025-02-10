@@ -1,0 +1,166 @@
+/* خلفية الصفحة زي صفحة الـ Single Book */
+.single-author-container {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  
+}
+
+/* الكارد الرئيسي */
+.single-author-container .author-card {
+    background: rgba(255, 248, 235, 0.95) !important;  /* نفس لون الـ single-book-card */
+    color: #4b3f34 !important; 
+    border-radius: 15px;
+    overflow: hidden;
+    padding: 2rem;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+   opacity: 0;
+    transform: translateY(-50px);
+    animation: fadeInDown 0.8s ease-in-out forwards;
+}
+/* اسم الكاتب */
+.single-author-container .author-name {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #3c2a21 !important;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+.single-author-container .author-name:hover {
+    color: #a67c52; 
+    transform: scale(1.05);
+}
+
+/* النصوص داخل البطاقة */
+.author-card p, 
+.author-card .text-muted, 
+.author-card h4 {
+    color: #5a4638 !important; 
+}
+
+/* اللينكات */
+.single-author-container .author-card a {
+    color: #b76e79 !important; 
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.author-card a:hover {
+    color: #8b5e57 !important; 
+}
+
+/* أنيميشن النزول */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .author-name {
+        font-size: 2rem;
+    }
+    .author-card {
+        padding: 1.5rem;
+    }
+}
+
+
+/* عنوان Section */
+.single-author-container .section-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #3c2a21;
+    text-align: center;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.single-author-container .section-title:hover {
+    color: #a67c52; 
+    transform: scale(1.05);
+}
+
+/* تصميم الكارد */
+.single-author-container .book-card {
+    background: rgba(255, 248, 235, 0.95); /* نفس لون الـ single-book-card */
+    color: #4b3f34;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+
+    /* أنيميشن نزول عند التحميل */
+    opacity: 0;
+    transform: translateY(-30px);
+    animation: fadeInDown 0.8s ease-in-out forwards;
+}
+
+/* صورة الكتاب */
+.single-author-container .book-img {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* عنوان الكتاب */
+.single-author-container .book-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #3c2a21;
+    margin-top: 10px;
+    transition: all 0.3s ease-in-out;
+}
+
+.single-author-container .book-title:hover {
+    color: #a67c52;
+    transform: scale(1.05);
+}
+
+/* تاريخ الإصدار */
+.single-author-container .book-date {
+    font-size: 1rem;
+    color: #5a4638;
+}
+
+/* تأثير عند الـ hover */
+.single-author-container .book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 2rem;
+    }
+    .book-card {
+        padding: 1.2rem;
+    }
+}
+

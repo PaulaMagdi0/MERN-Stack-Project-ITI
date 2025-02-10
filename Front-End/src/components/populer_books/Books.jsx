@@ -52,14 +52,16 @@
 
 // export default Books;
 
-import React, { useEffect, useState } from "react";
+
+
+import "./Books.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import ventagbagk from "../../assets/header.jpeg";
-import "./Books.css";
+import { useEffect, useState } from "react";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -76,32 +78,31 @@ function Books() {
 
   return (
     <section className="Books">
+    <section className="container">
       <div className="section-header">
         <h1>Popular Books</h1>
       </div>
+
       <div className="book-list">
-        {books.length > 0 ? (
-          <Swiper
-            modules={[Navigation, Pagination]}
-            spaceBetween={20}
-            slidesPerView={Math.min(3, books.length)} // هيعرض 2 بس أو عدد الكتب لو أقل
-            navigation
-            pagination={{ clickable: true }}
-          >
-            {books.map((book) => (
-              <SwiperSlide key={book._id}>
-                <div className="book-card">
-                  <img src={ventagbagk} alt="Fantage" className="fantage-img" />
-                  <img src={book.image} alt={book.title} className="book" />
-                  <h3>{book.title}</h3>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        ) : (
-          <p className="no-books">There is no Populer Books</p>
-        )}
+        <Swiper
+          modules={[Navigation, Pagination]}
+          spaceBetween={20}
+          slidesPerView={4}
+          navigation
+          pagination={{ clickable: true }}
+        >
+          {books.map((book) => (
+            <SwiperSlide key={book.id}>
+              <div className="book-card">
+                <img src={ventagbagk} alt="Fantage" className="fantage-img" />
+                <img src={book.img} alt={book.title} className="book" />
+                <h3>{book.title}</h3>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
+    </section>
     </section>
   );
 }

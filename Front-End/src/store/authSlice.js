@@ -95,7 +95,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.error = null;
-      axios.post(`${API_URL}/users/logout`, {}, { withCredentials: true });
+      // axios.post(`${API_URL}/users/logout`, {}, { withCredentials: true });
     },
   },
   extraReducers: (builder) => {

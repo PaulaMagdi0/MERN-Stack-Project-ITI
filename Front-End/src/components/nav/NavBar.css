@@ -8,7 +8,11 @@
     color: red;
 
 }
-
+.AppBar {
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
 
 .notActive{
     text-decoration: none;

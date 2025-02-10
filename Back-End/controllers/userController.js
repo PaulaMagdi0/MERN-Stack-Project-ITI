@@ -206,6 +206,12 @@ exports.signIn = async (req, res) => {
   }
 };
 
+exports.logout = (req, res) => {
+  res.clearCookie("token"); // حذف الكوكيز
+  res.status(200).json({ message: "Logged out successfully" });
+};
+
+
 // // Get User Info (from token)
 // exports.getUserInfo = async (req, res) => {
 //   // Retrieve the token from cookies (or headers if you prefer)

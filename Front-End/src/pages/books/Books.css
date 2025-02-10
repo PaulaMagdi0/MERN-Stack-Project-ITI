@@ -1,0 +1,32 @@
+.books-page {
+    background: linear-gradient(to bottom, #FFF3E0, #FFE0B2); /* تدرج كريمي - خوخي فاتح */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+}
+.books-page::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 400px; 
+    height: 100%;
+    background-image: url("../../assets/795826fc995589e315d140d4472d94d5-removebg-preview.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: right;
+    opacity: 0.8; 
+}
+
+
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+}

@@ -3,7 +3,7 @@ const express = require("express");
 
 const { authenticateToken } = require("../middleware/authMiddleware");
 const rateLimit = require("express-rate-limit");
-const { signIn, getUserInfo, UpdateUserInfo, signUp } = require("../controllers/userController");
+const { signIn, getUserInfo, UpdateUserInfo, signUp ,logout } = require("../controllers/userController");
 
 const router = express.Router();
 
@@ -25,5 +25,9 @@ router.get("/get-user-info", authenticateToken, getUserInfo);
 
 // Update Profile
 router.put("/update-profile", authenticateToken, UpdateUserInfo);  // ✅ Fixed
+
+//logout user
+router.post("/logout", logout);
+
 
 module.exports = router;

@@ -1,5 +1,5 @@
 // components/Wishlist.jsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWishlist, removeWishlistItem, updateWishlistState } from '../../store/wishListSlice';
 import { getUserInfo } from '../../store/authSlice'; // Import getUserInfo from authSlice
@@ -51,7 +51,7 @@ const Wishlist = () => {
   const stateOptions = ["Read", "Want to read", "Currently Reading"];
 
   return (
-    <Container className="py-4">
+    <Container className="vh-100 p-5 m-auto">
       <h2 className="mb-4 text-center">Your Wishlist</h2>
 
       {loading && (

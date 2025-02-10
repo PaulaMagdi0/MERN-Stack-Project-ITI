@@ -6,6 +6,7 @@
      background-size:cover; 
 }
 .Books .book-card {
+    
     background: rgba(255, 255, 255, 0.9);
     padding: 15px;
     border-radius: 10px;
@@ -20,7 +21,7 @@
     justify-content: flex-start; /* تخلي الصورة فوق والعنوان تحت */
 
   }
- .Books  .book-list {
+.Books .book-list {
    width: 90%; 
     margin: auto;
   }
@@ -48,8 +49,6 @@
 }
 
 .Books .book-card h3 {
-    margin-top: auto; /* يخلي العنوان دايمًا في الأسفل */
-
     color: #2c3e50;
     margin-top: 60px;
     font-size: 16px;
