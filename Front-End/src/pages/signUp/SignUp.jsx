@@ -1,11 +1,10 @@
 import { Formik, Form, Field } from "formik";
 import "./SignUp.css";
 import { SignUpValidation } from "./validation"
-import { useState, } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { Modal, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 
 const initialValues = {
     username: "",
@@ -21,6 +20,8 @@ function SignUp() {
     const [userId, setUserId] = useState(null);
     const [otp, setOtp] = useState("");
     const [verificationMessage, setVerificationMessage] = useState("");
+    const navigate = useNavigate();
+
     const handleOTPSubmit = async () => {
         try {
             const response = await axios.post("http://localhost:5000/users/verify-email", {
@@ -35,6 +36,7 @@ function SignUp() {
                 setTimeout(() => {
                     setShowOTPModal(false);
                     alert("Sign up successfully!");
+                    navigate("/signin");
                 }, 2000);
             } else {
                 setVerificationMessage(response.data.message || "Invalid OTP. Please try again.");
@@ -43,8 +45,6 @@ function SignUp() {
             setVerificationMessage("Invalid OTP. Please try again.");
         }
     };
-
-
 
     return (
         <div className="signup">
@@ -88,10 +88,8 @@ function SignUp() {
                         }
                         setSubmitting(false);
                     }}
-
                 >
-                    {({ errors }) =>
-                    (
+                    {({ errors }) => (
                         <Form className="row g-3 px-5">
                             <h1>SIGN UP</h1>
 
@@ -162,21 +160,15 @@ function SignUp() {
                             </div>
 
                             <div className="col-12">
-                                <button type="submit" className="btn btn-primary"
-                                    onClick={() => console.log("Button Clicked!")}>
-                                    Sign Up</button>
+                                <button type="submit" className="btn btn-primary">Sign Up</button>
                             </div>
                             <small>
                                 Do u have an account? <Link to="/signin">Sign In</Link>
                             </small>    
                         </Form>
-
                     )}
-
                 </Formik>
             </section>
-
-
 
             {/* OTP Modal */}
             <Modal show={showOTPModal} onHide={() => setShowOTPModal(false)} centered>
@@ -204,6 +196,3 @@ function SignUp() {
 }
 
 export default SignUp;
-
-
-

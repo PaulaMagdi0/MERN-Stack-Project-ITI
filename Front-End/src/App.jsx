@@ -15,15 +15,12 @@ import AboutAs from "./components/aboutas/About";
 import NotFound from "./pages/notFound/NotFound";
 import SignUp from "./pages/signUp/SignUp";
 import SignIn from "./pages/login/Login";
-import { useEffect , useState } from "react";
 import ResetPassword from "./pages/restartpassword/ResetPassword";
 import ForgetPassword from "./pages/forgetpassword/ForgetPassword";
 import  Dashboard from "./pages/dashBoard/DashBoard"
 import  Wishlist from "./pages/wishlist/WishList"
 import RequireAuth from "./utils/WithGuard"
 import ProfilePage from "./pages/Profile/Profile"
-import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const stripePromise = loadStripe('pk_test_51QoOUWJabCknvdkPxNb7EyCRhTCMJsEZYxKY96rQN7pLfxQykWbk1dHhZCPmSfKLUUmfcZgUPeLWXyrItwpwwc6k00v1YWuxir');
 

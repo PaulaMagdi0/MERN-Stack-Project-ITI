@@ -69,7 +69,7 @@
 //               letterSpacing: ".3rem",
 //               color: "#F8E4A1",
 //               textDecoration: "none",
-//               "&:hover": { color: "#FFD700" },
+//               "&:hover": { color: "#F8E4A1" },
 //             }}
 //           >
 //             BookHub
@@ -117,7 +117,7 @@
 //                 key={page}
 //                 component={NavLink}
 //                 to={page === "Home" ? "/" : `/${page.toLowerCase()}`}
-//                 sx={{ my: 2, color: "white", "&:hover": { color: "#FFD700" } }}
+//                 sx={{ my: 2, color: "white", "&:hover": { color: "#F8E4A1" } }}
 //               >
 //                 {page}
 //               </Button>
@@ -149,7 +149,7 @@
 //               <Button
 //                 component={NavLink}
 //                 to="/signin"
-//                 sx={{ color: "white", "&:hover": { color: "#FFD700" } }}
+//                 sx={{ color: "white", "&:hover": { color: "#F8E4A1" } }}
 //               >
 //                 Login
 //               </Button>
@@ -285,7 +285,7 @@ function Navbar() {
                 letterSpacing: ".3rem",
                 color: "#F8E4A1",
                 textDecoration: "none",
-                "&:hover": { color: "#FFD700" },
+                "&:hover": { color: "#F8E4A1" },
               }}
             >
               BookHub
@@ -308,7 +308,7 @@ function Navbar() {
             {/* Centered Navigation Links (Desktop) */}
             <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, justifyContent: "center" }}>
               {pages.map((page) => (
-                <Button key={page} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`} sx={{ my: 2, color: "white", "&:hover": { color: "#FFD700" } }}>
+                <Button key={page} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`} sx={{ my: 2, color: "white", "&:hover": { color: "#F8E4A1" } }}>
                   {page}
                 </Button>
               ))}
@@ -335,7 +335,7 @@ function Navbar() {
                   </IconButton>
                 </Tooltip>
               ) : (
-                <Button onClick={handleLoginClick} sx={{ color: "white", "&:hover": { color: "#FFD700" } }}>
+                <Button onClick={handleLoginClick} sx={{ color: "white", "&:hover": { color: "#F8E4A1" } }}>
                   Login
                 </Button>
               )}

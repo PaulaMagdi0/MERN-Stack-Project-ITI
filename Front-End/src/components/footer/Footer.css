@@ -27,7 +27,7 @@
 }
 
 .menu a:hover {
-  color: #FFD700; 
+  color: #F8E4A1;
 }
 
 /* Social Icons */
@@ -52,7 +52,7 @@
   border-radius: 50%;
   background: transparent;
   border: 1px solid #F8E4A1;
-    color: #F8E4A1;
+  color: #F8E4A1;
   font-size: 18px;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -109,14 +109,16 @@
   }
 }
 
-.footer1{
+.footer1 {
   position: absolute;
   bottom: 0;
   right: 0;
   z-index: 2;
-  max-width: 350px; /* تحكمي في الحجم حسب الحاجة */
+  max-width: 350px;
+  /* تحكمي في الحجم حسب الحاجة */
 }
-.footer2{
+
+.footer2 {
   position: absolute;
   left: 0;
   bottom: 0;

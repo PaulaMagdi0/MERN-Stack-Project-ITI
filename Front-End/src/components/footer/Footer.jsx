@@ -99,7 +99,7 @@ export default Footer;
 //               my: 4 
 //             }}>
 //               {['Home', 'Subscription', 'About', 'Contact'].map((page) => (
-//                 <Link key={page} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`} sx={{ my: 2, color: "white", "&:hover": { color: "#FFD700" } }}>
+//                 <Link key={page} component={NavLink} to={page === "Home" ? "/" : `/${page.toLowerCase()}`} sx={{ my: 2, color: "white", "&:hover": { color: "#F8E4A1" } }}>
 //                 {page}
 //               </Link>
 //               ))}

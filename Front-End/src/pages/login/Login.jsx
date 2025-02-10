@@ -20,7 +20,7 @@ function SignIn() {
   useEffect(() => {
     console.log("Updated Redux State:", authData);
     if (authData.isLoggedIn) {
-      navigate("/profile");
+      window.location.href = "/"; // Refresh the page before loading home
     }
   }, [authData, navigate]);
 
@@ -67,10 +67,7 @@ function SignIn() {
               dispat(authAction.changeRole(data.role));
               console.log("Redux State:", authData);
 
-              // Optionally, you can store user data in localStorage or cookies if needed
-              // But using the cookie set by the backend is recommended
-
-              navigate("/profile");
+              window.location.href = "/"; // Refresh the page before loading home
             } catch (error) {
               console.error("Signin error:", error.message);
               setErrors({ general: error.message }); // Set general error
