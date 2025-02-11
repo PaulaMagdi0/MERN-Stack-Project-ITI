@@ -6,11 +6,10 @@ import { useEffect } from "react";
 import { authAction } from "../../store/auth";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-
+// LastCheck 
 const initialValues = {
   username: "",
-  password: "",
-  rememberMe: false  // default to false
+  password: ""
 };
 
 function SignIn() {
@@ -18,17 +17,10 @@ function SignIn() {
   const navigate = useNavigate();
   const authData = useSelector((state) => state.auth);
 
-  // Clear session storage when component mounts
-  useEffect(() => {
-    // Clear any existing session data when the component first loads
-    sessionStorage.clear();
-    localStorage.clear();
-  }, []);
-
   useEffect(() => {
     console.log("Updated Redux State:", authData);
     if (authData.isLoggedIn) {
-      window.location.href = "/";
+      window.location.href = "/"; // Refresh the page before loading home
     }
   }, [authData, navigate]);
 
@@ -39,10 +31,14 @@ function SignIn() {
           initialValues={initialValues}
           validationSchema={LoginValidation}
           onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
+            console.log("Redux State:", authData);
+
             try {
+              console.log(values);
+
               const response = await fetch("http://localhost:5000/users/sign-in", {
                 method: "POST",
-                credentials: "include",
+                credentials: "include", // Ensure credentials are included (for cookies)
                 headers: {
                   "Content-Type": "application/json",
                 },
@@ -56,35 +52,25 @@ function SignIn() {
                   const errorMessages = Object.values(data.errors)
                     .map(err => err.message)
                     .join("\n");
-                  setErrors({ general: errorMessages });
+
+                  setErrors({ general: errorMessages }); // Set general error to display inside the form
                 } else {
                   throw new Error(data.message || "Sign in failed, please try again!");
                 }
                 return;
               }
-
-              // Handle storage based on remember me
-              if (values.rememberMe) {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('userData', JSON.stringify(data));
-              } else {
-                // Use session storage if remember me is not checked
-                sessionStorage.setItem('authToken', data.token);
-                sessionStorage.setItem('userData', JSON.stringify(data));
-                // Ensure localStorage is clear
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userData');
-              }
+              console.log("Response data:", data);
 
               alert("Sign in successful!");
               resetForm();
               dispat(authAction.login());
               dispat(authAction.changeRole(data.role));
+              console.log("Redux State:", authData);
 
-              window.location.href = "/";
+              window.location.href = "/"; // Refresh the page before loading home
             } catch (error) {
               console.error("Signin error:", error.message);
-              setErrors({ general: error.message });
+              setErrors({ general: error.message }); // Set general error
             }
             setSubmitting(false);
           }}
@@ -104,7 +90,6 @@ function SignIn() {
                 />
                 {touched.username && errors.username && <small>{errors.username}</small>}
               </div>
-
               <div className="col-md-12 form-group">
                 <label htmlFor="password" className="form-label">Password</label>
                 <Field
@@ -116,21 +101,9 @@ function SignIn() {
                 {touched.password && errors.password && <small>{errors.password}</small>}
               </div>
 
-              <div className="col-12 form-group mt-4">
-                <label className="form-check d-flex justify-content-center gap-5">
-                  <span className="form-check-label my-auto">Remember me</span>
-                  <Field
-                    type="checkbox"
-                    name="rememberMe"
-                    className="form-check-input"
-                    id="rememberMe"
-                  />
-                </label>
-              </div>
-
               {errors.general && <div className="col-12"><small>{errors.general}</small></div>}
 
-              <div className="col-12 mt-0">
+              <div className="col-12">
                 <button type="submit" className="btn btn-primary">Sign In</button>
               </div>
               <small>If you forget your password please click <Link to="/forget-password">here</Link></small>

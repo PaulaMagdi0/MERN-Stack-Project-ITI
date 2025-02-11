@@ -422,9 +422,12 @@ const sendError = (res, message, status = 400) => {
 exports.signup = async (req, res) => {
   try {
     const { username, email, password, address, phone, dateOfBirth } = req.body;
+    console.log("PassWord SignUp",password);
+
     if (!username || !email || !password || !phone) {
       return res.status(400).json({ message: "Username, email, password, and phone are required." });
     }
+      console.log(password);
 
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
@@ -462,12 +465,15 @@ exports.signup = async (req, res) => {
 exports.signin = async (req, res) => {
   try {
     const { username, password, RememberMe } = req.body;
+      console.log("from SignIn",password);
+      console.log("from SignIn",RememberMe);
+
     if (!username || !password) {
       return res.status(400).json({ message: "Username and password are required." });
     }
 
     const user = await User.findOne({ username });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || !(await bcrypt.compare(password.trim(), user.password))) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 

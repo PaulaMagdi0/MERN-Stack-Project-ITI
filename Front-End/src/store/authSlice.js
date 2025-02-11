@@ -8,45 +8,42 @@ export const signIn = createAsyncThunk(
   "auth/signIn",
   async (values, { rejectWithValue }) => {
     try {
-      const { password, username, rememberMe } = values;
-
+      // Destructure values. If you add a "RememberMe" field in your form,
+      // make sure it is included in the initialValues and sent here.
+      const { username, password, RememberMe } = values;
       const response = await fetch(`${API_URL}/users/sign-in`, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // send cookies if needed
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, RememberMe }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        return rejectWithValue(data.message || "Sign-in failed");
+        return rejectWithValue(data.message || "Sign in failed");
       }
 
-      // Store user info based on rememberMe selection
-      if (data.token) {
-        if (rememberMe) {
-          localStorage.setItem("authToken", data.token);
-          localStorage.setItem("userData", JSON.stringify(data.user));
-          sessionStorage.removeItem("authToken");
-          sessionStorage.removeItem("userData");
-        } else {
-          sessionStorage.setItem("authToken", data.token);
-          sessionStorage.setItem("userData", JSON.stringify(data.user));
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("userData");
-        }
+      // Optionally store the token and user data
+      if (RememberMe) {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userData", JSON.stringify(data.user));
+      } else {
+        sessionStorage.setItem("authToken", data.token);
+        sessionStorage.setItem("userData", JSON.stringify(data.user));
       }
 
-      return { user: data.user, token: data.token, rememberMe };
+      return {
+        user: data.user,
+        token: data.token,
+      };
     } catch (error) {
       return rejectWithValue(error.message || "Something went wrong.");
     }
   }
 );
-
 // Async thunk for getting user info
 export const getUserInfo = createAsyncThunk(
   "auth/getUserInfo",
@@ -65,9 +62,9 @@ export const getUserInfo = createAsyncThunk(
       );
       return rejectWithValue(
         error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to fetch user info."
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch user info."
       );
     }
   }
@@ -93,14 +90,11 @@ export const updateUserProfile = createAsyncThunk(
   "auth/updateUserProfile",
   async (updateValues, { rejectWithValue }) => {
     try {
-      // updateValues should include the fields the user is allowed to update.
-      // The update endpoint is /users/update-profile and expects a PUT request.
       const response = await axios.put(
         `${API_URL}/users/update-profile`,
         updateValues,
         { withCredentials: true }
       );
-      // Assume response.data.updatedUser contains the updated user data.
       return response.data.updatedUser;
     } catch (error) {
       console.error("Error updating profile:", error.response?.data || error.message);
@@ -120,28 +114,48 @@ const authSlice = createSlice({
     user: null,
     loading: false,
     error: null,
+    isLoggedIn: false, // Add this
+    role: null, // Add this
   },
   reducers: {
-    clearUser: (state) => {
+    login(state) {
+      state.isLoggedIn = true;
+    },
+    logout(state) {
+      state.isLoggedIn = false;
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userData");
+      sessionStorage.removeItem("authToken");
+      sessionStorage.removeItem("userData");
+    },
+    changeRole(state, action) {
+      state.role = action.payload;
+    },
+    clearUser(state) {
       state.user = null;
       state.error = null;
+      state.isLoggedIn = false;
+      state.role = null;
     },
   },
   extraReducers: (builder) => {
     builder
       // Handle the signIn case
       .addCase(signIn.pending, (state) => {
-        state.loading = true;
         state.error = null;
       })
       .addCase(signIn.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user || action.payload;
+        state.isLoggedIn = true;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.error = null;
       })
       .addCase(signIn.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || action.error.message;
       })
+  
       // Handle the getUserInfo case
       .addCase(getUserInfo.pending, (state) => {
         state.loading = true;
@@ -175,6 +189,8 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
         state.user = null; // Clear user data after logout
+        state.isLoggedIn = false; // Reset isLoggedIn to false
+        state.role = null; // Reset role to null
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
