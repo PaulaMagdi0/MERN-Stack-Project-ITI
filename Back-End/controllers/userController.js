@@ -463,7 +463,7 @@ const sendError = (res, message, status = 400) => {
 exports.signup = async (req, res) => {
   try {
     const { username, email, password, address, phone, dateOfBirth } = req.body;
-    const hashedPassword = password
+    // const hashedPassword = password
 
     
     if (!username || !email || !password || !phone) {
@@ -474,7 +474,7 @@ exports.signup = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: "Username or email already exists." });
     }
-    // const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
     // console.log("🚀 ~ exports.signup= ~ hashedPassword:",password, hashedPassword)
     
     const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth });
@@ -543,42 +543,24 @@ exports.signup = async (req, res) => {
 // -------------------
 // Signin Controller
 // -------------------
-
 exports.signin = async (req, res) => {
   try {
     const { username, password, RememberMe } = req.body;
-    // console.log("from SignIn UserName:=>   ", username);
-    // console.log("from SignIn Password:=>   ", password);
-    // console.log("from SignIn RememberMe:=> ", RememberMe);
-
-    // const passwords = 'Fightsong@6';  // Your test password
-    // const hashedPassword = '$2b$08$U0XfPJHVcBqFGK5.oUADi.8fA.//bE6VlM3JIjBrOf1tpLp37hEw2';  // Replace with a known hash from your DB
-    
-    // const result = bcrypt.compareSync(passwords.trim(), hashedPassword )
-    //   console.log(result);  // Should return true if the password matches the hash
-    
-    
     if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required." });
+      return res
+        .status(400)
+        .json({ message: "Username and password are required." });
     }
 
     const user = await User.findOne({ username });
-
-    // console.log("🚀 ~ exports.signin= ~ user:", user);
-
-    if (!user) {
+    const isCorrect = await bcrypt.compare(password,  user?.password || "");
+    if (!user | !isCorrect) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    // Compare entered password with the hashed password stored in the database
-    // const testPassword = await bcrypt.compare(password.trim(), user.password);
-    // console.log("🚀 ~ exports.signin= ~ testPassword:", testPassword);
-
-    // if (!testPassword) {
-    //   return res.status(400).json({ message: "Invalid credentials." });
-    // }
-
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "30d" });
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: "30d",
+    });
 
     const cookieOptions = {
       httpOnly: true,
@@ -601,7 +583,6 @@ exports.signin = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
-
 // -------------------
 // Get User Info Controller
 // -------------------

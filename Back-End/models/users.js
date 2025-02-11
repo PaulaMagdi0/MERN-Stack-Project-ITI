@@ -70,16 +70,20 @@ const userSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-userSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-      this.password = await bcrypt.hash(this.password, 8);
-  }
-  next();
-});
+// Final step: PreHash The PassWord
 
+// userSchema.pre("save", async function (next) {
+//   if (this.isModified("password")) {
+//       this.password = await bcrypt.hash(this.password, 8);
+//   }
+//   next();
+// });
+
+// Final step: Create a method to compare the password
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
+
 const User = mongoose.model("User", userSchema);
 module.exports = User;
 
