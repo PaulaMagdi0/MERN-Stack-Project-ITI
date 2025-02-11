@@ -7,12 +7,24 @@ const SubscriptionPlans = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  // Check if user is logged in (Assuming JWT is stored in localStorage)
-  const isAuthenticated = !!localStorage.getItem("token"); // Modify based on your authentication method
-
+  // Check authentication using backend API
   useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/auth/user", { withCredentials: true }) // Ensure cookies are sent
+      
+      .then((response) => {
+        
+        if (response.status === 200) {
+          setIsAuthenticated(true);
+        }
+      })
+      .catch(() => {
+        setIsAuthenticated(false);
+      });
+
     axios
       .get("http://localhost:5000/subscriptionsPlan")
       .then((response) => {
@@ -28,12 +40,6 @@ const SubscriptionPlans = () => {
   }, []);
 
   const handleSelectPlan = (plan) => {
-    if (!isAuthenticated) {
-      // Redirect to login page if user is not logged in
-      navigate("/signin", { state: { from: "/subscription" } });
-      return;
-    }
-
     navigate("/payment", {
       state: {
         planId: plan._id,
@@ -43,6 +49,7 @@ const SubscriptionPlans = () => {
       },
     });
   };
+  
 
   if (loading) return <p>Loading subscription plans...</p>;
   if (error) return <p>{error}</p>;

@@ -18,6 +18,7 @@ const ratingRoute = require("./routes//RatingRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
 const paymentRoutes = require("./routes/paymentRoutes");
+app.use("/api/auth", authRoutes);
 
 const cookieParser = require("cookie-parser");
 
