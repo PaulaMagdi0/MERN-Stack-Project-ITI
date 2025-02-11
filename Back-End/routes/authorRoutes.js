@@ -4,7 +4,7 @@ const { getAuthors, getAuthorsByID, getAuthorsByName, createAuthor, updateAuthor
 const upload = require("../config/multerConfig"); // Import Multer configuration
 // Get all books
 
-router.get("/", getAuthors);
+// router.get("/", getAuthors);
 
 // Get a single book by ID
 
@@ -12,7 +12,7 @@ router.get("/", getAuthors);
 
 // Search books by title
 
-router.get("/name/:name", getAuthorsByName);
+// router.get("/name/:name", getAuthorsByName);
 // Get Genre By Author ID 
 
 // router.get("/author-genre/:authorID",GenresForAuthor)

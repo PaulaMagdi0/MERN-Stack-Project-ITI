@@ -1,28 +1,34 @@
+// SignIn.js
 import { Formik, Form, Field } from "formik";
 import "./Login.css";
 import { LoginValidation } from "./ValidationLogin";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { authAction } from "../../store/auth";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-// LastCheck 
+import { signIn } from "../../store/authSlice"; // async thunk action
+import { useNavigate, Link } from "react-router-dom";
+
 const initialValues = {
   username: "",
-  password: ""
+  password: "",
 };
 
 function SignIn() {
-  const dispat = useDispatch();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const authData = useSelector((state) => state.auth);
 
+  // When the user is logged in, you can optionally refresh the page.
+  // (This useEffect will be triggered if your Redux state updates.)
   useEffect(() => {
     console.log("Updated Redux State:", authData);
     if (authData.isLoggedIn) {
-      window.location.href = "/"; // Refresh the page before loading home
+      // Option 1: Refresh the page by changing the window location
+      // window.location.href = "/";
+      // Option 2 (alternative): navigate("/") and then reload
+      // navigate("/");
+      // window.location.reload();
     }
-  }, [authData, navigate]);
+  }, [authData]);
 
   return (
     <div className="signin">
@@ -31,46 +37,32 @@ function SignIn() {
           initialValues={initialValues}
           validationSchema={LoginValidation}
           onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
-            console.log("Redux State:", authData);
-
             try {
-              console.log(values);
+              // Dispatch the async thunk signIn
+              const resultAction = await dispatch(signIn(values));
+              if (signIn.fulfilled.match(resultAction)) {
+                // Successful sign in
+                alert("Sign in successful!");
+                resetForm();
 
-              const response = await fetch("http://localhost:5000/users/sign-in", {
-                method: "POST",
-                credentials: "include", // Ensure credentials are included (for cookies)
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(values),
-              });
-
-              const data = await response.json();
-
-              if (!response.ok) {
-                if (data.errors) {
-                  const errorMessages = Object.values(data.errors)
-                    .map(err => err.message)
-                    .join("\n");
-
-                  setErrors({ general: errorMessages }); // Set general error to display inside the form
+                // Force a full page refresh after login:
+                window.location.href = "/";
+                // Alternatively, you could do:
+                // navigate("/");
+                // window.location.reload();
+              } else {
+                // If the thunk was rejected, display the error message
+                if (resultAction.payload) {
+                  // Known error from the server
+                  setErrors({ general: resultAction.payload });
                 } else {
-                  throw new Error(data.message || "Sign in failed, please try again!");
+                  // A generic error message
+                  setErrors({ general: resultAction.error.message });
                 }
-                return;
               }
-              console.log("Response data:", data);
-
-              alert("Sign in successful!");
-              resetForm();
-              dispat(authAction.login());
-              dispat(authAction.changeRole(data.role));
-              console.log("Redux State:", authData);
-
-              window.location.href = "/"; // Refresh the page before loading home
             } catch (error) {
               console.error("Signin error:", error.message);
-              setErrors({ general: error.message }); // Set general error
+              setErrors({ general: error.message });
             }
             setSubmitting(false);
           }}
@@ -78,9 +70,10 @@ function SignIn() {
           {({ errors, touched }) => (
             <Form className="row g-3 px-5">
               <h1>LOGIN</h1>
-
               <div className="col-12 form-group">
-                <label htmlFor="username" className="form-label">User Name</label>
+                <label htmlFor="username" className="form-label">
+                  User Name
+                </label>
                 <Field
                   type="text"
                   className="form-control"
@@ -90,8 +83,11 @@ function SignIn() {
                 />
                 {touched.username && errors.username && <small>{errors.username}</small>}
               </div>
+
               <div className="col-md-12 form-group">
-                <label htmlFor="password" className="form-label">Password</label>
+                <label htmlFor="password" className="form-label">
+                  Password
+                </label>
                 <Field
                   type="password"
                   className="form-control"
@@ -101,12 +97,22 @@ function SignIn() {
                 {touched.password && errors.password && <small>{errors.password}</small>}
               </div>
 
-              {errors.general && <div className="col-12"><small>{errors.general}</small></div>}
+              {errors.general && (
+                <div className="col-12">
+                  <small>{errors.general}</small>
+                </div>
+              )}
 
               <div className="col-12">
-                <button type="submit" className="btn btn-primary">Sign In</button>
+                <button type="submit" className="btn btn-primary">
+                  Sign In
+                </button>
               </div>
-              <small>If you forget your password please click <Link to="/forget-password">here</Link></small>
+
+              <small>
+                If you forget your password please click{" "}
+                <Link to="/forget-password">here</Link>
+              </small>
               <small>
                 Don&apos;t have an account? <Link to="/signup">Sign up</Link>
               </small>

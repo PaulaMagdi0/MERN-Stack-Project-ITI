@@ -462,43 +462,68 @@ exports.BooksByGenre = async (req, res) => {
       });
     }
   };
-  
-//Get Books Genre By id 
-exports.GenreForBook = async (req, res) => {
+  exports.GenreForBook = async (req, res) => {
     try {
-        // console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
-        const { bookID } = req.params;
-        // console.log("🚀 ~ exports.BooksByGenre= ~ genreID:", bookID)
-        // Genre
-        // Validate genre ID format
-        if (!bookID) {
-            return res.status(400).json({ message: "Invalid genre ID format" });
-        }
-
-        // Find book-genre relationships and populate book details
-        const bookRelations = await BookGenre.find({ book_id: bookID })
-            .populate({
-                path: 'genre_id',
-                select: 'name',
-
-            })
-            .limit(10);
-
-        // Extract books from relationships
-        const books = bookRelations.map(relation => relation.genre_id);
-
-        if (books.length === 0) {
-            return res.status(404).json({ message: "No books found for this genre" });
-        }
-
-        res.json(books);
-
+      const { bookID } = req.params;
+      
+      // Validate bookID parameter
+      if (!bookID) {
+        return res.status(400).json({ message: "Invalid book ID format" });
+      }
+  
+      // Parse pagination parameters from the query string
+      let page = parseInt(req.query.page) || 1;
+      let limit = parseInt(req.query.limit) || 10;
+  
+      if (page <= 0 || limit <= 0) {
+        return res.status(400).json({
+          message: "Page and limit must be positive integers"
+        });
+      }
+      
+      const skip = (page - 1) * limit;
+      
+      // Get the total count of book-genre relationships for the given bookID
+      const totalRelations = await BookGenre.countDocuments({ book_id: bookID });
+      
+      // Retrieve the paginated book-genre relationships and populate the genre details
+      const bookRelations = await BookGenre.find({ book_id: bookID })
+        .populate({
+          path: 'genre_id',
+          select: 'name'
+        })
+        .skip(skip)
+        .limit(limit);
+      
+      // Extract the genre objects from the relations
+      const genres = bookRelations.map(relation => relation.genre_id);
+  
+      // If no genres are found, return an empty result with pagination info
+      if (genres.length === 0) {
+        return res.json({
+          currentPage: page,
+          totalPages: 0,
+          totalGenres: 0,
+          genres: []
+        });
+      }
+  
+      const totalPages = Math.ceil(totalRelations / limit);
+      
+      // Send paginated response
+      res.json({
+        currentPage: page,
+        totalPages: totalPages,
+        totalGenres: totalRelations,
+        genres: genres
+      });
+      
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error while searching books" });
+      console.error("Server error while searching genres:", err);
+      res.status(500).json({ message: "Server error while searching genres" });
     }
-};
-
+  };
+  
 // Get Books by Author ID
 exports.BooksByAuthor = async (req, res) => {
     try {
