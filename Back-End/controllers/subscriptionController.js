@@ -34,3 +34,29 @@ exports.getSubscriptionByID = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 }
+exports.updateSubscription = async (req, res) => {
+    try {
+        const { userId, planId } = req.body;
+
+        if (!userId || !planId) {
+            return res.status(400).json({ error: "userId and planId are required." });
+        }
+
+        // Find existing subscription
+        let subscription = await Subscription.findOne({ userId });
+        if (!subscription) {
+            return res.status(404).json({ error: "Subscription not found." });
+        }
+
+        // Update the subscription
+        subscription.planId = planId;
+        subscription.subscriptionDate = new Date();
+        subscription.renewalDate = new Date();
+        subscription.renewalDate.setMonth(subscription.renewalDate.getMonth() + 1);
+
+        await subscription.save();
+        res.status(200).json({ message: "Subscription updated successfully", subscription });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

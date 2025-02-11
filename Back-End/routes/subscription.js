@@ -1,13 +1,7 @@
 const express = require("express");
-
-const {getSubscription,getSubscriptionByID } = require("../controllers/subscriptionController")
-
 const router = express.Router();
+const { updateSubscription } = require("../controllers/subscriptionController");
 
-// Get all subscriptions
-router.get("/", getSubscription);
-
-// Create a new subscription
-router.post("/",getSubscriptionByID );
+router.put("/update", updateSubscription); // ✅ Ensure this exists
 
 module.exports = router;
