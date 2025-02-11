@@ -419,40 +419,121 @@ const sendError = (res, message, status = 400) => {
 // -------------------
 // Signup Controller
 // -------------------
+
+// exports.signup = async (req, res) => {
+//   try {
+//     const { username, email, password, address, phone, dateOfBirth } = req.body;
+//     console.log("PassWord SignUp",password);
+
+//     if (!username || !email || !password || !phone) {
+//       return res.status(400).json({ message: "Username, email, password, and phone are required." });
+//     }
+//       console.log(password);
+
+//     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "Username or email already exists." });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth });
+
+//     // Generate OTP for email verification
+//     const OTP = generateOtp();
+//     const verificationToken = new VerifyToken({ owner: newUser._id, token: OTP });
+
+//     await verificationToken.save();
+//     await newUser.save();
+
+//     // Send email with OTP
+//     mailTransport().sendMail({
+//       from: "emailverification@email.com",
+//       to: newUser.email,
+//       subject: "Verify your Email please!",
+//       html: `<h1>${OTP}</h1>`
+//     });
+
+//     return res.status(201).json({ message: "Signup successful.", userId: newUser._id });
+//   } catch (error) {
+//     console.error("Error during signup:", error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+
 exports.signup = async (req, res) => {
   try {
     const { username, email, password, address, phone, dateOfBirth } = req.body;
-    console.log("PassWord SignUp",password);
+    const hashedPassword = password
 
+    
     if (!username || !email || !password || !phone) {
       return res.status(400).json({ message: "Username, email, password, and phone are required." });
     }
-      console.log(password);
 
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
       return res.status(400).json({ message: "Username or email already exists." });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    // console.log("🚀 ~ exports.signup= ~ hashedPassword:",password, hashedPassword)
+    
     const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth });
+
+      // console.log("🚀 ~ exports.signup= ~ password:", password)
+    // console.log("🚀 ~ exports.signup= ~ newUser:", newUser.password)
+    // console.log("🚀 ~ exports.signup= ~ : hashedPassword",hashedPassword)
+    // console.log("🚀 ~ exports.signup= ~ : bcrypt",await  bcrypt.hash(test, 10))
+    // const test = "Fightsong@6"
 
     // Generate OTP for email verification
     const OTP = generateOtp();
-    const verificationToken = new VerifyToken({ owner: newUser._id, token: OTP });
+    const verificationToken = new VerifyToken({
+      owner: newUser._id,
+      token: OTP,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // Expires in 15 minutes
+    });
 
-    await verificationToken.save();
     await newUser.save();
+    await verificationToken.save();
+
+    // Find the default plan
+    const defaultPlan = await SubscriptionPlan.findOne({ Plan_name: "default" });
+    if (!defaultPlan) {
+      await User.deleteOne({ _id: newUser._id });
+      await VerifyToken.deleteOne({ owner: newUser._id });
+      return res.status(500).json({ message: "No default subscription plan found. Signup failed." });
+    }
+
+    // Create a new subscription entry for the user
+    const subscription = new Subscription({
+      userId: newUser._id,
+      planId: defaultPlan._id,
+      subscriptionDate: new Date(),
+      renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), // Renew in 1 month
+    });
+
+    await subscription.save();
 
     // Send email with OTP
     mailTransport().sendMail({
       from: "emailverification@email.com",
       to: newUser.email,
       subject: "Verify your Email please!",
-      html: `<h1>${OTP}</h1>`
+      html: `<h1>${OTP}</h1>`,
     });
 
-    return res.status(201).json({ message: "Signup successful.", userId: newUser._id });
+    // Schedule deletion if the user doesn't verify within 15 minutes
+    setTimeout(async () => {
+      const existingToken = await VerifyToken.findOne({ owner: newUser._id });
+      if (existingToken) {
+        await User.deleteOne({ _id: newUser._id });
+        await Subscription.deleteOne({ userId: newUser._id });
+        await VerifyToken.deleteOne({ owner: newUser._id });
+        console.log(`User ${newUser._id} and subscription deleted due to unverified email.`);
+      }
+    }, 15 * 60 * 1000); // 15 minutes delay
+
+    return res.status(201).json({ message: "Signup successful. Please verify your email.", userId: newUser._id });
   } catch (error) {
     console.error("Error during signup:", error);
     res.status(500).json({ message: "Internal server error." });
@@ -462,20 +543,40 @@ exports.signup = async (req, res) => {
 // -------------------
 // Signin Controller
 // -------------------
+
 exports.signin = async (req, res) => {
   try {
     const { username, password, RememberMe } = req.body;
-      console.log("from SignIn",password);
-      console.log("from SignIn",RememberMe);
+    // console.log("from SignIn UserName:=>   ", username);
+    // console.log("from SignIn Password:=>   ", password);
+    // console.log("from SignIn RememberMe:=> ", RememberMe);
 
+    // const passwords = 'Fightsong@6';  // Your test password
+    // const hashedPassword = '$2b$08$U0XfPJHVcBqFGK5.oUADi.8fA.//bE6VlM3JIjBrOf1tpLp37hEw2';  // Replace with a known hash from your DB
+    
+    // const result = bcrypt.compareSync(passwords.trim(), hashedPassword )
+    //   console.log(result);  // Should return true if the password matches the hash
+    
+    
     if (!username || !password) {
       return res.status(400).json({ message: "Username and password are required." });
     }
 
     const user = await User.findOne({ username });
-    if (!user || !(await bcrypt.compare(password.trim(), user.password))) {
+
+    // console.log("🚀 ~ exports.signin= ~ user:", user);
+
+    if (!user) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
+
+    // Compare entered password with the hashed password stored in the database
+    // const testPassword = await bcrypt.compare(password.trim(), user.password);
+    // console.log("🚀 ~ exports.signin= ~ testPassword:", testPassword);
+
+    // if (!testPassword) {
+    //   return res.status(400).json({ message: "Invalid credentials." });
+    // }
 
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "30d" });
 
