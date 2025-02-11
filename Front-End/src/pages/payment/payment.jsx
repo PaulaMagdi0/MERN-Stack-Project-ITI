@@ -31,7 +31,19 @@ const Payment = () => {
       .then((res) => setClientSecret(res.data.clientSecret))
       .catch(() => setError('Failed to initiate payment. Please try again.'));
   }, [amount]);
-
+  const handlePaymentSuccess = async () => {
+    try {
+      const userId = localStorage.getItem("userId"); // Retrieve user ID from local storage
+      await axios.post("http://localhost:5000/api/payments/update-subscription", {
+        userId,
+        planId,
+      });
+      
+      navigate("/success"); // Redirect to success page
+    } catch (error) {
+      console.error("Subscription update failed:", error);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) return;
@@ -47,7 +59,7 @@ const Payment = () => {
       setError(paymentError.message);
       setProcessing(false);
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      navigate('/success', { state: { paymentIntent, planId, name, duration } });
+      handlePaymentSuccess()
     }
   };
 

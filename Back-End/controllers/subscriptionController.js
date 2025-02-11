@@ -26,9 +26,12 @@ exports.getSubscriptionByID = async (req, res) => {
         }
 
         // Create subscription
-        const subscription = new Subscription({ userId, planId });
-        await subscription.save();
-
+        const updatedUser = await User.findByIdAndUpdate(userId, {
+            subscription: planId,
+            subscriptionStartDate: new Date(),
+            subscriptionEndDate: new Date(Date.now() + plan.duration * 30 * 24 * 60 * 60 * 1000),
+          }, { new: true });
+          
         res.status(201).json(subscription);
     } catch (error) {
         res.status(400).json({ error: error.message });

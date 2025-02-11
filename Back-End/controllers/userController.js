@@ -430,9 +430,22 @@ exports.signup = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: "Username or email already exists." });
     }
+    // const defaultPlan = await SubscriptionPlan.findOne({ plan_name: "Default" });
+
+    // if (!defaultPlan) return res.status(500).json({ message: "Default subscription plan not found" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth });
+    const newUser = new User({
+       username, email, 
+       password: hashedPassword, 
+       address, 
+       phone, 
+       dateOfBirth, 
+      //  subscription: defaultPlan._id,
+      // subscriptionStartDate: new Date(),
+      // subscriptionEndDate: new Date(Date.now() + defaultPlan.duration * 30 * 24 * 60 * 60 * 1000), // Set end date based on duration
+   
+      });
 
     // Generate OTP for email verification
     const OTP = generateOtp();
