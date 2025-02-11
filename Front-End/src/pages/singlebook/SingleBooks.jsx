@@ -329,7 +329,7 @@ const SingleBook = () => {
                 {/* Rating Section */}
                 <Box
                   sx={{ "& > legend": { mt: 2 } }}
-                  className="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-3"
+                  className="d-flex justify-content-between align-items-center p-3 rounded mb-3"
                 >
                   <div>
                     <Typography component="legend" className="mb-2 fw-bold">
@@ -343,7 +343,7 @@ const SingleBook = () => {
                     />
                   </div>
                   <div className="text-end">
-                    <Typography variant="h6"  className="mb-2 pla ">
+                    <Typography variant="h6"  className="mb-2">
                       {bookRating?.avgRating ? `${bookRating.avgRating.toFixed(1)}` : "N/A"}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">

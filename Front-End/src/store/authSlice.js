@@ -8,27 +8,39 @@ export const signIn = createAsyncThunk(
   "auth/signIn",
   async (values, { rejectWithValue }) => {
     try {
-      const { password, username, RememberMe } = values;
+      const { password, username, rememberMe } = values;
+
       const response = await fetch(`${API_URL}/users/sign-in`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password, RememberMe }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        return rejectWithValue(data.message || "Sign in failed");
+        return rejectWithValue(data.message || "Sign-in failed");
       }
 
-      // Ensure the response contains both user data and token
-      return {
-        user: data.user,
-        token: data.token,
-      };
+      // Store user info based on rememberMe selection
+      if (data.token) {
+        if (rememberMe) {
+          localStorage.setItem("authToken", data.token);
+          localStorage.setItem("userData", JSON.stringify(data.user));
+          sessionStorage.removeItem("authToken");
+          sessionStorage.removeItem("userData");
+        } else {
+          sessionStorage.setItem("authToken", data.token);
+          sessionStorage.setItem("userData", JSON.stringify(data.user));
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("userData");
+        }
+      }
+
+      return { user: data.user, token: data.token, rememberMe };
     } catch (error) {
       return rejectWithValue(error.message || "Something went wrong.");
     }
@@ -53,9 +65,9 @@ export const getUserInfo = createAsyncThunk(
       );
       return rejectWithValue(
         error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message ||
-          "Failed to fetch user info."
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch user info."
       );
     }
   }

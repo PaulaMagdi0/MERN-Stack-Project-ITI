@@ -634,8 +634,8 @@ exports.forgetPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   const { password } = req.body;
   try {
-   console.log("Password = ",password,"userID = ",req.user);
-   
+    console.log("Password = ", password, "userID = ", req.user);
+
     const user = await User.findById(req.user._id);
     if (!user) return sendError(res, "User not found!");
 

@@ -2,7 +2,7 @@
 const Subscription = require("../models/subscription");
 const SubscriptionPlan = require("../models/subscriptionplan");
 
-exports.getSubscription= async (req, res) => {
+exports.getSubscription = async (req, res) => {
     try {
         const subscriptions = await Subscription.find().populate("planId userId");
         res.json(subscriptions);
