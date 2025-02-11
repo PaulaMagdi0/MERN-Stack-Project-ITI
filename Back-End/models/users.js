@@ -68,25 +68,6 @@ const userSchema = new mongoose.Schema({
   },
   wishlist: [wishlistSchema], // Wishlist array
 
-  // Subscription fields
-//   subscription: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "SubscriptionPlan",
-//     default: null, // No plan by default
-//   },
-//   subscriptionStartDate: {
-//     type: Date,
-//     default: null,
-//   },
-//   subscriptionEndDate: {
-//     type: Date,
-//     default: null,
-//   },
-//   verified:{
-//     type:Boolean ,
-//     default: false ,
-//     required:true
-// }
 }, { timestamps: true });
 
 userSchema.pre("save", async function (next) {

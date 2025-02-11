@@ -58,7 +58,7 @@ app.use(cookieParser());
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
 app.use("/genre", genreRoute);
-app.use("/auth", authRoutes);
+// app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/authors", authorsRoutes);

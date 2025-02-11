@@ -367,101 +367,102 @@ exports.deleteGenre = async (req, res) => {
 // }
 
 // Search For Genre And Get All Books that Match The Genres with Pagination
-
 exports.BooksByGenre = async (req, res) => {
     try {
-        // 1. Get and validate genre ID
-        const { genreID } = req.params;
-
-        if (!genreID) {
-            return res.status(400).json({
-                code: "MISSING_GENRE_ID",
-                message: "Genre ID parameter is required"
-            });
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(genreID)) {
-            return res.status(400).json({
-                code: "INVALID_GENRE_ID",
-                message: "Invalid genre ID format"
-            });
-        }
-
-        // 2. Verify genre exists
-        const genreExists = await Genre.exists({ _id: genreID });
-        if (!genreExists) {
-            return res.status(404).json({
-                code: "GENRE_NOT_FOUND",
-                message: "Specified genre does not exist"
-            });
-        }
-
-        // 3. Parse pagination parameters with validation
-        let page = parseInt(req.query.page) || 1;
-        let limit = parseInt(req.query.limit) || 10;
-
-        if (page <= 0 || limit <= 0) {
-            return res.status(400).json({
-                code: "INVALID_PAGINATION",
-                message: "Page and limit must be positive integers"
-            });
-        }
-
-        // 4. Calculate the skip value
-        const skip = (page - 1) * limit;
-
-        // 5. Find book relations with pagination and proper population
-        const bookRelations = await BookGenre.find({ genre_id: genreID })
-            .skip(skip)
-            .limit(limit)
-            .populate({
-                path: 'book_id',
-                select: 'title releaseDate content description image author_id',
-                populate: {
-                    path: 'author_id',
-                    select: 'name biography birthYear deathYear image nationality'
-                }
-            })
-            .lean(); // Convert to plain objects
-
-        // 6. Filter and format response
-        const validBooks = bookRelations
-            .filter(relation => relation.book_id) // Remove null book references
-            .map(relation => relation.book_id);
-
-        if (validBooks.length === 0) {
-            return res.status(404).json({
-                code: "NO_BOOKS_FOUND",
-                message: "Found genre but no associated books"
-            });
-        }
-
-        // 7. Get total count of books for the genre
-        const totalBooks = await BookGenre.countDocuments({ genre_id: genreID });
-
-        // 8. Calculate total pages
-        const totalPages = Math.ceil(totalBooks / limit);
-
-        // 9. Send the paginated response
-        res.json({
-            currentPage: page,
-            totalPages: totalPages,
-            totalBooks: totalBooks,
-            books: validBooks
+      // 1. Get and validate genre ID
+      const { genreID } = req.params;
+  
+      if (!genreID) {
+        return res.status(400).json({
+          code: "MISSING_GENRE_ID",
+          message: "Genre ID parameter is required"
         });
-
+      }
+  
+      if (!mongoose.Types.ObjectId.isValid(genreID)) {
+        return res.status(400).json({
+          code: "INVALID_GENRE_ID",
+          message: "Invalid genre ID format"
+        });
+      }
+  
+      // 2. Verify genre exists
+      const genreExists = await Genre.exists({ _id: genreID });
+      if (!genreExists) {
+        return res.status(404).json({
+          code: "GENRE_NOT_FOUND",
+          message: "Specified genre does not exist"
+        });
+      }
+  
+      // 3. Parse pagination parameters with validation
+      let page = parseInt(req.query.page) || 1;
+      let limit = parseInt(req.query.limit) || 10;
+  
+      if (page <= 0 || limit <= 0) {
+        return res.status(400).json({
+          code: "INVALID_PAGINATION",
+          message: "Page and limit must be positive integers"
+        });
+      }
+  
+      // 4. Calculate the skip value
+      const skip = (page - 1) * limit;
+  
+      // 5. Find book relations with pagination and proper population
+      const bookRelations = await BookGenre.find({ genre_id: genreID })
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: 'book_id',
+          select: 'title releaseDate content description image author_id',
+          populate: {
+            path: 'author_id',
+            select: 'name biography birthYear deathYear image nationality'
+          }
+        })
+        .lean(); // Convert to plain objects
+  
+      // 6. Filter and format response
+      const validBooks = bookRelations
+        .filter(relation => relation.book_id) // Remove null book references
+        .map(relation => relation.book_id);
+  
+      // 7. If no books are found, return an empty array along with pagination info
+      if (validBooks.length === 0) {
+        return res.json({
+          currentPage: page,
+          totalPages: 0,
+          totalBooks: 0,
+          books: []
+        });
+      }
+  
+      // 8. Get total count of books for the genre
+      const totalBooks = await BookGenre.countDocuments({ genre_id: genreID });
+  
+      // 9. Calculate total pages
+      const totalPages = Math.ceil(totalBooks / limit);
+  
+      // 10. Send the paginated response
+      res.json({
+        currentPage: page,
+        totalPages: totalPages,
+        totalBooks: totalBooks,
+        books: validBooks
+      });
     } catch (err) {
-        console.error("Genre Books Error:", err);
-
-        // In production, you may want to send the error to a logging service like Sentry
-        res.status(500).json({
-            code: "SERVER_ERROR",
-            message: "Failed to retrieve genre books",
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
+      console.error("Genre Books Error:", err);
+  
+      // In production, you might log the error to a service like Sentry
+      res.status(500).json({
+        code: "SERVER_ERROR",
+        message: "Failed to retrieve genre books",
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
     }
-};
-
+  };
+  
 //Get Books Genre By id 
 exports.GenreForBook = async (req, res) => {
     try {
