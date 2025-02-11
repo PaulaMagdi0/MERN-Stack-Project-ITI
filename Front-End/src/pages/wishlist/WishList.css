@@ -5,4 +5,21 @@
   .hover-scale:hover {
     transform: scale(1.05);
   }
-  
+.WishList{
+  background-image: url("../../assets/391afec1b82c67b430b66b8bd9ae1670-removebg-preview.png");
+  background-repeat: no-repeat;
+  background-position: right;
+}
+.WishList h2{
+  font-size: 2.5rem; 
+    font-weight: bold; 
+    color: #3c2a21 !important; 
+    text-transform: capitalize; 
+    letter-spacing: 1px; 
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); 
+    transition: all 0.3s ease-in-out; 
+}
+.WishList h2:hover{
+  color: #a67c52; 
+    transform: scale(1.05);
+}

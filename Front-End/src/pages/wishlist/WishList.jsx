@@ -7,7 +7,7 @@ import { Container, Card, Button, Spinner, Alert, ListGroup, Form } from 'react-
 import { Link } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-
+import './WishList.css'
 const Wishlist = () => {
   const dispatch = useDispatch();
   const { items, loading, error } = useSelector((state) => state.wishlist);
@@ -51,7 +51,8 @@ const Wishlist = () => {
   const stateOptions = ["Read", "Want to read", "Currently Reading"];
 
   return (
-    <Container className="vh-100 p-5 m-auto">
+    <div className='WishList'>
+    <Container className="vh-100 p-5 m-auto ">
       <h2 className="mb-4 text-center">Your Wishlist</h2>
 
       {loading && (
@@ -72,8 +73,6 @@ const Wishlist = () => {
           </Button>
         </Alert>
       )}
-
-      {/* Render a single empty message if there are no wishlist items */}
       {!loading && !error && (!items || items.length === 0) && (
         <Alert variant="info">Your wishlist is empty.</Alert>
       )}
@@ -147,6 +146,7 @@ const Wishlist = () => {
         </div>
       )}
     </Container>
+    </div>
   );
 };
 

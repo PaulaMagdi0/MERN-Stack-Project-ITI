@@ -159,7 +159,7 @@ const Contact = () => {
       </Container>
 
       <Container className="mb-5">
-        <h1 className="text-center mb-4">Come visit</h1>
+        <h1 className="text-center mb-4 pllaa">Come visit</h1>
         <div className="map container">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d18372.993071306413!2d31.681248787466494!3d30.027542746675454!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1457f5172d0a0a8f%3A0x54b12d0e2e15ef55!2sITI%20-%20Information%20Technology%20Institute!5e0!3m2!1sen!2seg!4v1735738254309!5m2!1sen!2seg"
@@ -172,9 +172,9 @@ const Contact = () => {
           ></iframe>
         </div>
       </Container>
-      <div className="footer"></div>
     </div>
   );
 };
 
 export default Contact;
+

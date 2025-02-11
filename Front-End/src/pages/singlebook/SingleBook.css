@@ -10,7 +10,7 @@
     padding: 2rem;
 } */
 .single-book-page {
-    background-image:  url("../../assets/2616e9d6cd7a599cee6024451bef1b8b-removebg-preview.png");
+    background-image:  url("../../assets/2616e9d6cd7a599cee6024451bef1b8b-removebg-preview.png") !important;
 
     background-size: cover;
     background-position: center;
@@ -103,3 +103,167 @@
         transform: translateY(0);
     }
 }
+
+.wishlist-btn {
+    background-color: transparent;
+    border: 2px solid #b76e79; 
+    color: #b76e79;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .wishlist-btn:hover {
+    background-color: #b76e79;
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .wishlist-btn svg {
+    font-size: 1.2rem;
+    margin-right: 8px;
+  }
+  
+  .wishlist-btn.active {
+    background-color: #8b5e57;
+    color: white;
+    border-color: #8b5e57;
+  }
+  
+  .wishlist-btn.active:hover {
+    background-color: #7a4c46;
+    border-color: #7a4c46;
+  }
+  .pla{
+    color: #2c3e50;
+
+  }
+
+
+
+
+  /* comment section */
+  
+.comments-section {
+    background: rgba(255, 248, 235, 0.95); 
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.8s ease-in-out forwards;
+  }
+  
+  /* عنوان التعليقات */
+  .comments-section h4 {
+    color: #3c2a21;
+    font-weight: bold;
+    border-bottom: 2px solid #b76e79;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  
+  /* صندوق إدخال التعليق */
+  .comment-input {
+    border-radius: 8px;
+    border: 2px solid #b76e79;
+    padding: 12px;
+    font-size: 16px;
+    transition: all 0.3s ease-in-out;
+    background-color: #fff8eb;
+  }
+  
+  .comment-input:focus {
+    border-color: #8b5e57;
+    box-shadow: 0px 0px 8px rgba(183, 110, 121, 0.5);
+  }
+  
+  /* زر إرسال التعليق */
+  .comment-btn {
+    background-color: #b76e79;
+    color: #fff;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+    border: none;
+  }
+  
+  .comment-btn:hover {
+    background-color: #8b5e57;
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* تصميم الكارد الخاص بكل تعليق */
+  .comment-card {
+    background: rgba(255, 248, 235, 0.95);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .comment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* صورة المستخدم */
+  .comment-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #b76e79;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .comment-avatar:hover {
+    transform: scale(1.1);
+    border-color: #8b5e57;
+  }
+  
+  /* اسم المستخدم */
+  .comment-username {
+    font-weight: bold;
+    color: #3c2a21;
+  }
+  
+  /* التاريخ */
+  .comment-date {
+    color: #5a4638;
+    font-size: 14px;
+  }
+  
+  /* نص التعليق */
+  .comment-text {
+    color: #5a4638;
+    font-size: 16px;
+    margin-top: 5px;
+  }
+  
+  /* أزرار التعديل والحذف */
+  .comment-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .comment-actions .edit-btn {
+    color: #b76e79;
+  }
+  
+  .comment-actions .delete-btn {
+    color: #d9534f;
+  }
+  
+  .comment-actions button:hover {
+    transform: scale(1.2);
+  }
+  

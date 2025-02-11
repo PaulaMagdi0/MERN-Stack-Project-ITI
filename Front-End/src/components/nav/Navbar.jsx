@@ -287,6 +287,9 @@ function Navbar() {
   const settings = user?.role === "admin" ? adminSettings : userSettings;
 
   return (
+<>
+<Box sx={{ height: "50px" }} />
+
     <AppBar position="fixed" sx={{ 
       background: "#2c3e50", 
       width: "100%", 
@@ -294,7 +297,7 @@ function Navbar() {
       boxShadow: "0 4px 18px rgba(0, 0, 0, 0.1)",
       zIndex: 1300
     }}>
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" >
         <Toolbar disableGutters sx={{ py: 1 }}>
           {/* Logo Section */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: { xs: 1, md: 0 } }}>
@@ -485,6 +488,8 @@ function Navbar() {
         </Toolbar>
       </Container>
     </AppBar>
+
+    </>
   );
 }
 

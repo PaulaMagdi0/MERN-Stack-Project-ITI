@@ -17,7 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import "./SingleBooks.css"
+import "./SingleBook.css"
 
 const SingleBook = () => {
   const { id } = useParams()
@@ -254,30 +254,40 @@ const SingleBook = () => {
                     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                   }}
                 />
-                
+
               )}
-              
+
             </Col>
             <Col md={8}>
               <Card.Body>
-              <Typography variant="body2" color="textSecondary">
-              {currentBook?.book?.genres?.map((genre, index) => (
-                      <span key={index}>{genre.name} </span>
-                    ))}
-                    </Typography>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <Card.Title className="fs-2 mb-0">
+                <Typography variant="body2" color="textSecondary">
+                  {currentBook?.book?.genres?.map((genre, index) => (
+                    <span key={index}>{genre.name} </span>
+                  ))}
+                </Typography>
+                <div className="d-flex justify-content-between align-items-center mb-3 ">
+                  <Card.Title className="fs-2 mb-0 display-5">
                     {loading ? <Skeleton width={200} /> : currentBook?.book?.title}
                   </Card.Title>
-                  
-                  <Button
+
+                  {/* <Button
                     variant={isInWishlist ? "danger" : "outline-primary"}
-                    className="d-flex align-items-center"
+                    className="d-flex align-items-center wishlist-btn "
                     onClick={handleWishlistToggle}
                   >
                     <FaHeart className="me-2" />
                     {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+                  </Button> */}
+
+                  <Button
+                    variant="outline"
+                    className={`wishlist-btn ${isInWishlist ? "active" : ""}`}
+                    onClick={handleWishlistToggle}
+                  >
+                    <FaHeart />
+                    {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
                   </Button>
+
                 </div>
 
                 <Row className="align-items-center mb-3">
@@ -292,7 +302,7 @@ const SingleBook = () => {
                         style={{ width: "60px", height: "60px", objectFit: "cover" }}
                       />
                     )}
-                    
+
                   </Col>
                   <Col>
                     <h5 className="mb-0">
@@ -333,7 +343,7 @@ const SingleBook = () => {
                     />
                   </div>
                   <div className="text-end">
-                    <Typography variant="h6" color="primary" className="mb-2">
+                    <Typography variant="h6"  className="mb-2 pla ">
                       {bookRating?.avgRating ? `${bookRating.avgRating.toFixed(1)}` : "N/A"}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
@@ -346,12 +356,12 @@ const SingleBook = () => {
                   {loading ? <Skeleton count={3} /> : currentBook?.book?.description}
                 </p>
 
-                <Button variant="primary" size="lg" onClick={handleReadNow}>
+                <Button variant="primary" size="lg" onClick={handleReadNow} className="read-now-btn">
                   Read Now
                 </Button>
-                
+
               </Card.Body>
-              
+
             </Col>
           </Row>
           <SubscriptionModal />
@@ -380,7 +390,7 @@ const SingleBook = () => {
         )}
 
         {/* Comments Section */}
-        <div className="mt-5">
+        <div className="mt-5 comments-section">
           <h4 className="mb-3">Comments</h4>
           <Form onSubmit={handleCommentSubmit} className="mb-4">
             <Form.Group controlId="commentText">
@@ -390,10 +400,10 @@ const SingleBook = () => {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a comment..."
-                className="mb-2"
+                className="mb-2 comment-input"
               />
             </Form.Group>
-            <Button variant="primary" type="submit" disabled={!comment.trim()}>
+            <Button variant="primary" type="submit" disabled={!comment.trim()} className="comment-btn">
               Post Comment
             </Button>
           </Form>
@@ -402,20 +412,21 @@ const SingleBook = () => {
             <Skeleton count={3} height={100} className="mb-3" />
           ) : (
             comments?.map((comment) => (
-              <Card key={comment._id} className="mb-3 shadow-sm">
+              <Card key={comment._id} className="mb-3 shadow-sm comment-card">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <div className="d-flex align-items-center">
                       <img
                         src={comment.user?.image || user?.image || "https://via.placeholder.com/40"}
                         alt={comment.user?.username || "User"}
-                        className="rounded-circle me-3"
+                        className="rounded-circle me-3 comment-avatar"
                         style={{ width: "40px", height: "40px", objectFit: "cover" }}
                       />
                       <div>
-                        <strong>{comment.user?.username || "Anonymous"}</strong>
+                        <strong className="comment-username">
+                          {comment.user?.username || "Anonymous"}</strong>
                         <br />
-                        <small className="text-muted">
+                        <small className="text-muted comment-date">
                           {new Date(comment.createdAt).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
@@ -427,17 +438,17 @@ const SingleBook = () => {
                       </div>
                     </div>
                     {user?._id === comment.user?._id && (
-                      <div>
-                        <Button variant="link" className="p-0 me-2" onClick={() => handleEdit(comment)}>
+                      <div className="comment-actions">
+                        <Button variant="link" className="p-0 me-2 edit-btn" onClick={() => handleEdit(comment)}>
                           <EditIcon fontSize="small" />
                         </Button>
-                        <Button variant="link" className="p-0 text-danger" onClick={() => handleDelete(comment._id)}>
+                        <Button variant="link" className="p-0 delete-btn" onClick={() => handleDelete(comment._id)}>
                           <DeleteIcon fontSize="small" />
                         </Button>
                       </div>
                     )}
                   </div>
-                  <p className="mb-0">{comment.comment}</p>
+                  <p className="mb-0 comment-text">{comment.comment}</p>
                 </Card.Body>
               </Card>
             ))
