@@ -8,7 +8,7 @@ export const fetchBookById = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       // /bookgenre/search-book/679ceaa7c84f85dd5c7b4083
-            const response = await fetch(`${API_URL}/bookgenre/search-book/${id}`);
+      const response = await fetch(`${API_URL}/bookgenre/search-book/${id}`);
 
       // const response = await fetch(`${API_URL}/books/id/${id}`);
       if (!response.ok) throw new Error("Book not found");
@@ -41,8 +41,7 @@ export const searchBooks = createAsyncThunk(
   "books/searchBooks",
   async (query, { rejectWithValue }) => {
     try {
-      console.log(query);
-      
+
       const response = await fetch(`${API_URL}/books/search?q=${query}`);
       if (!response.ok) throw new Error("Search failed");
       return await response.json();
@@ -54,16 +53,16 @@ export const searchBooks = createAsyncThunk(
 
 
 export const getAllGenres = createAsyncThunk(
-  "/genre", 
+  "/genre",
   async (_, { rejectWithValue }) => {
     try {
       const response = await fetch(`${API_URL}/genre`);
-      
+
       if (!response.ok) {
         // If the response is not ok, throw an error
         throw new Error("Failed to fetch genres");
       }
-      
+
       return await response.json();  // Return the data to the fulfilled action
     } catch (err) {
       console.error("Error fetching genres:", err);
@@ -72,7 +71,7 @@ export const getAllGenres = createAsyncThunk(
   }
 );
 export const getBooksByGenre = createAsyncThunk(
-  "/booksByGenre", 
+  "/booksByGenre",
   async (GenreID, { rejectWithValue }) => {
     try {
       const response = await fetch(`${API_URL}/bookgenre/search-genre/${GenreID}`);
@@ -80,7 +79,7 @@ export const getBooksByGenre = createAsyncThunk(
         // If the response is not ok, throw an error
         throw new Error("Failed to fetch genres");
       }
-      
+
       return await response.json();  // Return the data to the fulfilled action
     } catch (err) {
       console.error("Error fetching genres:", err);
@@ -117,8 +116,8 @@ const initialState = {
   selectedGenre: 0,
   BooksGenre: [],
   BooksGenreLoading: false,
-  GenereByBookID:[],
-  GenereByBookIDLoading:false,
+  GenereByBookID: [],
+  GenereByBookIDLoading: false,
 };
 
 const bookSlice = createSlice({
@@ -191,7 +190,7 @@ const bookSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // Get Books By Genre
       .addCase(getBooksByGenre.pending, (state) => {
         state.BooksGenreLoading = true;
@@ -205,7 +204,7 @@ const bookSlice = createSlice({
         state.BooksGenreLoading = false;
         state.error = action.payload;
       })
-        // Get Genere For       
+      // Get Genere For       
       .addCase(fetchGenreByBookId.pending, (state) => {
         state.GenereByBookIDLoading = true;
         state.error = null;

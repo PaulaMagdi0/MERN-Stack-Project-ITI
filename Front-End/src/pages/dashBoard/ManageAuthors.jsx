@@ -28,7 +28,6 @@ const ManageAuthors = () => {
     try {
       const response = await fetch(`${API_URL}/genre`)
       const data = await response.json()
-      console.log("🚀 ~ fetchGenres ~ data:", data)
       setGenres(data)
     } catch (error) {
       console.error("Error fetching genres:", error)
@@ -59,7 +58,6 @@ const ManageAuthors = () => {
       }
 
       setAuthors(allAuthors)
-      console.log("✅ Fetched Authors:", allAuthors)
     } catch (error) {
       console.error("❌ Error fetching authors and genres:", error)
     }
@@ -85,11 +83,9 @@ const ManageAuthors = () => {
       // Append image if it exists and is a File
       if (values.image instanceof File) {
           formData.append('image', values.image);
-          console.log("🚀 ~ handleAddAuthor ~ image:", values.image)
       } else if (typeof values.image === 'string') {
           formData.append('image', values.image);
       }
-      console.log("🚀 ~ handleAddAuthor ~ values:", values)
 
       const response = await fetch(`${API_URL}/authors/add-author`, {
       // const response = await fetch(`${API_URL}/authors/add-author`, {
@@ -101,7 +97,6 @@ const ManageAuthors = () => {
         throw new Error("Failed to add author")
       }
 
-      console.log("✅ Author added successfully!")
       fetchAuthors()
       resetForm()
       setAction("")
@@ -136,7 +131,6 @@ const ManageAuthors = () => {
       if (values.image instanceof File) {
         formData.append("image", values.image)
       }
-      console.log("🚀 ~ handleEditAuthor ~ values:", values)
 
       const response = await fetch(`${API_URL}/authors/edit-author/${selectedAuthor._id}`, {
         method: "PUT",
@@ -147,7 +141,6 @@ const ManageAuthors = () => {
         throw new Error("Failed to update author")
       }
 
-      console.log("✅ Author updated successfully")
       fetchAuthors()
       setSelectedAuthor(null)
       setAction("")
@@ -175,7 +168,6 @@ const ManageAuthors = () => {
         throw new Error(`Failed to delete author: ${errorText || response.statusText}`)
       }
 
-      console.log("✅ Author deleted successfully")
 
       fetchAuthors()
       setSelectedAuthor(null)

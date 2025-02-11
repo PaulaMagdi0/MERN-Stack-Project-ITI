@@ -56,8 +56,6 @@ const ManageBooks = () => {
             setBooks(allBooks);
             setBookGenres([...allGenres]);
 
-            console.log("✅ Fetched Books:", allBooks);
-            console.log("✅ Fetched Genres:", [...allGenres]);
         } catch (error) {
             console.error("❌ Error fetching books and genres:", error);
         }
@@ -162,14 +160,12 @@ const ManageBooks = () => {
         } else if (typeof values.image === "string") {
             formData.append("image", values.image);
         }
-        console.log("🚀 ~ handleAddBook ~ values:", values)
 
         // Append PDF file if provided
         if (values.pdf instanceof File) {
             formData.append("pdf", values.pdf);
         }
 
-        console.log("🚀 ~ handleAddBook ~ Uploaded Data:", Object.fromEntries(formData));
 
         // Send request
         const response = await fetch(`${API_URL}/books/post-book`, {
@@ -181,7 +177,6 @@ const ManageBooks = () => {
             throw new Error("Failed to add book");
         }
 
-        console.log("✅ Book added successfully!");
         setSelectedGenres([]);
         fetchBooks();
         resetForm();
@@ -214,7 +209,6 @@ const ManageBooks = () => {
             
             // Append genres
             formData.append('genres', JSON.stringify(values.genres));
-                console.log( "genre values",values.genres);
                 
             // Append image if it's changed
             if (values.image instanceof File) {
@@ -231,9 +225,7 @@ const ManageBooks = () => {
             if (!response.ok) {
                 throw new Error('Failed to update book');
             }
-            console.log("🚀 ~ handleEditBook ~ formData:", values)
     
-            console.log('✅ Book updated successfully');
             await fetchBooks();
             setSelectedBook(null);
             setSelectedGenres([]);
@@ -246,8 +238,6 @@ const ManageBooks = () => {
         } finally {
             setImageUploading(false);
         }
-            console.log("🚀 ~ handleEditBook ~ genres:", genres)
-            console.log("🚀 ~ handleEditBook ~ genres:", genres)
     };
     
     const handleDeleteBook = async () => {
@@ -267,8 +257,6 @@ const ManageBooks = () => {
                 return;
             }
 
-            const data = await response.json();
-            console.log("Book deleted:", data);
 
             fetchBooks();
             setSelectedBook(null);

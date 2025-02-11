@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./ResetPassword.css"; 
 import { useLocation } from "react-router";
 import queryString from "query-string"; 
@@ -27,7 +27,6 @@ const ResetPassword = () => {
   const verifyToken = async () => {
     try {
       const { data } = await axios.get(`${API_URL}/users/verify-token?token=${token}&id=${id}`);
-      console.log("Verify token response:", data);
       setBusy(false);
     } catch (error) {
       if (error?.response?.data) {
@@ -105,7 +104,6 @@ const ResetPassword = () => {
         `${API_URL}/users/reset-password?token=${token}&id=${id}`,
         { password: password.trim() }
       );
-      console.log("Reset response:", data);
       if (data.success) {
         setSuccess(true);
         navigate('/signin');

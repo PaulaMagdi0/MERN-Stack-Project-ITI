@@ -29,7 +29,6 @@ function SignUp() {
                 otp,
             });
 
-            console.log("OTP Verification Response:", response.data);
 
             if (response.data.success) {
                 setVerificationMessage(response.data.message);
@@ -54,7 +53,6 @@ function SignUp() {
                     validationSchema={SignUpValidation}
                     onSubmit={async (values, { setSubmitting, setErrors }) => {
                         try {
-                            console.log(values);
 
                             const response = await fetch("http://localhost:5000/users/sign-up", {
                                 method: "POST",

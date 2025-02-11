@@ -53,7 +53,6 @@ export const getUserInfo = createAsyncThunk(
         withCredentials: true,
       });
 
-      console.log("User Info Response:", response.data);
       return response.data.user || response.data;
     } catch (error) {
       console.error(
@@ -62,9 +61,9 @@ export const getUserInfo = createAsyncThunk(
       );
       return rejectWithValue(
         error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message ||
-          "Failed to fetch user info."
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch user info."
       );
     }
   }
@@ -155,7 +154,7 @@ const authSlice = createSlice({
       .addCase(signIn.rejected, (state, action) => {
         state.error = action.payload || action.error.message;
       })
-  
+
       // Handle the getUserInfo case
       .addCase(getUserInfo.pending, (state) => {
         state.loading = true;

@@ -17,7 +17,6 @@ const SignUpForm = () => {
  
   const handleSubmit = async (values, { setSubmitting, resetForm, setErrors }) => {
     try {
-      console.log("Submitting values:", values);
       const response = await fetch(`${API_URL}/users/sign-up`, {
         method: "POST",
         headers: {
