@@ -275,15 +275,6 @@ const SingleBook = () => {
                     {loading ? <Skeleton width={200} /> : currentBook?.book?.title}
                   </Card.Title>
 
-                  {/* <Button
-                    variant={isInWishlist ? "danger" : "outline-primary"}
-                    className="d-flex align-items-center wishlist-btn "
-                    onClick={handleWishlistToggle}
-                  >
-                    <FaHeart className="me-2" />
-                    {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
-                  </Button> */}
-
                   <Button
                     variant="outline"
                     className={`wishlist-btn ${isInWishlist ? "active" : ""}`}

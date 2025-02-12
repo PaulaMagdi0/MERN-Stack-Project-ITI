@@ -344,14 +344,33 @@ exports.getUserInfo = async (req, res) => {
         return res.status(403).json({ message: "Invalid or expired token" });
       }
 
+      // Fetch user details (excluding password)
       const user = await User.findById(decoded.id).select("-password");
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // (Optional) Fetch subscription details here if needed
+      // Fetch subscription details for the user and populate the plan info
+      const subscription = await Subscription.findOne({ userId: user._id }).populate("planId", "name Duration price");
 
-      res.json(user);
+      // Construct response with user & subscription details
+      const userInfo = {
+        ...user.toObject(),
+        subscription: subscription
+          ? {
+            subscriptionId: subscription._id,
+            planId: subscription.planId._id,
+            planName: subscription.planId.name,
+            duration: subscription.planId.Duration,
+            price: subscription.planId.price,
+            subscriptionDate: subscription.subscriptionDate,
+            renewalDate: subscription.renewalDate,
+          }
+          : null, // If user has no subscription, return null
+      };
+
+      res.json(userInfo);
     });
   } catch (error) {
     console.error("Error fetching user info:", error);
@@ -369,7 +388,7 @@ exports.UpdateUserInfo = async (req, res) => {
     const { id } = req.user;
     const updateData = {};
     const allowedFields = ["username", "email", "address", "phone", "dateOfBirth"];
-console.log("UpdateUserInfo",req.body);
+    console.log("UpdateUserInfo", req.body);
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
