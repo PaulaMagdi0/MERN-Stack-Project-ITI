@@ -80,11 +80,9 @@ const Dashboard = () => {
   }, [activeTab])
 
   useEffect(() => {
-    console.log(books) // This will read the books state
   }, [books])
 
   useEffect(() => {
-    console.log(authors) // Log authors to avoid unused variable warning
   }, [authors])
 
   const fetchBooksAndAuthors = async () => {
@@ -750,7 +748,6 @@ const AdminRegistrationSection = () => {
 //     try {
 //       // Simulate API call
 //       await new Promise((resolve) => setTimeout(resolve, 1000))
-//       console.log("Form submitted:", values)
 //       resetForm()
 //       alert("Registration successful!")
 //     } catch (error) {

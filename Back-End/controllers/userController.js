@@ -404,6 +404,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const crypto = require("crypto");
+const TempUser = require('../models/tempUser');
 const { isValidObjectId } = require("mongoose");
 const { generateOtp, mailTransport, GeneratePasswordResetTemplate } = require("../utils/mail");
 const VerifyToken = require("../models/verificationtokens");
@@ -459,83 +460,263 @@ const sendError = (res, message, status = 400) => {
 //     res.status(500).json({ message: "Internal server error." });
 //   }
 // };
-
+// controllers/userController.js
 exports.signup = async (req, res) => {
   try {
     const { username, email, password, address, phone, dateOfBirth } = req.body;
-    // const hashedPassword = password
 
-    
+    // Validate required fields
     if (!username || !email || !password || !phone) {
       return res.status(400).json({ message: "Username, email, password, and phone are required." });
     }
 
+    // Check for existing user
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
       return res.status(400).json({ message: "Username or email already exists." });
     }
+
+    // Check for existing temp user and remove if exists
+    await TempUser.deleteOne({ email });
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password.trim(), 10);
-    // console.log("🚀 ~ exports.signup= ~ hashedPassword:",password, hashedPassword)
-    
-    const newUser = new User({ username, email, password: hashedPassword, address, phone, dateOfBirth });
 
-      // console.log("🚀 ~ exports.signup= ~ password:", password)
-    // console.log("🚀 ~ exports.signup= ~ newUser:", newUser.password)
-    // console.log("🚀 ~ exports.signup= ~ : hashedPassword",hashedPassword)
-    // console.log("🚀 ~ exports.signup= ~ : bcrypt",await  bcrypt.hash(test, 10))
-    // const test = "Fightsong@6"
-
-    // Generate OTP for email verification
+    // Generate OTP
     const OTP = generateOtp();
-    const verificationToken = new VerifyToken({
-      owner: newUser._id,
-      token: OTP,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // Expires in 15 minutes
+
+    // Store temporary user data and OTP
+    const tempUser = new TempUser({
+      username,
+      email,
+      password: hashedPassword,
+      address,
+      phone,
+      dateOfBirth,
+      otp: OTP,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes expiry
+    });
+
+    await tempUser.save();
+
+    // Send email with OTP
+    await mailTransport().sendMail({
+      from: "emailverification@email.com",
+      to: email,
+      subject: "Welcome to BookHub - Verify Your Email",
+      html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Welcome to BookHub!</h2>
+                    <p>Your OTP for account verification is:</p>
+                    <h1 style="color: #007bff; font-size: 32px; letter-spacing: 5px;">${OTP}</h1>
+                    <p>This code will expire in 15 minutes.</p>
+                    <p>If you didn't request this code, please ignore this email.</p>
+                </div>
+            `,
+    });
+
+    // Schedule cleanup of temporary data
+    setTimeout(async () => {
+      await TempUser.deleteOne({ _id: tempUser._id });
+      console.log(`Temporary user data cleaned up for ${email}`);
+    }, 15 * 60 * 1000);
+
+    return res.status(200).json({
+      message: "Please verify your email to complete signup.",
+      tempUserId: tempUser._id
+    });
+
+  } catch (error) {
+    console.error("Error during signup initiation:", error);
+    res.status(500).json({ message: "Internal server error. Please try again later." });
+  }
+};
+
+exports.resendOTP = async (req, res) => {
+  try {
+    const { tempUserId } = req.body;
+
+    const tempUser = await TempUser.findById(tempUserId);
+    if (!tempUser) {
+      return res.status(400).json({ message: "Invalid or expired signup session. Please sign up again." });
+    }
+
+    const newOTP = generateOtp();
+
+    tempUser.otp = newOTP;
+    tempUser.expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await tempUser.save();
+
+    await mailTransport().sendMail({
+      from: "emailverification@email.com",
+      to: tempUser.email,
+      subject: "BookHub - New Verification Code",
+      html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Your New Verification Code</h2>
+                    <p>Here's your new OTP:</p>
+                    <h1 style="color: #007bff; font-size: 32px; letter-spacing: 5px;">${newOTP}</h1>
+                    <p>This code will expire in 15 minutes.</p>
+                </div>
+            `,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "New OTP sent successfully"
+    });
+
+  } catch (error) {
+    console.error("Error resending OTP:", error);
+    return res.status(500).json({ message: "Failed to resend OTP. Please try again." });
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { tempUserId, otp } = req.body;
+
+    if (!tempUserId || !otp?.trim()) {
+      return res.status(400).json({ success: false, message: "Invalid request, missing parameters" });
+    }
+
+    if (!isValidObjectId(tempUserId)) {
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+
+    // Find the temporary user
+    const tempUser = await TempUser.findById(tempUserId);
+    if (!tempUser) {
+      return res.status(400).json({ success: false, message: "Signup session expired or invalid. Please sign up again." });
+    }
+
+    // Check if OTP matches
+    if (tempUser.otp !== otp) {
+      return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
+    }
+
+    // Check if OTP has expired
+    if (tempUser.expiresAt < new Date()) {
+      await TempUser.deleteOne({ _id: tempUserId });
+      return res.status(400).json({ success: false, message: "OTP has expired. Please signup again." });
+    }
+
+    // Create the actual user
+    const newUser = new User({
+      username: tempUser.username,
+      email: tempUser.email,
+      password: tempUser.password,
+      address: tempUser.address,
+      phone: tempUser.phone,
+      dateOfBirth: tempUser.dateOfBirth,
+      verified: true
     });
 
     await newUser.save();
-    await verificationToken.save();
 
-    // Find the default plan
+    // Set up default subscription plan
     const defaultPlan = await SubscriptionPlan.findOne({ Plan_name: "default" });
     if (!defaultPlan) {
       await User.deleteOne({ _id: newUser._id });
-      await VerifyToken.deleteOne({ owner: newUser._id });
-      return res.status(500).json({ message: "No default subscription plan found. Signup failed." });
+      return res.status(500).json({ success: false, message: "Error setting up user account. Please try again." });
     }
 
-    // Create a new subscription entry for the user
+    // Create subscription
     const subscription = new Subscription({
       userId: newUser._id,
       planId: defaultPlan._id,
       subscriptionDate: new Date(),
-      renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), // Renew in 1 month
+      renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
     });
 
     await subscription.save();
 
-    // Send email with OTP
-    mailTransport().sendMail({
+    // Clean up temporary user data
+    await TempUser.deleteOne({ _id: tempUserId });
+
+    // Send welcome email
+    await mailTransport().sendMail({
       from: "emailverification@email.com",
       to: newUser.email,
-      subject: "Verify your Email please!",
-      html: `<h1>${OTP}</h1>`,
+      subject: "Welcome to BookHub!",
+      html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h1 style="color: #007bff;">Welcome to BookHub!</h1>
+                    <p>Your email has been verified successfully. You can now sign in to your account.</p>
+                    <p>Thank you for joining our community!</p>
+                </div>
+            `,
     });
 
-    // Schedule deletion if the user doesn't verify within 15 minutes
-    setTimeout(async () => {
-      const existingToken = await VerifyToken.findOne({ owner: newUser._id });
-      if (existingToken) {
-        await User.deleteOne({ _id: newUser._id });
-        await Subscription.deleteOne({ userId: newUser._id });
-        await VerifyToken.deleteOne({ owner: newUser._id });
-        console.log(`User ${newUser._id} and subscription deleted due to unverified email.`);
-      }
-    }, 15 * 60 * 1000); // 15 minutes delay
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully!",
+      userId: newUser._id
+    });
 
-    return res.status(201).json({ message: "Signup successful. Please verify your email.", userId: newUser._id });
   } catch (error) {
-    console.error("Error during signup:", error);
+    console.error("Error verifying email:", error);
+    return res.status(500).json({ success: false, message: "Internal server error. Please try again." });
+  }
+};
+exports.verifyAndCreateUser = async (req, res) => {
+  try {
+    const { tempUserId, otp } = req.body;
+
+    const tempUser = await TempUser.findById(tempUserId);
+    if (!tempUser) {
+      return res.status(400).json({ message: "Invalid or expired signup attempt." });
+    }
+
+    if (tempUser.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP." });
+    }
+
+    if (tempUser.expiresAt < new Date()) {
+      await TempUser.deleteOne({ _id: tempUserId });
+      return res.status(400).json({ message: "OTP has expired. Please signup again." });
+    }
+
+    // Create actual user
+    const newUser = new User({
+      username: tempUser.username,
+      email: tempUser.email,
+      password: tempUser.password,
+      address: tempUser.address,
+      phone: tempUser.phone,
+      dateOfBirth: tempUser.dateOfBirth,
+      isVerified: true
+    });
+
+    await newUser.save();
+
+    // Find and assign default subscription plan
+    const defaultPlan = await SubscriptionPlan.findOne({ Plan_name: "default" });
+    if (!defaultPlan) {
+      await User.deleteOne({ _id: newUser._id });
+      return res.status(500).json({ message: "No default subscription plan found. Signup failed." });
+    }
+
+    // Create subscription
+    const subscription = new Subscription({
+      userId: newUser._id,
+      planId: defaultPlan._id,
+      subscriptionDate: new Date(),
+      renewalDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
+    });
+
+    await subscription.save();
+
+    // Clean up temporary data
+    await TempUser.deleteOne({ _id: tempUserId });
+
+    return res.status(201).json({
+      message: "Signup completed successfully.",
+      userId: newUser._id
+    });
+
+  } catch (error) {
+    console.error("Error during verification and user creation:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };
@@ -553,7 +734,7 @@ exports.signin = async (req, res) => {
     }
 
     const user = await User.findOne({ username });
-    const isCorrect = await bcrypt.compare(password,  user?.password || "");
+    const isCorrect = await bcrypt.compare(password, user?.password || "");
     if (!user | !isCorrect) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
@@ -586,76 +767,32 @@ exports.signin = async (req, res) => {
 // -------------------
 // Get User Info Controller
 // -------------------
-
-
 exports.getUserInfo = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
-      console.log("No token provided");
       return res.status(401).json({ message: "No token provided" });
     }
 
-    // Verify the token
-    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
       if (err) {
-        console.log("Invalid or expired token");
         return res.status(403).json({ message: "Invalid or expired token" });
       }
 
-      // Fetch the user by ID (excluding the password field)
       const user = await User.findById(decoded.id).select("-password");
       if (!user) {
-        console.log("User not found:", decoded.id);
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Fetch the subscription for the user
-      const subscription = await Subscription.findOne({ userId: user._id });
-      if (!subscription) {
-        console.log("No subscription found for user:", user._id);
-        // Return user without subscription info if none found
-        return res.json(user);
-      }
+      // (Optional) Fetch subscription details here if needed
 
-      // Fetch the subscription plan details
-      const subscriptionPlan = await SubscriptionPlan.findById(subscription.planId);
-      // console.log("🚀 ~ jwt.verify ~ subscriptionPlan:", subscriptionPlan)
-      if (!subscriptionPlan) {
-        console.log("Subscription plan not found for planId:", subscription.planId);
-        return res.status(404).json({ message: "Subscription plan not found" });
-      }
-
-      // Merging user with subscription and subscription plan details
-      const userWithSubscription = {
-        ...user.toObject(), // Convert mongoose object to plain JS object
-        subscription: {
-          _id: subscription._id,
-          startDate: subscription.subscriptionDate,
-          endDate: subscription.renewalDate,
-          plan: {
-            _id: subscriptionPlan._id,
-            planName: subscriptionPlan.Plan_name,
-            price: subscriptionPlan.Price,
-            duration: subscriptionPlan.Duration,
-  
-          },
-        },
-      };
-
-      // Log the final object before sending the response
-      // console.log("Sending response with user and subscription:", userWithSubscription);
-      
-      // Send the final response
-      return res.json(userWithSubscription);
+      res.json(user);
     });
   } catch (error) {
     console.error("Error fetching user info:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 // -------------------
 // Update Profile Controller
@@ -808,53 +945,3 @@ exports.resetPassword = async (req, res) => {
 //   return res.status(status).json({ success: false, error: message });
 // };
 
-exports.verifyEmail = async (req, res) => {
-  try {
-    const { userId, otp } = req.body;
-
-    if (!userId || !otp.trim()) {
-      return sendError(res, "Invalid request, missing parameters");
-    }
-
-    if (!isValidObjectId(userId)) {
-      return sendError(res, "Invalid user ID");
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return sendError(res, "Sorry, user not found!");
-    }
-
-    if (user.verified) {
-      return sendError(res, "This email is already verified");
-    }
-
-    const token = await VerifyToken.findOne({ owner: user._id });
-    if (!token) {
-      return sendError(res, "Verification token not found!");
-    }
-
-    // Verify the OTP using the compareToken method on the token document
-    const isMatched = await token.compareToken(otp);
-    if (!isMatched) {
-      return sendError(res, "Please provide a valid token!");
-    }
-
-    user.verified = true;
-    await user.save();
-
-    await VerifyToken.findByIdAndDelete(token._id);
-
-    await mailTransport().sendMail({
-      from: "emailverification@email.com",
-      to: user.email,
-      subject: "Congrats!",
-      html: "<h1>Email verification successful, thanks for connecting with us!</h1>"
-    });
-
-    return res.status(200).json({ success: true, message: "Email verified successfully!" });
-  } catch (error) {
-    console.error("Error verifying email:", error);
-    return res.status(500).json({ success: false, error: "Internal server error" });
-  }
-};

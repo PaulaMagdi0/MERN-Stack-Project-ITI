@@ -176,29 +176,34 @@ const SingleBook = () => {
     }
   }
 
-  // Handle "Read Now" click with subscription validation
+    // Handle "Read Now" click with subscription validation
   const handleReadNow = () => {
     if (!user) {
       navigate("/login")
       return
     }
+    
     try {
       const subscription = user.subscription
-      if (
-        !subscription ||
-        new Date(subscription.renewalDate) <= new Date() ||
-        subscription.planId === "679d0f8785aadfd7e3ab97d8"
-      ) {
+      const isDefaultPlan = subscription?.planId === "679d0f8785aadfd7e3ab97d8"
+      const isExpired = !subscription || new Date(subscription.renewalDate) <= new Date()
+
+      if (isExpired || isDefaultPlan) {
         setShowSubscribeModal(true)
         return
       }
-      window.open(currentBook?.book?.pdf, "_blank")
+      
+      if (currentBook?.book?.pdf) {
+        window.open(currentBook.book.pdf, "_blank")
+      } else {
+        console.error("PDF not available")
+      }
     } catch (error) {
       console.error("Error handling subscription:", error)
       setShowSubscribeModal(true)
     }
   }
-
+  
   // Filter related books by selected genre
   const filterBooksByGenre = (genre) => {
     setSelectedGenre(genre)

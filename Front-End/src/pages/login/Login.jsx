@@ -20,7 +20,6 @@ function SignIn() {
   // When the user is logged in, you can optionally refresh the page.
   // (This useEffect will be triggered if your Redux state updates.)
   useEffect(() => {
-    console.log("Updated Redux State:", authData);
     if (authData.isLoggedIn) {
       // Option 1: Refresh the page by changing the window location
       // window.location.href = "/";
