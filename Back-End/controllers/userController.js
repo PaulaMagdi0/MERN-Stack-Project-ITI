@@ -514,6 +514,9 @@ exports.forgetPassword = async (req, res) => {
 // -------------------
 // Reset Password Controller
 // -------------------
+
+// Assume sendError is defined somewhere in your codebase
+
 exports.resetPassword = async (req, res) => {
   const { password } = req.body;
   try {
@@ -529,7 +532,9 @@ exports.resetPassword = async (req, res) => {
       return sendError(res, "New password must be between 8 and 20 characters!");
     }
 
-    user.password = password.trim();
+    // Hash the new password before saving it
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
+    user.password = hashedPassword;
     await user.save();
 
     // Remove reset token after password reset
