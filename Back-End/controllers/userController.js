@@ -726,44 +726,49 @@ exports.verifyAndCreateUser = async (req, res) => {
 // -------------------
 exports.signin = async (req, res) => {
   try {
-    const { username, password, RememberMe } = req.body;
+    const { username, password, rememberMe } = req.body
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ message: "Username and password are required." });
+      return res.status(400).json({ message: "Username and password are required." })
     }
 
-    const user = await User.findOne({ username });
-    const isCorrect = await bcrypt.compare(password, user?.password || "");
-    if (!user | !isCorrect) {
-      return res.status(400).json({ message: "Invalid credentials." });
+    const user = await User.findOne({ username })
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials." })
     }
 
+    const isCorrect = await bcrypt.compare(password, user.password)
+    if (!isCorrect) {
+      return res.status(400).json({ message: "Invalid credentials." })
+    }
+
+    const tokenExpiration = rememberMe ? "7d" : "1h" // 1 hour for session, 7 days for remember me
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
-      expiresIn: "30d",
-    });
+      expiresIn: tokenExpiration,
+    })
 
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-    };
-
-    if (RememberMe) {
-      cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
     }
 
-    res.cookie("token", token, cookieOptions);
+    if (rememberMe) {
+      cookieOptions["maxAge"] = 7 * 24 * 60 * 60 * 1000 // 7 days
+    }
+
+    res.cookie("token", token, cookieOptions)
     res.status(200).json({
       id: user._id,
       role: user.role,
+      rememberMe,
       message: "Sign in successful",
-    });
+    })
   } catch (error) {
-    console.error("Error during sign in:", error);
-    res.status(500).json({ message: "Internal server error." });
+    console.error("Error during sign in:", error)
+    res.status(500).json({ message: "Internal server error." })
   }
-};
+}
+
 // -------------------
 // Get User Info Controller
 // -------------------

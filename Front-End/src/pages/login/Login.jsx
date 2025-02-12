@@ -96,6 +96,18 @@ function SignIn() {
                 {touched.password && errors.password && <small>{errors.password}</small>}
               </div>
 
+              <div className="col-12 form-group mt-4">
+                <label className="form-check d-flex justify-content-center gap-5">
+                  <span className="form-check-label my-auto">Remember me</span>
+                  <Field
+                    type="checkbox"
+                    name="rememberMe"
+                    className="form-check-input"
+                    id="rememberMe"
+                  />
+                </label>
+              </div>
+
               {errors.general && (
                 <div className="col-12">
                   <small>{errors.general}</small>
