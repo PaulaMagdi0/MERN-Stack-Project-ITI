@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
-import { signIn, getUserInfo } from "../../store/authSlice"; // Assuming the correct path
+import { getUserInfo } from "../../store/authSlice"; // Correct path to your auth slice
 import "./subscription.css";
 
 const SubscriptionPlans = () => {
@@ -65,7 +65,10 @@ const SubscriptionPlans = () => {
 
       <div className="subscription-grid">
         {plans.map((plan) => (
-          <div key={plan._id} className="subscription-card">
+          <div
+            key={plan._id}
+            className={`subscription-card ${plan.Plan_name.toLowerCase()}`}
+          >
             <h2 className="subscription-name">{plan.Plan_name}</h2>
             <p className="subscription-duration">Duration: {plan.Duration} months</p>
             <p className="subscription-price">
