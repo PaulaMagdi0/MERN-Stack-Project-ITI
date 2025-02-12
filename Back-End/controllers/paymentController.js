@@ -8,7 +8,7 @@ exports.createPaymentIntent = async (req, res) => {
     try {
         const { amount, currency, userId, subscriptionPlanId, planName, email } = req.body;
     
-        console.log("Received payment data:", { amount, currency, userId, subscriptionPlanId, planName, email });
+        // console.log("Received payment data:", { amount, currency, userId, subscriptionPlanId, planName, email });
 
         // Validate input data
         if (!amount || !currency || !userId || !subscriptionPlanId || !email) {
@@ -30,7 +30,7 @@ exports.createPaymentIntent = async (req, res) => {
         }
 
         // Check if the provided email matches the one in the database
-        if (user.email !== email) {
+        if (user.email.toLocaleLowerCase() !== email.toLocaleLowerCase()) {
             console.log("Email mismatch: Expected:", user.email, "Received:", email);
             return res.status(400).json({ success: false, message: "Email does not match the one in your account." });
         }
