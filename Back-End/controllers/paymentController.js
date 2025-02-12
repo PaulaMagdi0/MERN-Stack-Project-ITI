@@ -7,7 +7,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 exports.createPaymentIntent = async (req, res) => {
     try {
         const { amount, currency, userId, subscriptionPlanId, planName, email } = req.body;
-
+    
         console.log("Received payment data:", { amount, currency, userId, subscriptionPlanId, planName, email });
 
         // Validate input data
@@ -34,7 +34,7 @@ exports.createPaymentIntent = async (req, res) => {
             console.log("Email mismatch: Expected:", user.email, "Received:", email);
             return res.status(400).json({ success: false, message: "Email does not match the one in your account." });
         }
-
+        
         // Convert amount to cents
         const finalAmount = Math.round(amount * 100); // Stripe requires amount in cents
 
