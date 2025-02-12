@@ -1,76 +1,101 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Subscription = require('../models/subscription');
-const User = require('../models/users');
-const SubscriptionPlan = require('../models/subscriptionplan'); // Add this for plan duration
+// // PaymentHook.js (Webhook Handler)
+// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// const User = require("../models/users");
+// const Subscription = require("../models/subscription");
+// const SubscriptionPlan = require("../models/subscriptionplan");
 
-exports.handleStripeWebhook = async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  let event;
+// // You can skip signature verification in mock mode, since we're not using real Stripe events.
+// exports.handleStripeWebhook = async (mockEvent, res) => {
+//   let event = mockEvent; // Use the mock event passed from the route
 
-  try {
-    // Construct the event using the raw request body and signature
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+//   // Handle different Stripe event types
+//   switch (event.type) {
+//     case "payment_intent.succeeded":
+//       const paymentIntent = event.data.object;
+//       // Handle successful payment
+//       await handlePaymentSuccess(paymentIntent);
+//       break;
+//     case "payment_intent.payment_failed":
+//       const failedPaymentIntent = event.data.object;
+//       // Handle failed payment
+//       await handlePaymentFailure(failedPaymentIntent);
+//       break;
+//     default:
+//       console.log(`Unhandled event type: ${event.type}`);
+//   }
 
-  if (event.type === 'payment_intent.succeeded') {
-    const paymentIntent = event.data.object;
-    const { userId, subscriptionPlanId } = paymentIntent.metadata;
+//   // Acknowledge receipt of the event
+//   res.json({ received: true });
+// };
 
-    try {
-      if (!userId || !subscriptionPlanId) {
-        console.error("Missing userId or subscriptionPlanId in webhook metadata.");
-        return res.status(400).json({ message: "Invalid webhook metadata" });
-      }
+// // Handle payment success and update subscription
+// const handlePaymentSuccess = async (paymentIntent) => {
+//   try {
+//     const { metadata } = paymentIntent;
+//     const { userId, subscriptionPlanId } = metadata;
 
-      // Ensure the user exists
-      const user = await User.findById(userId);
-      if (!user) {
-        console.error(`User with ID ${userId} not found.`);
-        return res.status(404).json({ message: "User not found" });
-      }
+//     // Find the user who made the payment
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       console.log("User not found for payment intent.");
+//       return;
+//     }
 
-      // Find the subscription plan to get the duration
-      const plan = await SubscriptionPlan.findById(subscriptionPlanId);
-      if (!plan) {
-        console.error(`Subscription plan with ID ${subscriptionPlanId} not found.`);
-        return res.status(404).json({ message: "Subscription plan not found" });
-      }
+//     // Find the selected subscription plan
+//     const subscriptionPlan = await SubscriptionPlan.findById(subscriptionPlanId);
+//     if (!subscriptionPlan) {
+//       console.log("Subscription plan not found.");
+//       return;
+//     }
 
-      // Calculate subscription duration (assuming plan.Duration is in months)
-      const subscriptionDuration = plan.Duration || 1; // Default to 1 month if not specified
+//     // Check if the user already has an existing subscription
+//     let subscription = await Subscription.findOne({ userId });
+//     if (!subscription) {
+//       // Create a new subscription if it doesn't exist
+//       subscription = new Subscription({
+//         userId,
+//         planId: subscriptionPlanId,
+//         subscriptionDate: new Date(),
+//         renewalDate: calculateRenewalDate(subscriptionPlan),
+//       });
+//     } else {
+//       // Update the existing subscription with the new plan
+//       subscription.planId = subscriptionPlanId;
+//       subscription.subscriptionDate = new Date();
+//       subscription.renewalDate = calculateRenewalDate(subscriptionPlan);
+//     }
 
-      // Check if the user already has a subscription
-      let subscription = await Subscription.findOne({ user: userId });
+//     // Save or update the subscription in the database
+//     await subscription.save();
 
-      if (subscription) {
-        // Update existing subscription
-        subscription.plan = subscriptionPlanId;
-        subscription.startDate = new Date();
-        subscription.endDate = new Date(new Date().setMonth(new Date().getMonth() + subscriptionDuration)); 
-        await subscription.save();
-        console.log(`Updated subscription for user ${userId} to plan ${subscriptionPlanId}.`);
-      } else {
-        // Create a new subscription if none exists
-        subscription = new Subscription({
-          user: userId,
-          plan: subscriptionPlanId,
-          startDate: new Date(),
-          endDate: new Date(new Date().setMonth(new Date().getMonth() + subscriptionDuration)), 
-        });
-        await subscription.save();
-        console.log(`New subscription created for user ${userId} with plan ${subscriptionPlanId}.`);
-      }
+//     console.log("Payment success handled. Subscription updated.");
 
-    } catch (err) {
-      console.error("Error updating or creating subscription:", err);
-      return res.status(500).json({ message: `Error: ${err.message}` });
-    }
-  }
+//   } catch (err) {
+//     console.error("Error processing payment success:", err);
+//   }
+// };
 
-  // Respond to Stripe indicating the event was handled
-  res.json({ received: true });
-};
+// // Calculate the renewal date based on the subscription plan duration
+// const calculateRenewalDate = (subscriptionPlan) => {
+//   const renewalDate = new Date();
+//   renewalDate.setMonth(renewalDate.getMonth() + subscriptionPlan.Duration);
+//   return renewalDate;
+// };
+
+// // Handle failed payment and notify the user
+// const handlePaymentFailure = async (paymentIntent) => {
+//   try {
+//     const { metadata } = paymentIntent;
+//     const { userId } = metadata;
+
+//     // Handle the failed payment, e.g., notify the user
+//     const user = await User.findById(userId);
+//     if (user) {
+//       console.log(`Payment failed for user: ${user.email}`);
+//     }
+
+//     // Additional failure logic, like alerting or retrying, could go here.
+//   } catch (err) {
+//     console.error("Error processing payment failure:", err);
+//   }
+// };
