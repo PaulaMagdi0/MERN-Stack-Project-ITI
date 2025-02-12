@@ -6,47 +6,47 @@ import { Container, CircularProgress, Alert, Button, Typography, Grid2 } from '@
 import { fetchBooks, getAllGenres, getBooksByGenre } from '../../store/bookSlice';
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
-import "./Books.css"
-
+import "./Books.css";
 
 function Books() {
-  // Default to "all" so that initially, all books are shown
   const [genre, setGenre] = useState("all");
+  console.log("🚀 ~ Books ~ genre:", genre);
+  
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
-
-  // Access state from Redux
+  
   const {
-    selectedGenre,     // list of all genres
-    books,             // default list of all books
-    loading, 
-    error, 
-    totalPages, 
-    BooksGenre,        // result from getBooksByGenre (expected to have a 'books' property)
-    booksGenreError, 
+    selectedGenre,
+    books,
+    loading,
+    error,
+    totalPages,
+    BooksGenre,
+    booksGenreError,
     BooksGenreLoading,
   } = useSelector((state) => state.book || {});
-  
-  console.log("BooksGenre:", BooksGenre);
 
   // Get current page from query string
   const page = parseInt(searchParams.get("page")) || 1;
 
   // Fetch default books and all genres on page load or page change
   useEffect(() => {
-    dispatch(fetchBooks(page));
+    dispatch(fetchBooks(page)); // Fetch books for the default genre (all books)
     dispatch(getAllGenres());
   }, [page, dispatch]);
 
-  // If a specific genre is selected (i.e. not "all"), fetch books for that genre
+  // Fetch books for a specific genre if selected
   useEffect(() => {
     if (genre && genre !== "all") {
-      dispatch(getBooksByGenre(genre));
+      dispatch(getBooksByGenre({ GenreID: genre, page }));
     }
-  }, [genre, dispatch]);
+  }, [genre, page, dispatch]);
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    const validPage = genre !== "all" ? BooksGenre.totalPages : totalPages;
+    
+    // Ensure page stays within valid range
+    if (newPage >= 1 && newPage <= validPage) {
       setSearchParams({ page: newPage });
     }
   };
@@ -56,14 +56,31 @@ function Books() {
   };
 
   // Determine which books to show:
-  // - If a specific genre is selected (not "all"), use BooksGenre.books (or an empty array if none)
-  // - Otherwise, show the default list of all books
   const booksToShow =
     genre && genre !== "all"
       ? (BooksGenre && BooksGenre.books && BooksGenre.books.length > 0
           ? BooksGenre.books
           : [])
       : books;
+
+  // Use BooksGenre.totalPages when a genre is selected, otherwise use default totalPages
+  const currentTotalPages = genre !== "all" ? BooksGenre.totalPages : totalPages;
+
+  // Generate an array of page numbers to show
+  const generatePageNumbers = (currentPage, totalPages) => {
+    const range = 3; // Number of pages to show around the current page
+    let start = Math.max(1, currentPage - range);
+    let end = Math.min(totalPages, currentPage + range);
+
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  const pageNumbers = generatePageNumbers(page, currentTotalPages);
 
   return (
     <div className="books-page">
@@ -115,11 +132,9 @@ function Books() {
                 },
               }}
             >
-              {/* Option for all genres */}
               <MenuItem value="all" sx={{ fontWeight: "500", color: "#5C4033" }}>
                 All Genres
               </MenuItem>
-              {/* List each available genre */}
               {selectedGenre.map((genreItem) => (
                 <MenuItem key={genreItem._id} value={genreItem._id} sx={{ fontWeight: "500", color: "#5C4033" }}>
                   {genreItem.name}
@@ -150,7 +165,6 @@ function Books() {
           </Alert>
         )}
 
-        {/* If a specific genre is selected and no books are found, display a message */}
         {genre !== "all" && booksToShow.length === 0 && !loading && (
           <Typography variant="h6" sx={{ mt: 4 }}>
             No books available for this genre.
@@ -169,20 +183,44 @@ function Books() {
           <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginTop: "2rem" }}>
             <Button
               variant="contained"
+              onClick={() => handlePageChange(1)}
+              disabled={page === 1}
+            >
+              First
+            </Button>
+            <Button
+              variant="contained"
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
             >
               Previous
             </Button>
-            <Typography variant="h6" component="span" sx={{ mx: 2, lineHeight: "2.5" }}>
-              Page {page} of {totalPages}
-            </Typography>
+
+            {pageNumbers.map((p) => (
+              <Button
+                key={p}
+                variant="contained"
+                onClick={() => handlePageChange(p)}
+                disabled={p === page}
+                sx={{ padding: "6px 12px", minWidth: "30px" }}
+              >
+                {p}
+              </Button>
+            ))}
+
             <Button
               variant="contained"
               onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
+              disabled={page === currentTotalPages}
             >
               Next
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handlePageChange(currentTotalPages)}
+              disabled={page === currentTotalPages}
+            >
+              Last
             </Button>
           </div>
         )}

@@ -72,23 +72,34 @@ export const getAllGenres = createAsyncThunk(
 );
 export const getBooksByGenre = createAsyncThunk(
   "/booksByGenre",
-  async (GenreID, { rejectWithValue }) => {
+  async ({ GenreID, page }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_URL}/bookgenre/search-genre/${GenreID}`);
+      // Fetch books for the selected genre with pagination
+      const response = await fetch(`${API_URL}/bookgenre/search-genre/${GenreID}?page=${page}`);
+
       if (!response.ok) {
-        // If the response is not ok, throw an error
-        throw new Error("Failed to fetch genres");
+        // Get the error message from response if it's not okay
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch books for the selected genre");
       }
 
-      return await response.json();  // Return the data to the fulfilled action
+      // Parse the JSON response
+      const data = await response.json();
+
+      if (!data || !data.books) {
+        throw new Error("Invalid data format: 'books' array missing");
+      }
+
+      // Return books and totalPages from the response
+      return { books: data.books, totalPages: data.totalPages };
     } catch (err) {
-      console.error("Error fetching genres:", err);
-      return rejectWithValue(err.message);  // Pass the error message to the rejected action
+      // Log the error and reject the promise with the error message
+      console.error("Error fetching books by genre:", err.message || err);
+      return rejectWithValue(err.message || "An unknown error occurred while fetching books");
     }
   }
 );
-
-// /search-books/:bookID
+;// /search-books/:bookID
 // /bookgenre/search-books/679cf275d51cdd97c1276d3e
 
 export const fetchGenreByBookId = createAsyncThunk(

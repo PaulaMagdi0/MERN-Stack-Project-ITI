@@ -17,9 +17,6 @@ router.get("/", getBooks);
 // ✅ Get a book by ID
 router.get("/id/:id", getBookDetailsByID);
 
-// ✅ Get books by title
-router.get("/title/:title", getBooksByTitle);
-
 // ✅ Create a new book (supports image & PDF upload)
 router.post(
     "/post-book",
@@ -38,5 +35,8 @@ router.delete("/delete-book/:bookID", deleteBook);
 
 // ✅ Search books
 router.get("/search", searchBook);
+
+// ✅ Get books by title
+// router.get("/title/:title", getBooksByTitle);
 
 module.exports = router;

@@ -15,7 +15,7 @@ const {
   resendOTP
 } = require('../controllers/userController');
 const bcrypt = require("bcrypt");
-
+const upload = require("../config/multerConfig");
 
 // Rate limiting for signup and signin
 const signupSigninLimiter = rateLimit({
@@ -45,7 +45,7 @@ router.post('/resend-otp', resendOTP);
 router.post("/verify-email", verifyEmail);
 
 // // Update Profile (protected)
-router.put("/update-profile", authenticateToken, UpdateUserInfo);
+router.put("/update-profile", authenticateToken,upload.single("image"), UpdateUserInfo);
 
 // // Forget Password
 router.post("/forget-password", forgetPassword);

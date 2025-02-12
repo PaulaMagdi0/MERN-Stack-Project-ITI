@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Container, Card, Form, Button, Row, Col, Image, Alert } from 'react-bootstrap';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -8,7 +8,8 @@ import { getUserInfo, updateUserProfile } from '../../store/authSlice';
 const ProfilePage = () => {
   const dispatch = useDispatch();
   const { user, error } = useSelector((state) => state.auth);
- 
+  const [imageFile, setImageFile] = useState(null); // State for the selected image file
+
   // Fetch user info on mount
   useEffect(() => {
     dispatch(getUserInfo());
@@ -31,6 +32,7 @@ const ProfilePage = () => {
     address: Yup.string().required("Address is required"),
   });
 
+  // Handle form submission
   const handleSubmit = async (values, { setSubmitting }) => {
     // Create an update object that does NOT include email
     const updateData = {
@@ -40,15 +42,34 @@ const ProfilePage = () => {
       address: values.address,
     };
 
+    const formData = new FormData();
+    formData.append('username', values.fullName);
+    formData.append('dateOfBirth', values.dateOfBirth);
+    formData.append('phone', values.phone);
+    formData.append('address', values.address);
+
+    if (imageFile) {
+      formData.append('image', imageFile); // Append the selected image file
+    }
+
     try {
-      await dispatch(updateUserProfile(updateData)).unwrap();
+      // Dispatch the updateUserProfile action with the FormData
+      await dispatch(updateUserProfile(formData)).unwrap();
+
       // After successful update, re-fetch user info (or rely on updated auth state)
       dispatch(getUserInfo());
-      // Optionally show a success message, etc.
     } catch (updateError) {
       console.error("Profile update error:", updateError);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle image file change
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImageFile(file); // Store the selected image file
     }
   };
 
@@ -61,7 +82,7 @@ const ProfilePage = () => {
             <Col xs={12} md={5} className="d-flex flex-column align-items-center justify-content-center text-center border-end p-4">
               <div className="position-relative d-inline-block mb-4">
                 <Image
-                  src={user?.image }
+                  src={user?.image || '/default-profile.png'} // Add a fallback image
                   roundedCircle
                   style={{ width: '250px', height: '250px', objectFit: 'cover' }}
                 />
@@ -84,7 +105,7 @@ const ProfilePage = () => {
                     type="file"
                     id="profile-upload"
                     accept="image/*"
-                    onChange={() => { /* Leave image upload handling aside */ }}
+                    onChange={handleImageChange} // Handle image file change
                     style={{ display: 'none' }}
                   />
                 </div>
