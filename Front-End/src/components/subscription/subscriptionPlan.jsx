@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import axios from "axios";
+import { signIn, getUserInfo } from "../../store/authSlice"; // Assuming the correct path
 import "./subscription.css";
 
 const SubscriptionPlans = () => {
@@ -8,25 +10,25 @@ const SubscriptionPlans = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Check authentication using backend API
+  // Access user authentication state from Redux store
+  const { user, isLoggedIn } = useSelector((state) => state.auth);
+
+  // Check if the user is authenticated on component load
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/users/get-user-info", { withCredentials: true }) // Ensure cookies are sent
-      
-      .then((response) => {
-        
-        if (response.status === 200) {
-          setIsAuthenticated(true);
-        }
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-      });
+    if (user) {
+      setIsAuthenticated(true);
+      dispatch(getUserInfo()); // Fetch user info if logged in
+    } else {
+      setIsAuthenticated(false);
+    }
 
+    // Fetch subscription plans
     axios
-      .get("http://localhost:5000/subscriptionsPlan")
+      .get(`${API_URL}/subscriptionsPlan`)
       .then((response) => {
         const validPlans = response.data.filter((plan) => plan.Price > 0);
         setPlans(validPlans);
@@ -37,20 +39,16 @@ const SubscriptionPlans = () => {
         setError("Failed to load subscription plans.");
         setLoading(false);
       });
-  }, []);
+  }, [isLoggedIn, dispatch]);
 
   const handleSelectPlan = (plan) => {
-    navigate("/payment", {
-      state: {
-        planId: plan._id,
-        amount: plan.Price,
-        name: plan.Plan_name,
-        duration: plan.Duration,
-      },
-    });
+    if (!user) {
+      // Redirect to login if not authenticated
+      navigate("/signin");
+    } else {
+      navigate(`/payment/${plan._id}`);
+    }
   };
-  
-console.log(plans);
 
   if (loading) return <p>Loading subscription plans...</p>;
   if (error) return <p>{error}</p>;
@@ -58,6 +56,13 @@ console.log(plans);
   return (
     <div className="subscription-container container my-5">
       <h1 className="subscription-heading mb-5">Select Your Subscription Plan</h1>
+
+      {isAuthenticated && user ? (
+        <p>Welcome, {user.username}! Choose your subscription plan below.</p>
+      ) : (
+        <p>Please log in to access subscription plans.</p>
+      )}
+
       <div className="subscription-grid">
         {plans.map((plan) => (
           <div key={plan._id} className="subscription-card">
@@ -68,7 +73,7 @@ console.log(plans);
             </p>
             <button
               className="subscription-button"
-              onClick={() => navigate(`/payment/${plan._id}`)}
+              onClick={() => handleSelectPlan(plan)}
             >
               Subscribe
             </button>
