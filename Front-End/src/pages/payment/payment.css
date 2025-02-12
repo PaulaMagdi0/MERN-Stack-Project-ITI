@@ -47,26 +47,27 @@
 }
 
 /* Form Styles */
-form {
+.payment-container form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* Input Groups */
-.input-group {
+/* Payment Page Input Groups */
+.payment-container .input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.input-group label {
+.payment-container .input-group label {
   font-size: 14px;
   color: #495057;
   font-weight: 500;
 }
 
-.input-field {
+/* Payment Page Generic Input Field */
+.payment-container .input-field {
   padding: 12px;
   border: 1px solid #ced4da;
   border-radius: 6px;
@@ -74,18 +75,18 @@ form {
   transition: border-color 0.2s;
 }
 
-.input-field:focus {
+.payment-container .input-field:focus {
   outline: none;
   border-color: #4a90e2;
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
 }
 
-.input-field:disabled {
+.payment-container .input-field:disabled {
   background-color: #f8f9fa;
   cursor: not-allowed;
 }
 
-/* Stripe Elements */
+/* Stripe Element Styles */
 .stripe-input {
   padding: 12px;
   border: 1px solid #ced4da;
@@ -139,7 +140,7 @@ form {
   opacity: 0.7;
 }
 
-/* Loading State */
+/* Loading Spinner (if used) */
 .loading-spinner {
   display: flex;
   justify-content: center;
@@ -175,13 +176,13 @@ form {
   border-color: #dc3545;
 }
 
-/* Processing State Styles */
+/* Processing State */
 .processing {
   opacity: 0.7;
   pointer-events: none;
 }
 
-/* Success Message Styles */
+/* Success Message */
 .success-message {
   background-color: #d4edda;
   color: #155724;
