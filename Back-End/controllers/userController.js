@@ -332,45 +332,65 @@ exports.signin = async (req, res) => {
 // -------------------
 // Get User Info Controller
 // -------------------
+
 exports.getUserInfo = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
+      console.log("No token provided");
       return res.status(401).json({ message: "No token provided" });
     }
 
-    jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+    // Verify the token
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
       if (err) {
+        console.log("Invalid or expired token");
         return res.status(403).json({ message: "Invalid or expired token" });
       }
 
-      // Fetch user details (excluding password)
+      // Fetch the user by ID (excluding the password field)
       const user = await User.findById(decoded.id).select("-password");
-
       if (!user) {
+        console.log("User not found:", decoded.id);
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Fetch subscription details for the user and populate the plan info
-      const subscription = await Subscription.findOne({ userId: user._id }).populate("planId", "name Duration price");
+      // Fetch the subscription for the user
+      const subscription = await Subscription.findOne({ userId: user._id });
+      if (!subscription) {
+        console.log("No subscription found for user:", user._id);
+        // Return user without subscription info if none found
+        return res.json(user);
+      }
 
-      // Construct response with user & subscription details
-      const userInfo = {
-        ...user.toObject(),
-        subscription: subscription
-          ? {
-            subscriptionId: subscription._id,
-            planId: subscription.planId._id,
-            planName: subscription.planId.name,
-            duration: subscription.planId.Duration,
-            price: subscription.planId.price,
-            subscriptionDate: subscription.subscriptionDate,
-            renewalDate: subscription.renewalDate,
-          }
-          : null, // If user has no subscription, return null
+      // Fetch the subscription plan details
+      const subscriptionPlan = await SubscriptionPlan.findById(subscription.planId);
+      if (!subscriptionPlan) {
+        console.log("Subscription plan not found for planId:", subscription.planId);
+        return res.status(404).json({ message: "Subscription plan not found" });
+      }
+
+      // Merging user with subscription and subscription plan details
+      const userWithSubscription = {
+        ...user.toObject(), // Convert mongoose object to plain JS object
+        subscription: {
+          _id: subscription._id,
+          startDate: subscription.subscriptionDate,
+          endDate: subscription.renewalDate,
+          plan: {
+            _id: subscriptionPlan._id,
+            planName: subscriptionPlan.Plan_name,
+            price: subscriptionPlan.Price,
+            duration: subscriptionPlan.Duration,
+          },
+        },
       };
 
-      res.json(userInfo);
+      // Log the final object before sending the response
+      // console.log("Sending response with user and subscription:", userWithSubscription);
+      
+      // Send the final response
+      return res.json(userWithSubscription);
     });
   } catch (error) {
     console.error("Error fetching user info:", error);
