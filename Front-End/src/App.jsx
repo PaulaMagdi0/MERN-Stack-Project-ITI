@@ -48,14 +48,15 @@ function App() {
           <Route path="/subscription-plans" element={<RequireLogged><SubscriptionPlans /></RequireLogged>} />
           <Route path="/payment/:planID" element={<RequireLogged><Payment /></RequireLogged>} />
           <Route path="/success" element={<RequireLogged><PaymentSuccess /></RequireLogged>} />
-          <Route path="/books" element={<RequireLogged><Books /></RequireLogged>} />
-          <Route path="/books/:id" element={<RequireLogged><SingleBook /></RequireLogged>} />
-          <Route path="/author/:id" element={<RequireLogged><SingleAuthor /></RequireLogged>} />
 
           {/* Authenticated Admin Only Routes */}
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
 
           {/* Catch-All Route */}
+          <Route path="/books" element={<Books />} />
+          <Route path="/books/:id" element={<SingleBook />} />
+          <Route path="/author/:id" element={<SingleAuthor />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
