@@ -13,7 +13,7 @@ const SubscriptionPlans = () => {
   // Check authentication using backend API
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/auth/user", { withCredentials: true }) // Ensure cookies are sent
+      .get("http://localhost:5000/users/get-user-info", { withCredentials: true }) // Ensure cookies are sent
       
       .then((response) => {
         
@@ -50,6 +50,7 @@ const SubscriptionPlans = () => {
     });
   };
   
+console.log(plans);
 
   if (loading) return <p>Loading subscription plans...</p>;
   if (error) return <p>{error}</p>;
@@ -67,7 +68,7 @@ const SubscriptionPlans = () => {
             </p>
             <button
               className="subscription-button"
-              onClick={() => handleSelectPlan(plan)}
+              onClick={() => navigate(`/payment/${plan._id}`)}
             >
               Subscribe
             </button>
