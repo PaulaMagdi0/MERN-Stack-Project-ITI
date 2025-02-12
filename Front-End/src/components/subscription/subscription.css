@@ -1,66 +1,177 @@
-/* SubscriptionPlans.css */
-
+/* Container styling */
 .subscription-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
   text-align: center;
-  padding: 2rem;
+  background: linear-gradient(45deg, rgba(255, 223, 186, 0.6), rgba(100, 100, 255, 0.2));
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  margin-top: 50px;
 }
 
+/* Heading style */
 .subscription-heading {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* Grid container for subscription cards */
 .subscription-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
-  justify-content: center;
-  align-items: center;
+  margin-top: 30px;
 }
 
+/* Base card styling */
 .subscription-card {
-  border: 1px solid #ddd;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  text-align: center;
-  transition: transform 0.3s ease-in-out;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #fff;
+  background-size: cover;
+  background-position: center;
+  transition: all 0.4s ease-in-out;
+  color: white;
+  position: relative;
+  min-height: 350px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: scale(0.95);
+  opacity: 0.9;
 }
 
+/* Hover effects for cards */
 .subscription-card:hover {
   transform: scale(1.05);
+  opacity: 1;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.3);
 }
 
+/* Text styling */
 .subscription-name {
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
 }
 
-.subscription-duration {
-  font-size: 1.1rem;
-  color: #555;
-}
-
+.subscription-duration,
 .subscription-price {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  margin: 10px 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}/* Style for each subscription card */
+.subscription-card {
+  position: relative;
+  width: 300px; /* Set a fixed width for consistency */
+  padding: 20px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Ensures the content is spaced out */
+  text-align: center;
+  overflow: hidden;
+  height: 400px; /* Fixed height to align content uniformly */
 }
 
+/* Button positioning */
 .subscription-button {
-  padding: 10px 20px;
-  font-size: 1rem;
+  padding: 15px 30px;
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, #ff8c00, #ff5500);
   color: #fff;
-  background-color: #2c3e50;
   border: none;
-  border-radius: 5px;
+  border-radius: 50px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Button hover, active, and focus effects */
 .subscription-button:hover {
-  background-color: #eec746;
+  background: linear-gradient(135deg, #ff5500, #ff8c00);
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.subscription-button:focus {
+  outline: none;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.5);
+}
+
+.subscription-button:active {
+  background: linear-gradient(135deg, #ff5500, #ff8c00);
+  transform: translateX(-50%) scale(1.05);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Bronze Plan Specific Styling */
+.subscription-card.bronze {
+  background-image: url('/images/bronze-background.jpg'); /* Add your bronze plan image */
+  background-color: #cd7f32;
+}
+
+.subscription-card.bronze .subscription-name {
+  color: #fff;
+}
+
+/* Silver Plan Specific Styling */
+.subscription-card.silver {
+  background-image: url('/images/silver-background.jpg'); /* Add your silver plan image */
+  background-color: #c0c0c0;
+}
+
+.subscription-card.silver .subscription-name {
+  color: #333;
+}
+
+/* Gold Plan Specific Styling */
+.subscription-card.gold {
+  background-image: url('/images/gold-background.jpg'); /* Add your gold plan image */
+  background-color: #d4af37;
+}
+
+.subscription-card.gold .subscription-name {
+  color: #fff;
+}
+
+/* For Better Image Contrast */
+.subscription-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Overlay for better readability */
+  z-index: 1;
+}
+
+/* Hover Effects for Images */
+.subscription-card:hover::after {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure Content Inside Cards is Visible */
+.subscription-card .subscription-name,
+.subscription-card .subscription-duration,
+.subscription-card .subscription-price,
+.subscription-card .subscription-button {
+  position: relative;
+  z-index: 2;
 }
