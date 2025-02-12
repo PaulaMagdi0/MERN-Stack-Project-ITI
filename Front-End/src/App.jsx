@@ -25,7 +25,8 @@ import ProfilePage from "./pages/Profile/Profile"
 const stripePromise = loadStripe('pk_test_51QoOUWJabCknvdkPxNb7EyCRhTCMJsEZYxKY96rQN7pLfxQykWbk1dHhZCPmSfKLUUmfcZgUPeLWXyrItwpwwc6k00v1YWuxir');
 // App
 function App() {
-    
+
+  
 //   const [isAuthenticated, setIsAuthenticated] = useState(null);
   
 
@@ -88,7 +89,7 @@ function App() {
         <Route path="/books" element={<Books />} />
         <Route path="/author/:id" element={<SingleAuthor />} />
         <Route path="/subscription-plans" element={<SubscriptionPlans />} />
-        <Route path="/payment" element={<Payment />} />
+        <Route path="/payment/:planID" element={<Payment />} />
         <Route path="/success" element={<PaymentSuccess />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

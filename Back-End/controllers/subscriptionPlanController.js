@@ -9,6 +9,30 @@ exports.getSubscriptionPlan = async (req, res) => {
     }
 };
 
+
+exports.getPlanById = async (req, res) => {
+    try {
+      // Extract the plan ID from the URL parameters
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ message: "Plan ID is required." });
+      }
+  
+      // Find the subscription plan by ID
+      const plan = await Subscriptionplan.findById(id);
+      if (!plan) {
+        return res.status(404).json({ message: "Subscription plan not found." });
+      }
+  
+      // Return the found plan
+      res.json(plan);
+    } catch (error) {
+      console.error("Error fetching plan by ID:", error);
+      res.status(500).json({ message: "Internal server error." });
+    }
+  };
+
+
 exports.getSubscriptionPlanByID = async (req, res) => {
     try {
         const { id } = req.params;

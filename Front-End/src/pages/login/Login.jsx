@@ -1,35 +1,33 @@
+// SignIn.js
 import { Formik, Form, Field } from "formik";
 import "./Login.css";
 import { LoginValidation } from "./ValidationLogin";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { authAction } from "../../store/auth";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { signIn } from "../../store/authSlice"; // async thunk action
+import { useNavigate, Link } from "react-router-dom";
 
 const initialValues = {
   username: "",
   password: "",
-  rememberMe: false  // default to false
 };
 
 function SignIn() {
-  const dispat = useDispatch();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const authData = useSelector((state) => state.auth);
 
-  // Clear session storage when component mounts
-  useEffect(() => {
-    // Clear any existing session data when the component first loads
-    sessionStorage.clear();
-    localStorage.clear();
-  }, []);
-
+  // When the user is logged in, you can optionally refresh the page.
+  // (This useEffect will be triggered if your Redux state updates.)
   useEffect(() => {
     if (authData.isLoggedIn) {
-      window.location.href = "/";
+      // Option 1: Refresh the page by changing the window location
+      // window.location.href = "/";
+      // Option 2 (alternative): navigate("/") and then reload
+      // navigate("/");
+      // window.location.reload();
     }
-  }, [authData, navigate]);
+  }, [authData]);
 
   return (
     <div className="signin">
@@ -39,48 +37,28 @@ function SignIn() {
           validationSchema={LoginValidation}
           onSubmit={async (values, { setSubmitting, resetForm, setErrors }) => {
             try {
-              const response = await fetch("http://localhost:5000/users/sign-in", {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(values),
-              });
+              // Dispatch the async thunk signIn
+              const resultAction = await dispatch(signIn(values));
+              if (signIn.fulfilled.match(resultAction)) {
+                // Successful sign in
+                alert("Sign in successful!");
+                resetForm();
 
-              const data = await response.json();
-
-              if (!response.ok) {
-                if (data.errors) {
-                  const errorMessages = Object.values(data.errors)
-                    .map(err => err.message)
-                    .join("\n");
-                  setErrors({ general: errorMessages });
-                } else {
-                  throw new Error(data.message || "Sign in failed, please try again!");
-                }
-                return;
-              }
-
-              // Handle storage based on remember me
-              if (values.rememberMe) {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('userData', JSON.stringify(data));
+                // Force a full page refresh after login:
+                window.location.href = "/";
+                // Alternatively, you could do:
+                // navigate("/");
+                // window.location.reload();
               } else {
-                // Use session storage if remember me is not checked
-                sessionStorage.setItem('authToken', data.token);
-                sessionStorage.setItem('userData', JSON.stringify(data));
-                // Ensure localStorage is clear
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userData');
+                // If the thunk was rejected, display the error message
+                if (resultAction.payload) {
+                  // Known error from the server
+                  setErrors({ general: resultAction.payload });
+                } else {
+                  // A generic error message
+                  setErrors({ general: resultAction.error.message });
+                }
               }
-
-              alert("Sign in successful!");
-              resetForm();
-              dispat(authAction.login());
-              dispat(authAction.changeRole(data.role));
-
-              window.location.href = "/";
             } catch (error) {
               console.error("Signin error:", error.message);
               setErrors({ general: error.message });
@@ -91,9 +69,10 @@ function SignIn() {
           {({ errors, touched }) => (
             <Form className="row g-3 px-5">
               <h1>LOGIN</h1>
-
               <div className="col-12 form-group">
-                <label htmlFor="username" className="form-label">User Name</label>
+                <label htmlFor="username" className="form-label">
+                  User Name
+                </label>
                 <Field
                   type="text"
                   className="form-control"
@@ -105,7 +84,9 @@ function SignIn() {
               </div>
 
               <div className="col-md-12 form-group">
-                <label htmlFor="password" className="form-label">Password</label>
+                <label htmlFor="password" className="form-label">
+                  Password
+                </label>
                 <Field
                   type="password"
                   className="form-control"
@@ -115,24 +96,22 @@ function SignIn() {
                 {touched.password && errors.password && <small>{errors.password}</small>}
               </div>
 
-              <div className="col-12 form-group mt-4">
-                <label className="form-check d-flex justify-content-center gap-5">
-                  <span className="form-check-label my-auto">Remember me</span>
-                  <Field
-                    type="checkbox"
-                    name="rememberMe"
-                    className="form-check-input"
-                    id="rememberMe"
-                  />
-                </label>
+              {errors.general && (
+                <div className="col-12">
+                  <small>{errors.general}</small>
+                </div>
+              )}
+
+              <div className="col-12">
+                <button type="submit" className="btn btn-primary">
+                  Sign In
+                </button>
               </div>
 
-              {errors.general && <div className="col-12"><small>{errors.general}</small></div>}
-
-              <div className="col-12 mt-0">
-                <button type="submit" className="btn btn-primary">Sign In</button>
-              </div>
-              <small>If you forget your password please click <Link to="/forget-password">here</Link></small>
+              <small>
+                If you forget your password please click{" "}
+                <Link to="/forget-password">here</Link>
+              </small>
               <small>
                 Don&apos;t have an account? <Link to="/signup">Sign up</Link>
               </small>

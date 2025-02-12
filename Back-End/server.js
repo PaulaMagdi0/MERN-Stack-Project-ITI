@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 
 // Import Routes
 const adminRoutes = require("./routes/admin");
@@ -10,72 +11,60 @@ const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const authorsRoutes = require("./routes/authorRoutes");
 const bookGenreRoutes = require("./routes/bookGenreRoute");
-const authorsGenreRoutes = require("./routes/authorGenraRoute");
+const authorsGenreRoutes = require("./routes/authorGenraRoute"); // Fixed typo
 const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
 const wishListRoutes = require("./routes/wishListRoutes");
-const ratingRoute = require("./routes//RatingRoute");
+const ratingRoute = require("./routes/RatingRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
 const paymentRoutes = require("./routes/paymentRoutes");
-
-const cookieParser = require("cookie-parser");
+// const stripeWebhookRouter = require('./utils/PaymentHook'); // Ensure correct path
+const { handleStripeWebhook } = require('./utils/PaymentHook');
+const stripeWebhookRouter = require("./routes/paymentRoutes"); // Ensure correct path
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://paulamagdy665:Zw8fE0F7ZRf92dhL@cluster0.1n8ic.mongodb.net/goodReads?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI;  // Use environment variable
 
-
-// config CORS
-
-
-// CORS configuration
+// CORS Configuration
 const corsOptions = {
-  origin: ['http://localhost:5173'], // The URL that sends the request (frontend URL)
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers for authentication
-  credentials: true, // Allow sending cookies and authentication headers
-  optionsSuccessStatus: 200, // Handle successful preflight requests
+  origin: ['http://localhost:5173'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200,
 };
-
-// Apply CORS middleware before routes
 app.use(cors(corsOptions));
-
-// Built-in body parser to handle JSON requests
-
-// Your other routes and middleware here
-
-// Body parser middleware
 app.use(express.json());
+
+// Stripe Webhook (Raw Body Parser) - **MUST BE FIRST**
+app.use('/api/payments', stripeWebhookRouter);
+
+// JSON & URL-Encoded Body Parsers
 app.use(express.urlencoded({ extended: true }));
 
-
-
-// Use cookie-parser middleware before your custom CORS middleware
+// Cookie Parser Middleware
 app.use(cookieParser());
 
-
+// Routes
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
 app.use("/genre", genreRoute);
-// app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/books", bookRoutes);
 app.use("/authors", authorsRoutes);
 app.use("/subscriptionsPlan", subscriptionPlanRoutes);
 app.use("/subscriptions", subscriptionRoutes);
 app.use("/authorgenre", authorsGenreRoutes);
-app.use("/wishlist",wishListRoutes)
-app.use("/rate",ratingRoute)
-app.use("/review",reviewRoute)
-app.use("/api/payments", paymentRoutes);
-
+app.use("/wishlist", wishListRoutes);
+app.use("/rate", ratingRoute);
+app.use("/review", reviewRoute);
+app.use('/api/payments', paymentRoutes); // Keep only this one
 
 // ✅ Connect to MongoDB and Start Server
-
-mongoose
-.connect(MONGO_URI)
-.then(() => {
+mongoose.connect(MONGO_URI)
+  .then(() => {
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
     });
@@ -83,6 +72,7 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB Connection Error:", err);
   });
+
   
   // Without Middleware to set CORS headers
   // app.use((req, res, next) => {

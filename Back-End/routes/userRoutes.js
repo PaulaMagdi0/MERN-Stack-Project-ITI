@@ -11,7 +11,8 @@ const {
   logout,
   verifyEmail,
   forgetPassword,
-  resetPassword
+  resetPassword,
+  resendOTP
 } = require('../controllers/userController');
 const bcrypt = require("bcrypt");
 
@@ -38,6 +39,8 @@ router.post("/validate-token", authenticateToken, (req, res) => {
   res.status(200).json({ valid: true, message: "Token is valid." });
 });
 
+router.post('/resend-otp', resendOTP);
+
 // // Verify Email
 router.post("/verify-email", verifyEmail);
 
@@ -54,7 +57,7 @@ router.post("/reset-password", isResetTokenValid, resetPassword);
 router.post("/logout", logout);
 
 router.get("/verify-token", isResetTokenValid, async (req, res) => {
-  res.json({success : true , })
+  res.json({ success: true, })
 }
 )
 module.exports = router;

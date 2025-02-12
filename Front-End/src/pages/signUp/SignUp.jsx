@@ -3,7 +3,7 @@ import "./SignUp.css";
 import { SignUpValidation } from "./validation"
 import { useState } from "react";
 import axios from "axios";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 
 const initialValues = {
@@ -17,31 +17,57 @@ const initialValues = {
 
 function SignUp() {
     const [showOTPModal, setShowOTPModal] = useState(false);
-    const [userId, setUserId] = useState(null);
+    const [tempUserId, setTempUserId] = useState(null);
     const [otp, setOtp] = useState("");
     const [verificationMessage, setVerificationMessage] = useState("");
+    const [verificationStatus, setVerificationStatus] = useState(""); // 'success' or 'error'
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
     const navigate = useNavigate();
 
     const handleOTPSubmit = async () => {
+        if (!otp.trim()) {
+            setVerificationMessage("Please enter OTP");
+            setVerificationStatus("error");
+            return;
+        }
+
+        setIsVerifying(true);
         try {
             const response = await axios.post("http://localhost:5000/users/verify-email", {
-                userId,
+                tempUserId,
                 otp,
             });
 
-
             if (response.data.success) {
                 setVerificationMessage(response.data.message);
+                setVerificationStatus("success");
                 setTimeout(() => {
                     setShowOTPModal(false);
-                    alert("Sign up successfully!");
                     navigate("/signin");
                 }, 2000);
-            } else {
-                setVerificationMessage(response.data.message || "Invalid OTP. Please try again.");
             }
         } catch (error) {
-            setVerificationMessage("Invalid OTP. Please try again.");
+            setVerificationMessage(error.response?.data?.message || "Invalid OTP. Please try again.");
+            setVerificationStatus("error");
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
+    const handleResendOTP = async () => {
+        try {
+            setIsVerifying(true);
+            const response = await axios.post("http://localhost:5000/users/resend-otp", {
+                tempUserId
+            });
+            setVerificationMessage("New OTP sent successfully!");
+            setVerificationStatus("success");
+        } catch (error) {
+            setVerificationMessage("Failed to resend OTP. Please try again.");
+            setVerificationStatus("error");
+        } finally {
+            setIsVerifying(false);
         }
     };
 
@@ -52,45 +78,23 @@ function SignUp() {
                     initialValues={initialValues}
                     validationSchema={SignUpValidation}
                     onSubmit={async (values, { setSubmitting, setErrors }) => {
+                        setIsSubmitting(true);
                         try {
-
-                            const response = await fetch("http://localhost:5000/users/sign-up", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(values),
-                            });
-
-                            const data = await response.json();
-
-                            if (!response.ok) {
-                                if (data.errors) {
-                                    const errorMessages = Object.values(data.errors)
-                                        .map(err => err.message)
-                                        .join("\n");
-
-                                    alert(errorMessages);
-                                    setErrors(data.errors);
-                                } else {
-                                    throw new Error(data.message || "Signup failed, please try again!");
-                                }
-                                return;
-                            }
-
-                            setUserId(data.userId);
+                            const response = await axios.post("http://localhost:5000/users/sign-up", values);
+                            setTempUserId(response.data.tempUserId);
                             setShowOTPModal(true);
                         } catch (error) {
-                            console.error("Signup error:", error.message);
-                            alert(error.message);
+                            const errorMessage = error.response?.data?.message || "Signup failed, please try again!";
+                            alert(errorMessage);
+                        } finally {
+                            setIsSubmitting(false);
+                            setSubmitting(false);
                         }
-                        setSubmitting(false);
                     }}
                 >
-                    {({ errors }) => (
+                    {({ errors, isSubmitting: formikSubmitting }) => (
                         <Form className="row g-3 px-5">
                             <h1>SIGN UP</h1>
-
                             <div className="col-md-6 form-group">
                                 <label htmlFor="username" className="form-label">Username</label>
                                 <Field
@@ -132,7 +136,7 @@ function SignUp() {
                                     className="form-control"
                                     id="address"
                                     name="address"
-                                    placeholder="place your home"
+                                    placeholder="Place Your Home"
                                 />
                             </div>
 
@@ -143,6 +147,7 @@ function SignUp() {
                                     className="form-control"
                                     id="phone"
                                     name="phone"
+                                    placeholder="Your Phone Number"
                                 />
                                 {errors.phone && <small>{errors.phone}</small>}
                             </div>
@@ -158,19 +163,38 @@ function SignUp() {
                             </div>
 
                             <div className="col-12">
-                                <button type="submit" className="btn btn-primary">Sign Up</button>
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Spinner
+                                                as="span"
+                                                animation="border"
+                                                size="sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                                className="me-2"
+                                            />
+                                            Signing up...
+                                        </>
+                                    ) : (
+                                        'Sign Up'
+                                    )}
+                                </button>
                             </div>
                             <small>
-                                Do u have an account? <Link to="/signin">Sign In</Link>
+                                Already have an account? <Link to="/signin">Sign In</Link>
                             </small>    
                         </Form>
                     )}
                 </Formik>
             </section>
 
-            {/* OTP Modal */}
-            <Modal show={showOTPModal} onHide={() => setShowOTPModal(false)} centered>
-                <Modal.Header closeButton>
+            <Modal show={showOTPModal} onHide={() => !isVerifying && setShowOTPModal(false)} centered>
+                <Modal.Header closeButton={!isVerifying}>
                     <Modal.Title>Email Verification</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
@@ -181,12 +205,50 @@ function SignUp() {
                         placeholder="Enter OTP"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
+                        disabled={isVerifying}
                     />
-                    {verificationMessage && <p className="text-success">{verificationMessage}</p>}
+                    {verificationMessage && (
+                        <p className={`text-${verificationStatus === 'success' ? 'success' : 'danger'} mt-2`}>
+                            {verificationMessage}
+                        </p>
+                    )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowOTPModal(false)}>Close</Button>
-                    <Button variant="primary" onClick={handleOTPSubmit}>Verify</Button>
+                    <Button 
+                        variant="link" 
+                        onClick={handleResendOTP}
+                        disabled={isVerifying}
+                    >
+                        Resend OTP
+                    </Button>
+                    <Button 
+                        variant="secondary" 
+                        onClick={() => setShowOTPModal(false)}
+                        disabled={isVerifying}
+                    >
+                        Close
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        onClick={handleOTPSubmit}
+                        disabled={isVerifying}
+                    >
+                        {isVerifying ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Verifying...
+                            </>
+                        ) : (
+                            'Verify'
+                        )}
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </div>

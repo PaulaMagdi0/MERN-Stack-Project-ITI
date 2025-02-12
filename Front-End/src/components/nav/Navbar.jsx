@@ -223,7 +223,7 @@ function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth || null );
   const { items: wishlistItems } = useSelector((state) => state.wishlist);
   const wishlistCount = wishlistItems?.length || 0;
 

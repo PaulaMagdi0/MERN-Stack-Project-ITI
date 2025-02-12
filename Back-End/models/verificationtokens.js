@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 
-const verfocationTokensSchema = new mongoose.Schema({
+const verfozcationTokensSchema = new mongoose.Schema({
    owner:{
     type: mongoose.Schema.Types.ObjectId,
     ref:'User' ,
@@ -19,7 +19,7 @@ const verfocationTokensSchema = new mongoose.Schema({
    }
 }, { timestamps: true });
 
-verfocationTokensSchema.pre("save" , async function (next) {
+verfozcationTokensSchema.pre("save" , async function (next) {
     if(this.isModified("token")){
         const hash = await bcrypt.hash(this.token , 8);
         this.token = hash
@@ -28,10 +28,10 @@ verfocationTokensSchema.pre("save" , async function (next) {
     
 })
 
-verfocationTokensSchema.methods.compareToken = async function (enteredToken) {
+verfozcationTokensSchema.methods.compareToken = async function (enteredToken) {
     return await bcrypt.compare(enteredToken, this.token);
 };
 
-const VerifyToken = mongoose.model('VerifyToken', verfocationTokensSchema);
+const VerifyToken = mongoose.model('VerifyToken', verfozcationTokensSchema);
 module.exports = VerifyToken;
 
