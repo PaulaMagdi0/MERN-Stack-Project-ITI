@@ -22,6 +22,7 @@ import Wishlist from "./pages/wishlist/WishList";
 import RequireAuth from "./utils/WithGuard";
 import RequireLogged from "./utils/WithGuardForLogging";
 import ProfilePage from "./pages/Profile/Profile";
+import ChatBot from "./components/chat/Chat";
 
 const stripePromise = loadStripe('pk_test_51QoOUWJabCknvdkPxNb7EyCRhTCMJsEZYxKY96rQN7pLfxQykWbk1dHhZCPmSfKLUUmfcZgUPeLWXyrItwpwwc6k00v1YWuxir');
 
@@ -30,6 +31,7 @@ function App() {
     <Elements stripe={stripePromise}>
       <BrowserRouter>
         <Navbar />
+        <ChatBot />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<MainPage />} />

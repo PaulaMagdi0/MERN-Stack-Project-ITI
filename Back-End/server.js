@@ -1,17 +1,21 @@
+// ✅ Fix: Increase Event Listener Limit
+require("events").EventEmitter.defaultMaxListeners = 20;
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 
-// Import Routes
+
+// ✅ Import Routes
+const chatRoutes = require("./routes/chatRoute");
 const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const authorsRoutes = require("./routes/authorRoutes");
 const bookGenreRoutes = require("./routes/bookGenreRoute");
-const authorsGenreRoutes = require("./routes/authorGenraRoute"); // Fixed typo
+const authorsGenreRoutes = require("./routes/authorGenraRoute");
 const genreRoute = require("./routes/genresRoute");
 const subscriptionRoutes = require("./routes/subscription");
 const wishListRoutes = require("./routes/wishListRoutes");
@@ -19,35 +23,41 @@ const ratingRoute = require("./routes/RatingRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const subscriptionPlanRoutes = require("./routes/subscriptionPlan");
 const paymentRoutes = require("./routes/paymentRoutes");
-// const stripeWebhookRouter = require('./utils/PaymentHook'); // Ensure correct path
-const { handleStripeWebhook } = require('./utils/PaymentHook');
-const stripeWebhookRouter = require("./routes/paymentRoutes"); // Ensure correct path
+
+// ✅ Stripe Webhook
+const { handleStripeWebhook } = require("./utils/PaymentHook");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI;  // Use environment variable
+const MONGO_URI = process.env.MONGO_URI;
 
-// CORS Configuration
+if (!MONGO_URI) {
+  console.error("❌ Missing MONGO_URI in .env file!");
+  process.exit(1);
+}
+
+// ✅ CORS Configuration
 const corsOptions = {
-  origin: ['http://localhost:5173'], 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: ["http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
+
+// ✅ Stripe Webhook (Raw Body Parser) - MUST BE BEFORE JSON Parsing
+app.post("/api/payments/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+
+// ✅ JSON & URL-Encoded Body Parsers
 app.use(express.json());
-
-// Stripe Webhook (Raw Body Parser) - **MUST BE FIRST**
-app.use('/api/payments', stripeWebhookRouter);
-
-// JSON & URL-Encoded Body Parsers
 app.use(express.urlencoded({ extended: true }));
 
-// Cookie Parser Middleware
+// ✅ Cookie Parser Middleware
 app.use(cookieParser());
 
-// Routes
+// ✅ Routes
+app.use("/api/chat", chatRoutes);
 app.use("/admin", adminRoutes);
 app.use("/bookgenre", bookGenreRoutes);
 app.use("/genre", genreRoute);
@@ -60,20 +70,21 @@ app.use("/authorgenre", authorsGenreRoutes);
 app.use("/wishlist", wishListRoutes);
 app.use("/rate", ratingRoute);
 app.use("/review", reviewRoute);
-app.use('/api/payments', paymentRoutes); // Keep only this one
+app.use("/api/payments", paymentRoutes);
 
-// ✅ Connect to MongoDB and Start Server
-mongoose.connect(MONGO_URI)
+// ✅ Fix: Properly Handle Mongoose Connection
+mongoose
+  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-    });
+    console.log("✅ Connected to MongoDB");
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
     console.error("❌ MongoDB Connection Error:", err);
+    process.exit(1); // Exit on failure
   });
 
-  
+
   // Without Middleware to set CORS headers
   // app.use((req, res, next) => {
   //   res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
