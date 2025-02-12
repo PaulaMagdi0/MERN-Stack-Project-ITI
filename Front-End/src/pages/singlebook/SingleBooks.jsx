@@ -185,9 +185,10 @@ const SingleBook = () => {
     
     try {
       const subscription = user.subscription
+      console.log("🚀 ~ handleReadNow ~ user:", user)
       const isDefaultPlan = subscription?.planId === "679d0f8785aadfd7e3ab97d8"
       const isExpired = !subscription || new Date(subscription.renewalDate) <= new Date()
-
+      
       if (isExpired || isDefaultPlan) {
         setShowSubscribeModal(true)
         return

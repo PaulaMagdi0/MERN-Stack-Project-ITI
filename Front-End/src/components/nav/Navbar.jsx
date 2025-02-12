@@ -428,7 +428,7 @@ function Navbar() {
                     <Avatar 
                       key={avatarKey}
                       alt={user.username} 
-                      src={`${user.avatar}?${avatarKey}`} // Cache busting
+                      src={`${user.image}?${avatarKey}`} // Cache busting
                       onError={handleImageError}
                       sx={{ 
                         width: 40, 
