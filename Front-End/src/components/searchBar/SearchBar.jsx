@@ -14,10 +14,12 @@ import {
   Typography,
   IconButton,
   Collapse,
-  Grow
+  Grow,
+  Avatar
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 
 const SearchBar = () => {
   const [query, setQuery] = useState('');
@@ -30,7 +32,6 @@ const SearchBar = () => {
   const { searchResults, searchLoading, error } = useSelector((state) => state.book || {});
   const searchContainerRef = useRef(null);
 
-  // Debounce function remains the same
   const debouncedSearch = useCallback(
     debounce((searchQuery) => {
       if (searchQuery.length > 2) {
@@ -70,7 +71,6 @@ const SearchBar = () => {
 
   return (
     <div ref={searchContainerRef} style={{ position: 'relative', width: 'auto' }}>
-      {/* Search Toggle Button */}
       <IconButton 
         onClick={handleToggleSearch}
         sx={{ 
@@ -85,7 +85,6 @@ const SearchBar = () => {
         <SearchIcon />
       </IconButton>
 
-      {/* Search Input Field */}
       <Collapse 
         in={isExpanded}
         orientation="horizontal"
@@ -99,7 +98,6 @@ const SearchBar = () => {
           value={query}
           onChange={handleSearchChange}
           onFocus={() => setIsFocused(true)}
-          // onBlur={() => setIsFocused(false)}
           placeholder="Search books..."
           variant="outlined"
           size="small"
@@ -133,13 +131,12 @@ const SearchBar = () => {
         />
       </Collapse>
 
-      {/* Search Results Dropdown */}
       <Grow in={query.length > 0 && isExpanded}>
         <Paper
           sx={{
             position: 'absolute',
             width: 300,
-            maxHeight: 300,
+            maxHeight: 400,
             overflow: 'auto',
             zIndex: 9999,
             mt: 1,
@@ -147,7 +144,7 @@ const SearchBar = () => {
             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         >
-          <List dense>
+          <List sx={{ p: 1 }}>
             {error ? (
               <ListItem>
                 <ListItemText 
@@ -166,22 +163,70 @@ const SearchBar = () => {
                   key={book._id}
                   onClick={() => handleBookSelect(book._id)}
                   sx={{ 
-                    '&:hover': { bgcolor: 'action.hover' },
-                    transition: 'background-color 0.2s ease'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    p: 1,
+                    borderRadius: 1,
+                    cursor: 'pointer',
+                    '&:hover': { 
+                      bgcolor: 'action.hover',
+                    },
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  <ListItemText
-                    primary={<Typography noWrap>{book.title || 'Untitled Book'}</Typography>}
-                    secondary={<Typography noWrap>{book.author_id?.name || 'Unknown Author'}</Typography>}
-                    sx={{ transition: 'opacity 0.2s ease' }}
-                  />
+                  {book.image ? (
+                    <Avatar 
+                      src={book.image}
+                      variant="rounded"
+                      sx={{ 
+                        width: 48,
+                        height: 48,
+                        flexShrink: 0,
+                        bgcolor: 'grey.100'
+                      }}
+                    />
+                  ) : (
+                    <Avatar 
+                      variant="rounded"
+                      sx={{ 
+                        width: 48,
+                        height: 48,
+                        flexShrink: 0,
+                        bgcolor: 'primary.light'
+                      }}
+                    >
+                      <MenuBookIcon />
+                    </Avatar>
+                  )}
+                  <div style={{ minWidth: 0 }}>
+                    <Typography 
+                      variant="body1"
+                      noWrap
+                      sx={{ 
+                        fontWeight: 500,
+                        color: 'text.primary'
+                      }}
+                    >
+                      {book.title || 'Untitled Book'}
+                    </Typography>
+                    <Typography 
+                      variant="body2"
+                      noWrap
+                      sx={{ 
+                        color: 'text.secondary'
+                      }}
+                    >
+                      {book.author_id?.name || 'Unknown Author'}
+                    </Typography>
+                  </div>
                 </ListItem>
               ))
-            ) : (
+            ) : query.length > 2 ? (
               <ListItem>
                 <ListItemText primary="No books found" />
               </ListItem>
-            )}
+            ) : null}
           </List>
         </Paper>
       </Grow>
