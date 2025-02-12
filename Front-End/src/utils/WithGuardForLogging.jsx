@@ -25,21 +25,21 @@ const WithGuardForLogging = ({ children }) => {
         }
         
     if (!user) {
-        setTimeout(() => setLoading(false), 5000); // Simulating a loading state
+        setTimeout(() => setLoading(false), 4000); // Simulating a loading state
         toast.warning("⚠️ You must sign in or sign up to access this page!", {
-        autoClose: 3000, // Show warning for 3 seconds
+        autoClose: 2000, // Show warning for 3 seconds
         position: "top-center",
       });
 
       setTimeout(() => {
         navigate("/");
-      }, 4000); // Redirect to home after 4 seconds
+      }, 3000); // Redirect to home after 4 seconds
     }
   }, [navigate, user]);
 
   return (
     <>
-      <ToastContainer autoClose={3000} hideProgressBar closeOnClick draggable={false} />
+      <ToastContainer autoClose={2000} hideProgressBar closeOnClick draggable={false} />
       
       {loading ? (
         <div className="d-flex align-items-center justify-content-center vh-100">
