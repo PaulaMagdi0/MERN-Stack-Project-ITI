@@ -499,7 +499,7 @@ exports.forgetPassword = async (req, res) => {
   const resetToken = new ResetToken({ owner: user._id, token: randomBytes });
 
   await resetToken.save();
-  const resetUrl = `http://localhost:5173/reset-password?token=${randomBytes}&id=${user._id}`;
+  const resetUrl = `https://bookhub-psi.vercel.app/reset-password?token=${randomBytes}&id=${user._id}`;
 
   mailTransport().sendMail({
     from: "security@email.com",

@@ -36,7 +36,7 @@ if (!MONGO_URI) {
 
 // ✅ CORS Configuration
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: ["https://bookhub-psi.vercel.app/"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
