@@ -62,12 +62,13 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import ventagbagk from "../../assets/header.jpeg";
 import { useEffect, useState } from "react";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function Books() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/bookgenre")
+    fetch(`${API_URL}/bookgenre`)
       .then((res) => res.json())
       .then((data) => {
         const filteredBooks = data.books.filter((book) => book.totalRating > 2);

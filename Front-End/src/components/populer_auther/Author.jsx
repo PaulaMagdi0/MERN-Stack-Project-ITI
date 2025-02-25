@@ -58,12 +58,13 @@
 
 import { useEffect, useState } from "react";
 import "./Author.css";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function AuthorsCarousel() {
   const [authors, setAuthors] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/authorgenre")
+    fetch(`${API_URL}/authorgenre`)
       .then((res) => res.json())
       .then((data) => {
         const filteredAuthors = data.authors.filter((author) =>

@@ -8,6 +8,7 @@ import Horror from "../../assets/Horror.jpg";
 import romance from "../../assets/romance.jpg";
 import backgroundImage from "../../assets/62d8173d370eed03f53bf8a914bbc63b-removebg-preview.png";
 import { useEffect, useState } from "react";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const categories = [
   { id: 1, name: "Fantasy", img: Fiction },
@@ -23,7 +24,7 @@ function Categories() {
   const [genres, setGenres] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/genre")
+    fetch(`${API_URL}/genre`)
       .then((res) => res.json())
       .then((data) => {
         const filteredGenres = data.filter((genre) => genre._id);

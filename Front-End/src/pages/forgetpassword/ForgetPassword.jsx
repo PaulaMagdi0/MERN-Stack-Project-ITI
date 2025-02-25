@@ -2,6 +2,7 @@ import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import styles from "./ForgetPassword.module.css";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ForgetPassword = () => {
     return (
@@ -19,7 +20,7 @@ const ForgetPassword = () => {
             })}
             onSubmit={async (values, { setSubmitting, resetForm }) => {
               try {
-                const response = await fetch("http://localhost:5000/users/forget-password", {
+                const response = await fetch(`${API_URL}/users/forget-password`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",

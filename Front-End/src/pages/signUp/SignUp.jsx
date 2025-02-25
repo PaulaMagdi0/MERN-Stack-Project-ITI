@@ -5,6 +5,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Modal, Button, Spinner } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const initialValues = {
     username: "",
@@ -34,7 +35,7 @@ function SignUp() {
 
         setIsVerifying(true);
         try {
-            const response = await axios.post("http://localhost:5000/users/verify-email", {
+            const response = await axios.post(`${API_URL}/users/verify-email`, {
                 tempUserId,
                 otp,
             });
@@ -58,7 +59,7 @@ function SignUp() {
     const handleResendOTP = async () => {
         try {
             setIsVerifying(true);
-            const response = await axios.post("http://localhost:5000/users/resend-otp", {
+            const response = await axios.post(`${API_URL}/users/resend-otp`, {
                 tempUserId
             });
             setVerificationMessage("New OTP sent successfully!");
@@ -80,7 +81,7 @@ function SignUp() {
                     onSubmit={async (values, { setSubmitting, setErrors }) => {
                         setIsSubmitting(true);
                         try {
-                            const response = await axios.post("http://localhost:5000/users/sign-up", values);
+                            const response = await axios.post(`${API_URL}/users/sign-up`, values);
                             setTempUserId(response.data.tempUserId);
                             setShowOTPModal(true);
                         } catch (error) {
