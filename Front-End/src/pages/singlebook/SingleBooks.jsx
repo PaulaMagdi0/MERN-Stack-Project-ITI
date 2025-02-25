@@ -179,7 +179,8 @@ const SingleBook = () => {
     // Handle "Read Now" click with subscription validation
   const handleReadNow = () => {
     if (!user) {
-      navigate("/login")
+      alert("Sign In First to Be to able Access Book")
+      navigate("/signin")
       return
     }
     
