@@ -312,8 +312,7 @@ exports.signin = async (req, res) => {
       sameSite: "none",
     };
     
-    
-
+  
     if (rememberMe) {
       cookieOptions["maxAge"] = 7 * 24 * 60 * 60 * 1000 // 7 days
     }
@@ -475,9 +474,18 @@ exports.UpdateUserInfo = async (req, res) => {
 // -------------------
 // Logout Controller
 // -------------------
-exports.logout = (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({ message: "Logged out successfully" });
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error." });
+  }
 };
 
 // -------------------
