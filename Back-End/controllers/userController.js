@@ -308,9 +308,10 @@ exports.signin = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", 
-      sameSite: "none", // ✅ Allows cross-origin cookies
-    }
+      secure: process.env.NODE_ENV === "production" ? true : false, // Set false locally
+      sameSite: "none",
+    };
+    
     
 
     if (rememberMe) {

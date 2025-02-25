@@ -11,7 +11,7 @@ export const signIn = createAsyncThunk(
       const { password, username, RememberMe } = values;
       const response = await fetch(`${API_URL}/users/sign-in`, {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
