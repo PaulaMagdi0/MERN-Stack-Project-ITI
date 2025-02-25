@@ -46,12 +46,18 @@ if (!MONGO_URI) {
 
   // Without Middleware to set CORS headers
   app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
-    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow cookies
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader("Access-Control-Allow-Origin", "https://bookhub-psi.vercel.app"); // No trailing slash
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200); // Handle preflight requests
+    }
+    
     next();
-  })
+});
+
 // ✅ Stripe Webhook (Raw Body Parser) - MUST BE BEFORE JSON Parsing
 
 // ✅ JSON & URL-Encoded Body Parsers
