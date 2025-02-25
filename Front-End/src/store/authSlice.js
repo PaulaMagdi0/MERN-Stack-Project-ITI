@@ -8,12 +8,10 @@ export const signIn = createAsyncThunk(
   "auth/signIn",
   async (values, { rejectWithValue }) => {
     try {
-      // Destructure values. If you add a "RememberMe" field in your form,
-      // make sure it is included in the initialValues and sent here.
-      const { username, password, RememberMe } = values;
+      const { password, username, RememberMe } = values;
       const response = await fetch(`${API_URL}/users/sign-in`, {
         method: "POST",
-        credentials: "include", // send cookies if needed
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
@@ -26,18 +24,10 @@ export const signIn = createAsyncThunk(
         return rejectWithValue(data.message || "Sign in failed");
       }
 
-      // Optionally store the token and user data
-      if (RememberMe) {
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("userData", JSON.stringify(data.user));
-      } else {
-        sessionStorage.setItem("authToken", data.token);
-        sessionStorage.setItem("userData", JSON.stringify(data.user));
-      }
-
+      // Ensure the response contains both user data and token
       return {
         user: data.user,
-        token: data.token,
+        token: data.token
       };
     } catch (error) {
       return rejectWithValue(error.message || "Something went wrong.");
