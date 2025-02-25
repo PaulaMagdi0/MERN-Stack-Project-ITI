@@ -211,7 +211,7 @@ import SearchBar from "../searchBar/SearchBar";
 import { getUserInfo, logoutUser } from "../../store/authSlice";
 import { fetchWishlist , clearWishlist} from "../../store/wishListSlice"; // Import wishlist action
 import "./NavBar.css";
-
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 const pages = ["Home", "Books", "About", "Contact"];
 const userSettings = ["Profile", "Logout"];
 const adminSettings = ["Profile", "Dashboard", "Logout"];
@@ -301,7 +301,7 @@ function Navbar() {
         <Toolbar disableGutters sx={{ py: 1 }}>
           {/* Logo Section */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: { xs: 1, md: 0 } }}>
-            <AdbIcon sx={{ 
+            <AutoStoriesIcon sx={{ 
               display: { xs: "none", md: "flex" }, 
               mr: 1, 
               color: "#F8E4A1",
