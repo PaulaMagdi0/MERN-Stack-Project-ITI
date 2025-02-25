@@ -35,15 +35,23 @@ if (!MONGO_URI) {
 }
 
 // ✅ CORS Configuration
-const corsOptions = {
-  origin: ["https://bookhub-psi.vercel.app/"],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: ["https://bookhub-psi.vercel.app/"],
+//   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   credentials: true,
+//   optionsSuccessStatus: 200,
+// };
+// app.use(cors(corsOptions));
 
+  // Without Middleware to set CORS headers
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow cookies
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+  })
 // ✅ Stripe Webhook (Raw Body Parser) - MUST BE BEFORE JSON Parsing
 
 // ✅ JSON & URL-Encoded Body Parsers
@@ -82,14 +90,7 @@ mongoose
   });
 
 
-  // Without Middleware to set CORS headers
-  // app.use((req, res, next) => {
-  //   res.setHeader('Access-Control-Allow-Origin', 'http://your-frontend-domain.com'); // Your frontend URL
-  //   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow cookies
-  //   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  //   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  //   next();
-  // });
+;
   
   
   // Database Connection
