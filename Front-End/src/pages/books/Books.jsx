@@ -10,7 +10,6 @@ import "./Books.css";
 
 function Books() {
   const [genre, setGenre] = useState("all");
-  console.log("🚀 ~ Books ~ genre:", genre);
   
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
