@@ -1,19 +1,30 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import Card from '../../components/card/Card';
-import { Container, CircularProgress, Alert, Button, Typography, Grid2 } from '@mui/material';
-import { fetchBooks, getAllGenres, getBooksByGenre } from '../../store/bookSlice';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import Card from "../../components/card/Card";
+import {
+  Container,
+  CircularProgress,
+  Alert,
+  Button,
+  Typography,
+  Grid2,
+} from "@mui/material";
+import {
+  fetchBooks,
+  getAllGenres,
+  getBooksByGenre,
+} from "../../store/bookSlice";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import "./Books.css";
 
 function Books() {
   const [genre, setGenre] = useState("all");
-  
+
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const {
     selectedGenre,
     books,
@@ -43,7 +54,7 @@ function Books() {
 
   const handlePageChange = (newPage) => {
     const validPage = genre !== "all" ? BooksGenre.totalPages : totalPages;
-    
+
     // Ensure page stays within valid range
     if (newPage >= 1 && newPage <= validPage) {
       setSearchParams({ page: newPage });
@@ -57,13 +68,14 @@ function Books() {
   // Determine which books to show:
   const booksToShow =
     genre && genre !== "all"
-      ? (BooksGenre && BooksGenre.books && BooksGenre.books.length > 0
-          ? BooksGenre.books
-          : [])
+      ? BooksGenre && BooksGenre.books && BooksGenre.books.length > 0
+        ? BooksGenre.books
+        : []
       : books;
 
   // Use BooksGenre.totalPages when a genre is selected, otherwise use default totalPages
-  const currentTotalPages = genre !== "all" ? BooksGenre.totalPages : totalPages;
+  const currentTotalPages =
+    genre !== "all" ? BooksGenre.totalPages : totalPages;
 
   // Generate an array of page numbers to show
   const generatePageNumbers = (currentPage, totalPages) => {
@@ -131,11 +143,18 @@ function Books() {
                 },
               }}
             >
-              <MenuItem value="all" sx={{ fontWeight: "500", color: "#5C4033" }}>
+              <MenuItem
+                value="all"
+                sx={{ fontWeight: "500", color: "#5C4033" }}
+              >
                 All Genres
               </MenuItem>
               {selectedGenre.map((genreItem) => (
-                <MenuItem key={genreItem._id} value={genreItem._id} sx={{ fontWeight: "500", color: "#5C4033" }}>
+                <MenuItem
+                  key={genreItem._id}
+                  value={genreItem._id}
+                  sx={{ fontWeight: "500", color: "#5C4033" }}
+                >
                   {genreItem.name}
                 </MenuItem>
               ))}
@@ -179,7 +198,14 @@ function Books() {
         </Grid2>
 
         {booksToShow.length > 0 && !loading && (
-          <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginTop: "2rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "1rem",
+              marginTop: "2rem",
+            }}
+          >
             <Button
               variant="contained"
               onClick={() => handlePageChange(1)}
