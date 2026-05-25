@@ -1,112 +1,101 @@
-# GoodReads Application
+<div align="center">
 
-Welcome to the GoodReads Application, a project developed using the MERN stack (MongoDB, Express.js, React.js, Node.js). This application emulates the core functionalities of the popular GoodReads platform, allowing users to explore, review, and manage books.
+# 📚 GoodReads — MERN Edition
 
-## Table of Contents
+### A full-stack book discovery platform with reviews, ratings, and personal reading lists. My deep-dive into the MERN stack at ITI.
 
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
+<p>
+  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white" />
+</p>
 
-## Features
+</div>
 
-- **User Authentication**: Secure user registration and login.
-- **Book Management**: Add, edit, and delete book entries.
-- **Review System**: Users can write, edit, and delete reviews for books.
-- **Search Functionality**: Search for books by title, author, or genre.
-- **Responsive Design**: Optimized for various device sizes.
+---
 
-## Installation
+## 🎯 What It Does
 
-To set up the project locally, follow these steps:
+A GoodReads-inspired book platform built end-to-end with the MERN stack:
 
-1. **Clone the Repository**:
+- 🔐 User authentication and personal profiles
+- 📖 Browse books by title, author, or genre
+- ⭐ Write, edit, and delete reviews
+- 📚 Manage personal reading lists
+- 📱 Responsive across devices
 
-   ```bash
-   git clone https://github.com/PaulaMagdi0/MERN-Stack-Project-ITI.git
-   cd MERN-Stack-Project-ITI
-   ```
+<!-- Add a screenshot or GIF here:  ![Screenshot](docs/screenshot.png) -->
 
-2. **Backend Setup**:
+## 🚀 Features
 
-   - Navigate to the `Back-End` directory:
+- **User Authentication** — Secure registration and login flows
+- **Book Management** — Add, edit, and delete book entries
+- **Review System** — Users write, edit, and delete reviews for books
+- **Search** — Find books by title, author, or genre
+- **Responsive Design** — Optimized for desktop, tablet, mobile
 
-     ```bash
-     cd Back-End
-     ```
+## 🛠️ Tech Stack
 
-   - Install dependencies:
+| Layer | Stack |
+|---|---|
+| **Frontend** | React 18 |
+| **Backend** | Node.js · Express |
+| **Database** | MongoDB |
+| **Auth** | JSON Web Tokens (JWT) |
 
-     ```bash
-     npm install
-     ```
+## 🧩 Database Design
 
-   - Start the backend server:
+The repo includes Entity-Relationship Diagrams (`Erd.drawio`, `Erd.svg`) documenting the data model — books, users, reviews, and reading lists with their relationships.
 
-     ```bash
-     npm start
-     ```
+## 🧠 What I Learned
 
-     The backend server will run on port 5000.
+Building this end-to-end was my deep dive into the MERN stack at ITI:
 
-3. **Frontend Setup**:
+- **MongoDB schema design** — modeling books, users, reviews, and reading lists with the right balance of references vs embedded documents
+- **Express middleware patterns** — auth middleware, error handling, request validation
+- **React state management** — keeping reviews and book lists in sync as users interact across pages
+- **End-to-end auth flow** — registration, login, JWT issuance, protected routes on both frontend and backend
+- **Separation of concerns** — keeping the `Front-End/` and `Back-End/` cleanly decoupled, communicating only through a documented REST API
 
-   - Open a new terminal and navigate to the `Front-End` directory:
+## 🧑‍💻 Getting Started
 
-     ```bash
-     cd Front-End
-     ```
+### Prerequisites
+- Node.js 18+ and npm
+- MongoDB (local or Atlas)
 
-   - Install dependencies:
+### Backend setup
+```bash
+cd Back-End
+npm install
+npm start
+# Backend runs on port 5000
+```
 
-     ```bash
-     npm install
-     ```
+### Frontend setup
+```bash
+cd Front-End
+npm install
+npm run dev
+```
 
-   - Start the frontend application:
+Once both are running, open `http://localhost:5173` (or the printed Vite URL), register a new account, and start exploring.
 
-     ```bash
-     npm run dev
-     ```
+## 📂 Project Structure
 
-     If prompted, accept to run on another port (e.g., 5000).
+```
+├── Back-End/      # Express + MongoDB API
+├── Front-End/     # React frontend
+├── Erd.drawio     # ERD source
+├── Erd.svg        # ERD rendered
+└── proj.sh        # Setup helper script
+```
 
-## Usage
+## 📄 License
 
-Once both the backend and frontend servers are running:
+MIT — ITI bootcamp project. See [LICENSE.md](LICENSE.md).
 
-- Access the application by navigating to `http://localhost:5000` in your browser.
-- Register a new account or log in with existing credentials.
-- Explore the library, add new books, write reviews, and manage your reading list.
+## 📫 Contact
 
-## Project Structure
-
-The repository is organized as follows:
-
-- `Back-End/`: Contains the Express.js server, MongoDB models, and API routes.
-- `Front-End/`: Contains the React.js application, components, and styles.
-- `Erd.drawio` & `Erd.svg`: Entity-Relationship Diagram of the database schema.
-- `.gitignore`: Specifies files and directories to be ignored by Git.
-- `LICENSE.md`: The project's license information.
-- `proj.sh`: Shell script related to the project setup or deployment.
-
-## Contributing
-
-Contributions are welcome! If you'd like to contribute:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Commit your changes (`git commit -m 'Add YourFeature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Open a Pull Request.
-
-Please ensure your code follows the project's coding standards and includes relevant tests.
-
-## License
-
-Project For ITI
-This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.
-#ITI Project
+Built by **Paula Magdy** — [GitHub](https://github.com/PaulaMagdi0) · [LinkedIn](https://www.linkedin.com/in/paula-magdy/) · [Portfolio](https://paulamagdy.framer.website/)
